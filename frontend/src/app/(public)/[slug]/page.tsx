@@ -5,7 +5,7 @@ import { EmptyState } from "@/components/feedback";
 import { getPublicRouteBySlug, publicRoutes } from "@/design-system/routes";
 import styles from "../shell-page.module.css";
 
-export function generateStaticParams() { return publicRoutes.filter((route) => route.slug).map((route) => ({ slug: route.slug })); }
+export function generateStaticParams() { return publicRoutes.filter((route) => route.slug && route.state === "preparing").map((route) => ({ slug: route.slug })); }
 
 type PreparingPageProps = { params: Promise<{ slug: string }> };
 

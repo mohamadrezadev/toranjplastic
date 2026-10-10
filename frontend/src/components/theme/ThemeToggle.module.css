@@ -1,0 +1,21 @@
+.toggle {
+  width: var(--control-min-height);
+  height: var(--control-min-height);
+  flex: 0 0 var(--control-min-height);
+  display: inline-grid;
+  place-items: center;
+  color: var(--color-brand-primary);
+  background: var(--color-surface-card);
+  border: var(--border-width) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color var(--motion-fast) var(--motion-easing), background-color var(--motion-fast) var(--motion-easing), border-color var(--motion-fast) var(--motion-easing);
+}
+
+.toggle:hover {
+  color: var(--color-brand-action);
+  background: var(--color-brand-action-soft);
+  border-color: var(--color-border-strong);
+}
+
+.icon { width: 1.25rem; height: 1.25rem; }

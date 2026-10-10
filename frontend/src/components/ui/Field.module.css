@@ -10,15 +10,18 @@
   border: var(--border-width) solid var(--color-border-default);
   border-radius: var(--radius-sm);
 }
+.control:hover:not(:disabled) { border-color: var(--color-border-strong); }
+.control:focus-visible { border-color: var(--color-brand-action); }
 .control[aria-invalid="true"] { border-color: var(--color-status-danger); }
-.control:disabled { cursor: not-allowed; background: var(--color-surface-subtle); opacity: 0.72; }
+.control:read-only { background: var(--color-surface-raised); }
+.control:disabled { cursor: not-allowed; background: var(--color-surface-subtle); opacity: 0.68; }
 .textarea { min-height: 7rem; resize: vertical; }
 .help { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
 .error { color: var(--color-status-danger); font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); }
 .choice { min-height: var(--control-min-height); display: flex; align-items: center; gap: var(--space-3); width: fit-content; }
-.choice input { width: 1.25rem; height: 1.25rem; accent-color: var(--color-brand-industrial); }
+.choice input { width: 1.25rem; height: 1.25rem; accent-color: var(--color-brand-action); }
 .choice input:disabled + span { opacity: 0.58; }
 .switch input { appearance: none; width: 2.75rem; height: 1.5rem; padding: 0.125rem; border-radius: 999px; background: var(--color-border-default); transition: background-color var(--motion-fast) var(--motion-easing); }
 .switch input::before { content: ""; display: block; width: 1.25rem; height: 1.25rem; border-radius: 50%; background: var(--color-surface-card); box-shadow: var(--shadow-sm); transition: transform var(--motion-fast) var(--motion-easing); }
-.switch input:checked { background: var(--color-brand-industrial); }
+.switch input:checked { background: var(--color-brand-action); }
 .switch input:checked::before { transform: translateX(-1.25rem); }

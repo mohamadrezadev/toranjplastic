@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-10-10
+goal: Complete Phase 2 slice 2.2 without exposing CMS mutations or unapproved
+  content.

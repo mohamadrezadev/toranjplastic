@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { accountRoute, inquiryRoute, primaryNavigationRoutes } from "@/design-system/routes";
+import { ThemeToggle } from "@/components/theme";
 import { ActionLink } from "./ActionLink";
 import styles from "./Navigation.module.css";
 
@@ -45,6 +46,7 @@ export function MobileNavigation() {
       <div ref={drawerRef} className={styles.drawer} id="mobile-navigation" role="dialog" aria-modal="true" aria-label="فهرست اصلی">
         <div className={styles.drawerHeader}><strong>فهرست</strong><button className={styles.closeButton} type="button" aria-label="بستن فهرست" onClick={() => setOpen(false)}>×</button></div>
         <nav className={styles.drawerNav} aria-label="ناوبری موبایل"><ul className={styles.navList}>{primaryNavigationRoutes.map((route) => <li key={route.key}><Link className={styles.navLink} href={route.path} onClick={() => setOpen(false)}>{route.label}</Link></li>)}</ul></nav>
+        <div className={styles.drawerTheme}><span>پوسته نمایش</span><ThemeToggle /></div>
         <div className={styles.drawerActions}><ActionLink href={inquiryRoute.path} emphasis="primary">{inquiryRoute.label}</ActionLink><ActionLink href={accountRoute.path}>{accountRoute.label}</ActionLink></div>
       </div>
     </> : null}

@@ -15,9 +15,21 @@ describe("design-system boundaries", () => {
   it("exposes required semantic tokens and reduced-motion defaults", () => {
     const tokens = readFileSync(join(srcRoot, "design-system", "tokens.css"), "utf8");
     const globals = readFileSync(join(srcRoot, "app", "globals.css"), "utf8");
+    const rootLayout = readFileSync(join(srcRoot, "app", "layout.tsx"), "utf8");
     for (const token of ["--control-min-height", "--focus-ring", "--motion-normal", "--shadow-md", "--content-gutter"]) {
       expect(tokens).toContain(token);
     }
+    expect(tokens).toContain('--font-family-fa: "Estedad Variable"');
+    expect(tokens).toContain("--color-brand-action:");
+    expect(tokens).toContain("--color-status-warning:");
+    expect(tokens).toContain("--color-brand-industrial:");
+    expect(tokens).toContain(':root[data-theme="dark"]');
+    expect(tokens).toContain("color-scheme: dark");
+    expect(rootLayout).toContain("themeBootstrapScript");
+    expect(rootLayout).toContain('strategy="beforeInteractive"');
+    expect(rootLayout).toContain("suppressHydrationWarning");
+    expect(rootLayout).toContain('import "@fontsource-variable/estedad"');
+    expect(rootLayout).not.toMatch(/fonts\.googleapis|next\/font\/google/);
     expect(globals).toContain("prefers-reduced-motion");
     expect(globals).toContain("unicode-bidi: isolate");
   });

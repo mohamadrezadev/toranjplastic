@@ -101,6 +101,9 @@ importers:
 
   frontend:
     dependencies:
+      '@fontsource-variable/estedad':
+        specifier: ^5.3.0
+        version: 5.3.0
       next:
         specifier: 16.4.0
         version: 16.4.0(@babel/core@7.29.7)(@playwright/test@1.64.0)(@types/node@20.19.43)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -391,6 +394,9 @@ packages:
     peerDependenciesMeta:
       '@noble/hashes':
         optional: true
+
+  '@fontsource-variable/estedad@5.3.0':
+    resolution: {integrity: sha512-9x3G4AhfOKL+Ixyv2SUnoC7Q7Z/+1ks3zk8kp6/Iu28gGo1ygQNwOta4cePnwuwcmgOnkZX4DRgM5YkCjV3pFg==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -4680,6 +4686,8 @@ snapshots:
   '@exodus/bytes@1.16.0(@noble/hashes@1.8.0)':
     optionalDependencies:
       '@noble/hashes': 1.8.0
+
+  '@fontsource-variable/estedad@5.3.0': {}
 
   '@humanfs/core@0.19.2':
     dependencies:

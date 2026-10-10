@@ -23,10 +23,19 @@ export default defineConfig({
     { name: "tablet-768", use: { viewport: { width: 768, height: 1024 } } },
     { name: "desktop-1280", use: { viewport: { width: 1280, height: 800 } } },
   ],
-  webServer: {
-    command: `pnpm build && pnpm start --port ${port}`,
-    url: `http://127.0.0.1:${port}`,
-    reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
-  },
+  webServer: [
+    {
+      command: "node e2e/mock-content-server.mjs",
+      url: "http://127.0.0.1:3199/api/v1/health",
+      reuseExistingServer: !process.env.CI,
+      timeout: 30_000,
+    },
+    {
+      command: `pnpm build && pnpm start --port ${port}`,
+      url: `http://127.0.0.1:${port}`,
+      env: { BACKEND_API_URL: "http://127.0.0.1:3199/api/v1" },
+      reuseExistingServer: !process.env.CI,
+      timeout: 180_000,
+    },
+  ],
 });

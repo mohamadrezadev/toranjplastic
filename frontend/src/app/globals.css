@@ -44,14 +44,14 @@ select {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-status-info);
+  outline: 2px solid var(--color-brand-action);
   outline-offset: 3px;
   box-shadow: var(--focus-ring);
 }
 
 ::selection {
   color: var(--color-surface-card);
-  background: var(--color-brand-primary);
+  background: var(--color-brand-action);
 }
 
 [dir="ltr"],
