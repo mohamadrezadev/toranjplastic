@@ -11,7 +11,7 @@
 ## 3. Frontend foundation
 
 - [x] 3.1 Configure Persian RTL root metadata, semantic provisional design tokens, LTR data isolation, focus visibility, and reduced-motion defaults in `frontend/`.
-- [ ] 3.2 Build the responsive phase-zero foundation page and verify it at the required 360, 390, 768, and 1280 pixel widths.
+- [x] 3.2 Build the responsive phase-zero foundation page and verify it at the required 360, 390, 768, and 1280 pixel widths.
 
 ## 4. Backend foundation
 
@@ -21,4 +21,4 @@
 ## 5. Quality and verification
 
 - [x] 5.1 Add root CI for frozen install, Prisma generation, lint, typecheck, tests, and production builds.
-- [ ] 5.2 Run OpenSpec validation, Docker Compose validation, Prisma generation, and the complete root quality gate; record all tasks complete only after successful evidence.
+- [x] 5.2 Run OpenSpec validation, Docker Compose validation, Prisma generation, and the complete root quality gate; record all tasks complete only after successful evidence.

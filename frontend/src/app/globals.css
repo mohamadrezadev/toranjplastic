@@ -44,8 +44,9 @@ select {
 }
 
 :focus-visible {
-  outline: 3px solid var(--color-status-info);
+  outline: 2px solid var(--color-status-info);
   outline-offset: 3px;
+  box-shadow: var(--focus-ring);
 }
 
 ::selection {
@@ -57,6 +58,11 @@ select {
 .ltr-data {
   direction: ltr;
   unicode-bidi: isolate;
+}
+
+.content-container {
+  width: min(calc(100% - (2 * var(--content-gutter))), var(--content-max));
+  margin-inline: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,0 +1,15 @@
+.surface { min-height: 3.5rem; padding: var(--space-4); display: grid; grid-template-columns: auto 1fr; gap: var(--space-3); border: var(--border-width) solid currentColor; border-radius: var(--radius-md); }
+.icon { font-weight: var(--font-weight-bold); }
+.content { min-width: 0; }
+.title { font-weight: var(--font-weight-bold); }
+.description { margin-block-start: var(--space-1); color: var(--color-text-secondary); }
+.info { color: var(--color-status-info); background: var(--color-status-info-surface); }
+.success { color: var(--color-status-success); background: var(--color-status-success-surface); }
+.warning { color: var(--color-status-warning); background: var(--color-status-warning-surface); }
+.danger { color: var(--color-status-danger); background: var(--color-status-danger-surface); }
+.info .description, .success .description, .warning .description, .danger .description { color: var(--color-text-primary); }
+.loading { min-height: 8rem; padding: var(--space-6); display: grid; place-items: center; text-align: center; color: var(--color-text-secondary); background: var(--color-surface-subtle); border-radius: var(--radius-md); }
+.spinner { width: 1.5rem; height: 1.5rem; margin-block-end: var(--space-2); border: 0.2rem solid var(--color-border-default); border-block-start-color: var(--color-brand-industrial); border-radius: 50%; animation: spin var(--motion-normal) linear infinite; }
+.empty { padding: var(--space-8); display: grid; justify-items: start; gap: var(--space-3); background: var(--color-surface-card); border: var(--border-width) dashed var(--color-border-default); border-radius: var(--radius-lg); }
+.action { min-height: var(--control-min-height); padding-inline: var(--control-padding-inline); display: inline-flex; align-items: center; color: var(--color-surface-card); background: var(--color-brand-industrial); border-radius: var(--radius-sm); font-weight: var(--font-weight-bold); }
+@keyframes spin { to { transform: rotate(360deg); } }

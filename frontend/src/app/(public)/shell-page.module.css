@@ -1,0 +1,2 @@
+.main { min-height: 60vh; padding-block-end: var(--space-16); }
+.shell { padding-block: var(--space-8); }

@@ -1,4 +1,4 @@
-/* Toranj Design System v2 — proposed tokens pending final brand approval. */
+/* Toranj Design System v2 — provisional values pending final brand approval. */
 :root {
   --color-brand-primary: #203446;
   --color-brand-industrial: #a24b18;
@@ -14,10 +14,22 @@
   --color-status-warning: #875413;
   --color-status-danger: #a52a35;
   --color-status-info: #205f8d;
+  --color-status-success-surface: #e8f4ee;
+  --color-status-warning-surface: #fff4df;
+  --color-status-danger-surface: #fbeaec;
+  --color-status-info-surface: #e8f2f9;
   --font-family-fa: "Vazirmatn", Tahoma, Arial, sans-serif;
   --font-family-latin: Inter, Arial, sans-serif;
+  --font-size-sm: 0.875rem;
   --font-size-body: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-heading-sm: 1.5rem;
+  --font-size-heading-lg: clamp(2rem, 6vw, 3.75rem);
   --line-height-body: 1.9;
+  --line-height-heading: 1.45;
+  --font-weight-regular: 400;
+  --font-weight-medium: 600;
+  --font-weight-bold: 700;
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
@@ -31,7 +43,16 @@
   --space-12: 3rem;
   --space-16: 4rem;
   --content-max: 75rem;
+  --content-gutter: clamp(1rem, 4vw, 2rem);
   --control-min-height: 2.75rem;
+  --control-padding-inline: 1rem;
+  --border-width: 1px;
+  --shadow-sm: 0 0.25rem 1rem rgb(32 52 70 / 8%);
+  --shadow-md: 0 1rem 2.5rem rgb(32 52 70 / 14%);
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--color-status-info) 35%, transparent);
+  --motion-fast: 120ms;
+  --motion-normal: 200ms;
+  --motion-easing: ease-out;
 }
 
 [data-toranj-section="industrial"] { --section-accent: var(--color-brand-industrial); }
