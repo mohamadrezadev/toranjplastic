@@ -1,0 +1,24 @@
+{
+  "name": "toranjplastic",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Toranj Plastic specification-driven monorepo",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=24.11.0",
+    "pnpm": ">=9.15.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter frontend --filter backend dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "dev:backend": "pnpm --filter backend dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "db:generate": "pnpm --filter backend db:generate",
+    "db:migrate": "pnpm --filter backend db:migrate",
+    "db:studio": "pnpm --filter backend db:studio"
+  }
+}

@@ -1,0 +1,8 @@
+packages:
+  - frontend
+  - backend
+
+onlyBuiltDependencies:
+  - '@prisma/engines'
+  - prisma
+  - unrs-resolver

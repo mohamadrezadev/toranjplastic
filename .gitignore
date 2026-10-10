@@ -1,0 +1,17 @@
+node_modules/
+.pnpm-store/
+.codebase-memory/
+.next/
+dist/
+coverage/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+frontend/.env.local
+backend/src/generated/
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

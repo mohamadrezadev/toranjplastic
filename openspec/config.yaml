@@ -1,0 +1,26 @@
+schema: spec-driven
+
+context: |
+  Product: Toranj Plastic v1, a Persian RTL corporate catalog and inquiry platform; it is not an online store.
+  Handoff source: C:\Users\CNE1\Downloads\Toranj_Implementation_Handoff_v1_2 (PRD v1.2, 2026-10-10).
+  Stack: pnpm monorepo; Next.js + TypeScript in frontend/; NestJS + TypeScript modular monolith in backend/; PostgreSQL + Prisma.
+  UX: Persian, RTL and mobile-first. Verify at widths 360, 390, 768 and 1280.
+  Product constraints: no cart, online payment, live inventory or automatic injection pricing in v1. Never publish unverified price, capacity, inventory, lead time, certificates or technical claims.
+  Security: Customer is the default role. Enforce role and resource ownership in the backend. Internal admin notes never enter customer responses. Private pages are noindex/no-store and private data is never publicly cached or logged.
+  Approved inquiry statuses: Submitted, UnderReview, NeedMoreInfo, Quoted, Accepted, InProgress, Completed, Rejected, Cancelled.
+  Design System v2 colors and typography are provisional until brand/logo approval.
+
+rules:
+  proposal:
+    - State explicit non-goals whenever scope could be mistaken for ecommerce or an unapproved business claim.
+    - Name every affected capability in kebab-case and keep proposals concise.
+  specs:
+    - Write testable requirements with at least one Scenario per requirement.
+    - Include negative authorization/privacy scenarios when customer, admin, files, quotations or private data are involved.
+    - Keep Persian/RTL and the required viewport widths explicit for user-facing behavior.
+  design:
+    - Document API/data boundaries, security controls, test strategy, rollout and rollback where relevant.
+    - Record unresolved product decisions without inventing defaults that change business behavior.
+  tasks:
+    - Order tasks by dependency and include verification work next to the implementation it proves.
+    - Keep each checkbox independently verifiable and reference the affected workspace or artifact.
