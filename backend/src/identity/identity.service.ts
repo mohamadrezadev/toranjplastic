@@ -3,6 +3,7 @@ import type { Response } from 'express';
 import { loadEnvironment } from '../config/environment.js';
 import type { User } from '../generated/prisma/client.js';
 import { PrismaService } from '../database/prisma.service.js';
+import { recordAuditEvent } from '../audit/audit.js';
 import { digestToken, hashPassword, normalizeIranianMobile, randomToken, readCookie, verifyPassword } from './identity.security.js';
 import type { AuthenticatedRequest, PublicAccount } from './identity.types.js';
 import type { RegisterDto } from './dto/register.dto.js';
@@ -113,7 +114,7 @@ export class IdentityService {
       const user = existing
         ? await transaction.user.update({ where: { id: existing.id }, data: { role: 'ADMIN', status: 'ACTIVE', displayName: displayName.trim(), password: { upsert: { create: { passwordHash }, update: { passwordHash } } } } })
         : await transaction.user.create({ data: { mobile, displayName: displayName.trim(), role: 'ADMIN', password: { create: { passwordHash } } } });
-      await transaction.securityAuditEvent.create({ data: { action: 'INITIAL_ADMIN_BOOTSTRAPPED', userId: user.id, metadata: { source: 'operator-command' } } });
+      await recordAuditEvent(transaction, 'INITIAL_ADMIN_BOOTSTRAPPED', user.id, { source: 'operator-command' });
       return { id: user.id };
     });
   }

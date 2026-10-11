@@ -22,3 +22,13 @@ export class AdminGuard implements CanActivate {
     return true;
   }
 }
+
+@Injectable()
+export class CsrfGuard implements CanActivate {
+  constructor(private readonly identity: IdentityService) {}
+  canActivate(context: ExecutionContext) {
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    this.identity.assertCsrf(request);
+    return true;
+  }
+}
