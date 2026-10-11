@@ -1,7 +1,7 @@
 ## 1. Characterization and Shared Boundaries
 
 - [ ] 1.1 Expand backend admin-content unit tests to characterize all six resources, idempotent publish/archive auditing, unique-slug translation, and current public response contracts before moving production code.
-- [ ] 1.2 Move stored image and specification normalization into a neutral `content-shared` boundary, update public/admin consumers, and prove unchanged mappings with existing mapper and repository tests.
+- [x] 1.2 Move stored image and specification normalization into a neutral `content-shared` boundary, update public/admin consumers, and prove unchanged mappings with existing mapper and repository tests.
 - [ ] 1.3 Split the aggregate admin-content types and repository interface into shared paging/lifecycle types plus explicit resource contracts without changing exported DTO shapes.
 
 ## 2. Atomic Mutation Infrastructure

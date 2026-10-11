@@ -35,6 +35,22 @@ export default async function AdminPage() {
             <h2>محصولات</h2>
             <p>ایجاد، ویرایش، انتشار و آرشیو محصولات کاتالوگ.</p>
           </Link>
+          <Link href="/admin/services" className={styles.navCard}>
+            <h2>خدمات تزریق</h2>
+            <p>ایجاد، ویرایش، انتشار و آرشیو خدمات تزریق پلاستیک.</p>
+          </Link>
+          <Link href="/admin/materials" className={styles.navCard}>
+            <h2>مواد اولیه</h2>
+            <p>ایجاد، ویرایش، انتشار و آرشیو مواد اولیه.</p>
+          </Link>
+          <Link href="/admin/articles" className={styles.navCard}>
+            <h2>مقالات</h2>
+            <p>ایجاد، ویرایش، انتشار و آرشیو مقالات.</p>
+          </Link>
+          <Link href="/admin/pages" className={styles.navCard}>
+            <h2>صفحات ثابت</h2>
+            <p>ایجاد، ویرایش، انتشار و آرشیو صفحات ثابت سایت.</p>
+          </Link>
         </section>
       </div>
     </main>

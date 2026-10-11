@@ -1,4 +1,4 @@
-import { AdminContentError, type CategoryInput, type ProductInput } from "@/lib/admin-content";
+import { AdminContentError, type ArticleInput, type CategoryInput, type InjectionServiceInput, type ManagedPageInput, type MaterialInput, type ProductInput } from "@/lib/admin-content";
 import type { PublicImage, PublicSpecification } from "@/lib/public-content";
 
 const IMAGE_ROWS = 6;
@@ -65,6 +65,62 @@ export function productInputFromForm(form: FormData): ProductInput {
     images: imageRows(form),
     specifications: specificationRows(form),
     featured: form.get("featured") === "on",
+    metaTitle: optionalText(form, "metaTitle"),
+    metaDescription: optionalText(form, "metaDescription"),
+  };
+}
+
+export function injectionServiceInputFromForm(form: FormData): InjectionServiceInput {
+  return {
+    name: text(form, "name"),
+    slug: text(form, "slug"),
+    summary: optionalText(form, "summary"),
+    description: optionalText(form, "description"),
+    images: imageRows(form),
+    specifications: specificationRows(form),
+    ctaLabel: optionalText(form, "ctaLabel"),
+    ctaHref: optionalText(form, "ctaHref"),
+    metaTitle: optionalText(form, "metaTitle"),
+    metaDescription: optionalText(form, "metaDescription"),
+  };
+}
+
+export function materialInputFromForm(form: FormData): MaterialInput {
+  return {
+    name: text(form, "name"),
+    slug: text(form, "slug"),
+    family: optionalText(form, "family"),
+    grade: optionalText(form, "grade"),
+    manufacturer: optionalText(form, "manufacturer"),
+    summary: optionalText(form, "summary"),
+    description: optionalText(form, "description"),
+    images: imageRows(form),
+    specifications: specificationRows(form),
+    inquiryAvailable: form.get("inquiryAvailable") === "on",
+    metaTitle: optionalText(form, "metaTitle"),
+    metaDescription: optionalText(form, "metaDescription"),
+  };
+}
+
+export function articleInputFromForm(form: FormData): ArticleInput {
+  return {
+    title: text(form, "title"),
+    slug: text(form, "slug"),
+    summary: optionalText(form, "summary"),
+    body: text(form, "body"),
+    featuredImage: singleImage(form, "featuredImage"),
+    metaTitle: optionalText(form, "metaTitle"),
+    metaDescription: optionalText(form, "metaDescription"),
+  };
+}
+
+export function managedPageInputFromForm(form: FormData): ManagedPageInput {
+  return {
+    title: text(form, "title"),
+    slug: text(form, "slug"),
+    summary: optionalText(form, "summary"),
+    body: text(form, "body"),
+    images: imageRows(form),
     metaTitle: optionalText(form, "metaTitle"),
     metaDescription: optionalText(form, "metaDescription"),
   };

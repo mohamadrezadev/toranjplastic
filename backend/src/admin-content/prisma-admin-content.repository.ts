@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { ContentStatus, Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../database/prisma.service.js';
-import { normalizeImage, normalizeImages, normalizeSpecifications } from '../content/public-content.mapper.js';
+import { normalizeImage, normalizeImages, normalizeSpecifications } from '../content-shared/stored-content.js';
 import type { AdminContentRepository } from './admin-content.repository.js';
 import type {
   AdminArticle,
@@ -133,6 +133,11 @@ type RawInjectionService = Prisma.InjectionServiceGetPayload<{ select: typeof in
 type RawMaterial = Prisma.MaterialGetPayload<{ select: typeof materialSelect }>;
 type RawArticle = Prisma.ArticleGetPayload<{ select: typeof articleSelect }>;
 type RawManagedPage = Prisma.ManagedPageGetPayload<{ select: typeof managedPageSelect }>;
+
+export type AdminContentPrismaClient = Pick<
+  Prisma.TransactionClient,
+  'category' | 'product' | 'injectionService' | 'material' | 'article' | 'managedPage' | 'securityAuditEvent'
+>;
 
 function mapAdminCategory(row: RawCategory): AdminCategory {
   return {
@@ -279,11 +284,11 @@ async function handleMissing<T>(operation: Promise<T>): Promise<T | null> {
 
 @Injectable()
 export class PrismaAdminContentRepository implements AdminContentRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prisma: AdminContentPrismaClient) {}
 
   async listCategories(request: AdminListQuery): Promise<PageResult<AdminCategory>> {
     const where: Prisma.CategoryWhereInput = request.status ? { status: request.status } : {};
-    const [total, rows] = await this.prisma.$transaction([
+    const [total, rows] = await Promise.all([
       this.prisma.category.count({ where }),
       this.prisma.category.findMany({ where, ...windowFor(request), orderBy: [{ createdAt: 'desc' }, { id: 'asc' }], select: categorySelect }),
     ]);
@@ -343,7 +348,7 @@ export class PrismaAdminContentRepository implements AdminContentRepository {
       ...(request.status ? { status: request.status } : {}),
       ...(request.featured === undefined ? {} : { featured: request.featured }),
     };
-    const [total, rows] = await this.prisma.$transaction([
+    const [total, rows] = await Promise.all([
       this.prisma.product.count({ where }),
       this.prisma.product.findMany({ where, ...windowFor(request), orderBy: [{ createdAt: 'desc' }, { id: 'asc' }], select: productSelect }),
     ]);
@@ -408,7 +413,7 @@ export class PrismaAdminContentRepository implements AdminContentRepository {
 
   async listInjectionServices(request: AdminListQuery): Promise<PageResult<AdminInjectionService>> {
     const where: Prisma.InjectionServiceWhereInput = request.status ? { status: request.status } : {};
-    const [total, rows] = await this.prisma.$transaction([
+    const [total, rows] = await Promise.all([
       this.prisma.injectionService.count({ where }),
       this.prisma.injectionService.findMany({ where, ...windowFor(request), orderBy: [{ createdAt: 'desc' }, { id: 'asc' }], select: injectionServiceSelect }),
     ]);
@@ -473,7 +478,7 @@ export class PrismaAdminContentRepository implements AdminContentRepository {
 
   async listMaterials(request: AdminListQuery): Promise<PageResult<AdminMaterial>> {
     const where: Prisma.MaterialWhereInput = request.status ? { status: request.status } : {};
-    const [total, rows] = await this.prisma.$transaction([
+    const [total, rows] = await Promise.all([
       this.prisma.material.count({ where }),
       this.prisma.material.findMany({ where, ...windowFor(request), orderBy: [{ createdAt: 'desc' }, { id: 'asc' }], select: materialSelect }),
     ]);
@@ -542,7 +547,7 @@ export class PrismaAdminContentRepository implements AdminContentRepository {
 
   async listArticles(request: AdminListQuery): Promise<PageResult<AdminArticle>> {
     const where: Prisma.ArticleWhereInput = request.status ? { status: request.status } : {};
-    const [total, rows] = await this.prisma.$transaction([
+    const [total, rows] = await Promise.all([
       this.prisma.article.count({ where }),
       this.prisma.article.findMany({ where, ...windowFor(request), orderBy: [{ createdAt: 'desc' }, { id: 'asc' }], select: articleSelect }),
     ]);
@@ -601,7 +606,7 @@ export class PrismaAdminContentRepository implements AdminContentRepository {
 
   async listManagedPages(request: AdminListQuery): Promise<PageResult<AdminManagedPage>> {
     const where: Prisma.ManagedPageWhereInput = request.status ? { status: request.status } : {};
-    const [total, rows] = await this.prisma.$transaction([
+    const [total, rows] = await Promise.all([
       this.prisma.managedPage.count({ where }),
       this.prisma.managedPage.findMany({ where, ...windowFor(request), orderBy: [{ createdAt: 'desc' }, { id: 'asc' }], select: managedPageSelect }),
     ]);

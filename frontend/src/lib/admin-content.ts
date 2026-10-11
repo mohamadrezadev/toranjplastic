@@ -72,6 +72,98 @@ export interface ProductInput {
   metaDescription?: string | null;
 }
 
+export interface AdminInjectionService extends AdminLifecycle, AdminSeo {
+  name: string;
+  slug: string;
+  summary: string | null;
+  description: string | null;
+  images: PublicImage[];
+  specifications: PublicSpecification[];
+  ctaLabel: string | null;
+  ctaHref: string | null;
+}
+
+export interface AdminMaterial extends AdminLifecycle, AdminSeo {
+  name: string;
+  slug: string;
+  family: string | null;
+  grade: string | null;
+  manufacturer: string | null;
+  summary: string | null;
+  description: string | null;
+  images: PublicImage[];
+  specifications: PublicSpecification[];
+  inquiryAvailable: boolean;
+}
+
+export interface AdminArticle extends AdminLifecycle, AdminSeo {
+  title: string;
+  slug: string;
+  summary: string | null;
+  body: string;
+  featuredImage: PublicImage | null;
+}
+
+export interface AdminManagedPage extends AdminLifecycle, AdminSeo {
+  title: string;
+  slug: string;
+  summary: string | null;
+  body: string;
+  images: PublicImage[];
+}
+
+export interface InjectionServiceInput {
+  name: string;
+  slug: string;
+  summary?: string | null;
+  description?: string | null;
+  images?: PublicImage[];
+  specifications?: PublicSpecification[];
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+  displayOrder?: number;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+}
+
+export interface MaterialInput {
+  name: string;
+  slug: string;
+  family?: string | null;
+  grade?: string | null;
+  manufacturer?: string | null;
+  summary?: string | null;
+  description?: string | null;
+  images?: PublicImage[];
+  specifications?: PublicSpecification[];
+  inquiryAvailable?: boolean;
+  displayOrder?: number;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+}
+
+export interface ArticleInput {
+  title: string;
+  slug: string;
+  summary?: string | null;
+  body: string;
+  featuredImage?: PublicImage | null;
+  displayOrder?: number;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+}
+
+export interface ManagedPageInput {
+  title: string;
+  slug: string;
+  summary?: string | null;
+  body: string;
+  images?: PublicImage[];
+  displayOrder?: number;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+}
+
 export interface AdminListQuery {
   page?: number;
   pageSize?: number;
@@ -134,6 +226,50 @@ function isAdminProduct(value: unknown): value is AdminProduct {
     Array.isArray(value.specifications) &&
     value.specifications.every(isSpecification)
   );
+}
+
+function isAdminInjectionService(value: unknown): value is AdminInjectionService {
+  if (!isRecord(value) || !hasLifecycle(value)) return false;
+  return (
+    isString(value.name) &&
+    isString(value.slug) &&
+    isNullableString(value.summary) &&
+    isNullableString(value.description) &&
+    isNullableString(value.ctaLabel) &&
+    isNullableString(value.ctaHref) &&
+    Array.isArray(value.images) &&
+    value.images.every(isImage) &&
+    Array.isArray(value.specifications) &&
+    value.specifications.every(isSpecification)
+  );
+}
+
+function isAdminMaterial(value: unknown): value is AdminMaterial {
+  if (!isRecord(value) || !hasLifecycle(value)) return false;
+  return (
+    isString(value.name) &&
+    isString(value.slug) &&
+    isNullableString(value.family) &&
+    isNullableString(value.grade) &&
+    isNullableString(value.manufacturer) &&
+    isNullableString(value.summary) &&
+    isNullableString(value.description) &&
+    typeof value.inquiryAvailable === "boolean" &&
+    Array.isArray(value.images) &&
+    value.images.every(isImage) &&
+    Array.isArray(value.specifications) &&
+    value.specifications.every(isSpecification)
+  );
+}
+
+function isAdminArticle(value: unknown): value is AdminArticle {
+  if (!isRecord(value) || !hasLifecycle(value)) return false;
+  return isString(value.title) && isString(value.slug) && isNullableString(value.summary) && isString(value.body) && (value.featuredImage === null || isImage(value.featuredImage));
+}
+
+function isAdminManagedPage(value: unknown): value is AdminManagedPage {
+  if (!isRecord(value) || !hasLifecycle(value)) return false;
+  return isString(value.title) && isString(value.slug) && isNullableString(value.summary) && isString(value.body) && Array.isArray(value.images) && value.images.every(isImage);
 }
 
 function isPage<T>(itemParser: (value: unknown) => value is T) {
@@ -223,3 +359,31 @@ export const createProduct = (input: ProductInput) => adminMutate("products", "P
 export const updateProduct = (id: string, input: Partial<ProductInput>) => adminMutate(`products/${encodeURIComponent(id)}`, "PATCH", input, isAdminProduct);
 export const publishProduct = (id: string) => adminMutate(`products/${encodeURIComponent(id)}/publish`, "POST", {}, isAdminProduct);
 export const archiveProduct = (id: string) => adminMutate(`products/${encodeURIComponent(id)}/archive`, "POST", {}, isAdminProduct);
+
+export const listInjectionServices = (query: AdminListQuery = {}) => adminRequest(`services?${listQueryString(query)}`, isPage(isAdminInjectionService));
+export const getInjectionService = (id: string) => adminRequest(`services/${encodeURIComponent(id)}`, isAdminInjectionService);
+export const createInjectionService = (input: InjectionServiceInput) => adminMutate("services", "POST", input, isAdminInjectionService);
+export const updateInjectionService = (id: string, input: Partial<InjectionServiceInput>) => adminMutate(`services/${encodeURIComponent(id)}`, "PATCH", input, isAdminInjectionService);
+export const publishInjectionService = (id: string) => adminMutate(`services/${encodeURIComponent(id)}/publish`, "POST", {}, isAdminInjectionService);
+export const archiveInjectionService = (id: string) => adminMutate(`services/${encodeURIComponent(id)}/archive`, "POST", {}, isAdminInjectionService);
+
+export const listMaterials = (query: AdminListQuery = {}) => adminRequest(`materials?${listQueryString(query)}`, isPage(isAdminMaterial));
+export const getMaterial = (id: string) => adminRequest(`materials/${encodeURIComponent(id)}`, isAdminMaterial);
+export const createMaterial = (input: MaterialInput) => adminMutate("materials", "POST", input, isAdminMaterial);
+export const updateMaterial = (id: string, input: Partial<MaterialInput>) => adminMutate(`materials/${encodeURIComponent(id)}`, "PATCH", input, isAdminMaterial);
+export const publishMaterial = (id: string) => adminMutate(`materials/${encodeURIComponent(id)}/publish`, "POST", {}, isAdminMaterial);
+export const archiveMaterial = (id: string) => adminMutate(`materials/${encodeURIComponent(id)}/archive`, "POST", {}, isAdminMaterial);
+
+export const listArticles = (query: AdminListQuery = {}) => adminRequest(`articles?${listQueryString(query)}`, isPage(isAdminArticle));
+export const getArticle = (id: string) => adminRequest(`articles/${encodeURIComponent(id)}`, isAdminArticle);
+export const createArticle = (input: ArticleInput) => adminMutate("articles", "POST", input, isAdminArticle);
+export const updateArticle = (id: string, input: Partial<ArticleInput>) => adminMutate(`articles/${encodeURIComponent(id)}`, "PATCH", input, isAdminArticle);
+export const publishArticle = (id: string) => adminMutate(`articles/${encodeURIComponent(id)}/publish`, "POST", {}, isAdminArticle);
+export const archiveArticle = (id: string) => adminMutate(`articles/${encodeURIComponent(id)}/archive`, "POST", {}, isAdminArticle);
+
+export const listManagedPages = (query: AdminListQuery = {}) => adminRequest(`pages?${listQueryString(query)}`, isPage(isAdminManagedPage));
+export const getManagedPage = (id: string) => adminRequest(`pages/${encodeURIComponent(id)}`, isAdminManagedPage);
+export const createManagedPage = (input: ManagedPageInput) => adminMutate("pages", "POST", input, isAdminManagedPage);
+export const updateManagedPage = (id: string, input: Partial<ManagedPageInput>) => adminMutate(`pages/${encodeURIComponent(id)}`, "PATCH", input, isAdminManagedPage);
+export const publishManagedPage = (id: string) => adminMutate(`pages/${encodeURIComponent(id)}/publish`, "POST", {}, isAdminManagedPage);
+export const archiveManagedPage = (id: string) => adminMutate(`pages/${encodeURIComponent(id)}/archive`, "POST", {}, isAdminManagedPage);

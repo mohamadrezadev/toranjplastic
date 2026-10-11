@@ -1,0 +1,4 @@
+import type { ContentImage, ContentSpecification } from '../../content-shared/stored-content.js';
+import type { AdminLifecycle, AdminSeo } from '../shared/types.js';
+export interface AdminMaterial extends AdminLifecycle, AdminSeo { name: string; slug: string; family: string | null; grade: string | null; manufacturer: string | null; summary: string | null; description: string | null; images: ContentImage[]; specifications: ContentSpecification[]; inquiryAvailable: boolean; }
+export interface MaterialWriteInput { name: string; slug: string; family?: string | null; grade?: string | null; manufacturer?: string | null; summary?: string | null; description?: string | null; images?: ContentImage[]; specifications?: ContentSpecification[]; inquiryAvailable?: boolean; displayOrder?: number; metaTitle?: string | null; metaDescription?: string | null; }

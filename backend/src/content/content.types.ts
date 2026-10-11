@@ -1,3 +1,5 @@
+import type { ContentImage, ContentSpecification } from '../content-shared/stored-content.js';
+
 export interface PageRequest {
   page: number;
   pageSize: number;
@@ -19,17 +21,8 @@ export interface PageResult<T> {
   pageInfo: PageInfo;
 }
 
-export interface PublicImage {
-  url: string;
-  alt: string;
-  width?: number;
-  height?: number;
-}
-
-export interface PublicSpecification {
-  label: string;
-  value: string;
-}
+export type PublicImage = ContentImage;
+export type PublicSpecification = ContentSpecification;
 
 export interface PublicSeo {
   metaTitle: string | null;
