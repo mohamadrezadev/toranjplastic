@@ -20,7 +20,8 @@ test("public shell is responsive without horizontal overflow", async ({ page }, 
     await expect(mobileTrigger).toBeVisible();
   }
 
-  await expect(page.getByText("TRJ-2048-A")).toHaveCSS("direction", "ltr");
+  await expect(page.getByRole("heading", { name: /برای هر نیاز صنعتی/ })).toBeVisible();
+  await expect(page.locator('a[href="/auth/login"]').first()).toHaveAttribute("href", "/auth/login");
   const bodyFont = await page.locator("body").evaluate((element) => getComputedStyle(element).fontFamily);
   expect(bodyFont).toContain("Estedad Variable");
   expect(await page.evaluate(() => document.fonts.check('16px "Estedad Variable"'))).toBe(true);
@@ -94,6 +95,26 @@ test("registered destinations resolve and preserve indexing boundaries", async (
   await page.goto("/inquiry");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   await expect(page.locator("body")).not.toContainText(/سبد خرید|پرداخت آنلاین|موجودی لحظه‌ای/);
+});
+
+test("approved public pages expose canonical discovery metadata", async ({ page, request }) => {
+  await page.goto("/");
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /index/);
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "http://localhost:3000");
+
+  await page.goto("/products/industrial-basket");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "http://localhost:3000/products/industrial-basket");
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /refrigerator-organizer\.webp/);
+  const jsonLd = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent() || "{}");
+  expect(jsonLd).toMatchObject({ "@type": "Product", name: "سبد صنعتی نمونه" });
+  expect(jsonLd).not.toHaveProperty("offers");
+
+  const robots = await request.get("/robots.txt");
+  expect(await robots.text()).toContain("Disallow: /auth/");
+  const sitemap = await request.get("/sitemap.xml");
+  const sitemapBody = await sitemap.text();
+  expect(sitemapBody).toContain("http://localhost:3000/products/industrial-basket");
+  expect(sitemapBody).not.toContain("/auth/");
 });
 
 test("content pages distinguish success, empty, error and not-found states", async ({ page }) => {

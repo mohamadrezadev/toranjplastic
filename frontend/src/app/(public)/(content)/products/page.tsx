@@ -5,7 +5,7 @@ import { listProducts, parsePageNumber } from "@/lib/public-content";
 import { publicCollectionMetadata } from "@/lib/content-metadata";
 
 const description = "فهرست محصولات منتشرشده ترنج پلاستیک؛ جزئیات هر محصول بدون نمایش قیمت یا موجودی تأییدنشده.";
-export const metadata = publicCollectionMetadata("محصولات", description);
+export const metadata = publicCollectionMetadata("محصولات", description, "/products");
 
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<{ page?: string | string[] }> }) {
   const page = parsePageNumber((await searchParams).page);

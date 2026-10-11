@@ -1,0 +1,30 @@
+.main { min-height: 100svh; padding: clamp(.75rem, 2vw, 1.5rem); display: grid; place-items: center; background: var(--color-surface-subtle); }
+.layout { width: min(100%, 79rem); min-height: min(49rem, calc(100svh - 3rem)); display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); overflow: hidden; border: 1px solid var(--color-border-default); border-radius: 1.3rem; background: var(--color-surface-card); box-shadow: var(--shadow-md); }
+.showcase { min-height: 39rem; padding: clamp(2rem, 4vw, 3.5rem); position: relative; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; color: var(--color-hero-ink); background: var(--color-hero); }
+.showcase::before { content: ""; width: 36rem; height: 36rem; position: absolute; inset-block-start: -17rem; inset-inline-end: -18rem; border: 1px solid #81928366; border-radius: 50%; }
+.brand { position: relative; z-index: 2; width: fit-content; display: inline-flex; align-items: center; gap: .8rem; color: var(--color-hero-ink); font-size: 1.2rem; font-weight: 700; }
+.brandMark { width: 2.7rem; height: 2.7rem; display: grid; place-items: center; color: var(--color-hero); background: #eaa581; border-radius: .2rem .8rem .2rem .8rem; font-size: 1.5rem; transform: rotate(-8deg); }
+.showcaseContent { position: relative; z-index: 2; max-width: 27rem; margin-block: 4rem 8rem; }
+.showcaseEyebrow { color: #e7ae8e; font-size: .8rem; font-weight: 700; }
+.showcase h2 { margin-block: 1.5rem; font-size: clamp(2.2rem, 4vw, 4rem); line-height: 1.4; letter-spacing: -.055em; }
+.showcase h2 em { color: #ee9b73; font-style: normal; }
+.showcase p { max-width: 26rem; color: var(--color-hero-muted); }
+.showcaseArt { width: 19rem; height: 19rem; position: absolute; inset-block-end: 1rem; inset-inline-end: -3rem; opacity: .65; pointer-events: none; }
+.showcaseDisc { width: 11rem; height: 11rem; position: absolute; inset: 4rem; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #e5b397, #a7593b 60%, #3c251d); }
+.showcaseRing { width: 16rem; height: 16rem; position: absolute; inset: 1.5rem; border: 1.3rem solid #b8c9af; border-inline-start-color: #e6dac3; border-radius: 50%; transform: rotate(-25deg) scaleY(.6); }
+.showcaseBar { width: 2.5rem; height: 19rem; position: absolute; inset: 0 7.5rem; background: linear-gradient(90deg, #5b7967, #b0c2a9 40%, #3d5847); transform: rotate(33deg); }
+.backLink { position: relative; z-index: 2; width: fit-content; display: inline-flex; align-items: center; gap: 1rem; border-block-end: 1px solid #a6b7aa; font-size: .88rem; font-weight: 600; }
+.backLink:hover { color: #ee9b73; }
+.card { width: min(100%, 34rem); padding: clamp(2rem, 5vw, 5rem); display: grid; align-content: center; justify-self: center; gap: 1.25rem; }
+.formEyebrow { color: var(--color-brand-action); font-size: .8rem; font-weight: 700; }
+.card h1 { color: var(--color-brand-primary); font-size: clamp(1.9rem, 3vw, 2.7rem); line-height: 1.35; letter-spacing: -.04em; }
+.intro { margin-block-start: .5rem; color: var(--color-text-secondary); font-size: .92rem; }
+.form { margin-block-start: .4rem; display: grid; gap: 1rem; }
+.form button { width: 100%; min-height: 3.25rem; margin-block-start: .4rem; }
+.card > p:last-child { color: var(--color-text-secondary); font-size: .9rem; }
+.feedback, .success { padding: .75rem 1rem; border-radius: var(--radius-md); font-size: .88rem; }
+.feedback { background: var(--color-status-danger-surface); color: var(--color-status-danger); }
+.success { background: var(--color-status-success-surface); color: var(--color-status-success); }
+.link { color: var(--color-brand-action); font-weight: 700; text-decoration: underline; text-underline-offset: .2em; }
+@media (max-width: 56rem) { .layout { grid-template-columns: 1fr; } .showcase { min-height: 16rem; padding: 1.5rem 2rem; } .showcaseContent { margin-block: 2rem 1rem; } .showcase h2 { max-width: 24ch; margin-block: .5rem; font-size: 2rem; } .showcase p, .showcaseArt { display: none; } .backLink { margin-block-start: 1rem; } .card { padding-block: 3rem; } }
+@media (max-width: 35rem) { .main { padding: 0; align-items: stretch; } .layout { min-height: 100svh; border: 0; border-radius: 0; } .showcase { min-height: 12rem; padding: 1.4rem; } .showcaseContent { margin-block: 1.3rem 0; } .showcase h2 { font-size: 1.5rem; margin-block: .3rem; } .showcaseEyebrow { font-size: .7rem; } .backLink { display: none; } .card { padding: 2rem 1.4rem 3rem; align-content: start; } }

@@ -2,8 +2,8 @@ export const themeStorageKey = "toranj-theme";
 export const themeChangeEvent = "toranj-theme-change";
 
 export const themeColors = {
-  light: "#f7f9fc",
-  dark: "#0c1420",
+  light: "#f4f2eb",
+  dark: "#111b18",
 } as const;
 
 export type Theme = keyof typeof themeColors;

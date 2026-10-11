@@ -5,7 +5,7 @@ import { listServices, parsePageNumber } from "@/lib/public-content";
 import { publicCollectionMetadata } from "@/lib/content-metadata";
 
 const description = "خدمات تزریق پلاستیک منتشرشده بر پایه اطلاعات فنی تأییدشده؛ جزئیات ظرفیت تنها در صورت انتشار رسمی نمایش داده می‌شود.";
-export const metadata = publicCollectionMetadata("خدمات تزریق پلاستیک", description);
+export const metadata = publicCollectionMetadata("خدمات تزریق پلاستیک", description, "/injection-molding");
 
 export default async function ServicesPage({ searchParams }: { searchParams: Promise<{ page?: string | string[] }> }) {
   const result = await listServices(parsePageNumber((await searchParams).page));

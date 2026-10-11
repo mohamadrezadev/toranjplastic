@@ -1,6 +1,20 @@
 export interface AppEnvironment {
   port: number;
   frontendOrigin: string;
+  auth: {
+    sessionDays: number;
+    loginLimit: number;
+    loginWindowSeconds: number;
+    cookieSecure: boolean;
+  };
+}
+
+function boundedInteger(value: string | undefined, fallback: number, name: string, minimum: number, maximum: number) {
+  const parsed = Number(value ?? fallback);
+  if (!Number.isInteger(parsed) || parsed < minimum || parsed > maximum) {
+    throw new Error(`${name} must be an integer between ${minimum} and ${maximum}.`);
+  }
+  return parsed;
 }
 
 export function loadEnvironment(
@@ -24,5 +38,17 @@ export function loadEnvironment(
     throw new Error('FRONTEND_ORIGIN must be an origin without a path.');
   }
 
-  return { port, frontendOrigin };
+  const secureValue = environment.AUTH_COOKIE_SECURE ?? (environment.NODE_ENV === 'production' ? 'true' : 'false');
+  if (!['true', 'false'].includes(secureValue)) throw new Error('AUTH_COOKIE_SECURE must be true or false.');
+
+  return {
+    port,
+    frontendOrigin,
+    auth: {
+      sessionDays: boundedInteger(environment.AUTH_SESSION_DAYS, 7, 'AUTH_SESSION_DAYS', 1, 30),
+      loginLimit: boundedInteger(environment.AUTH_LOGIN_LIMIT, 10, 'AUTH_LOGIN_LIMIT', 1, 100),
+      loginWindowSeconds: boundedInteger(environment.AUTH_LOGIN_WINDOW_SECONDS, 900, 'AUTH_LOGIN_WINDOW_SECONDS', 60, 86_400),
+      cookieSecure: secureValue === 'true',
+    },
+  };
 }

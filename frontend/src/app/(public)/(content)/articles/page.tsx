@@ -5,7 +5,7 @@ import { listArticles, parsePageNumber } from "@/lib/public-content";
 import { publicCollectionMetadata } from "@/lib/content-metadata";
 
 const description = "مقاله‌ها و یادداشت‌های منتشرشده ترنج پلاستیک.";
-export const metadata = publicCollectionMetadata("مقالات", description);
+export const metadata = publicCollectionMetadata("مقالات", description, "/articles");
 const formatDate = (value: string) => new Intl.DateTimeFormat("fa-IR", { dateStyle: "long", timeZone: "UTC" }).format(new Date(value));
 export default async function ArticlesPage({ searchParams }: { searchParams: Promise<{ page?: string | string[] }> }) {
   const result = await listArticles(parsePageNumber((await searchParams).page));

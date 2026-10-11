@@ -13,6 +13,70 @@ enum ContentStatus {
   ARCHIVED
 }
 
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  DISABLED
+}
+
+model User {
+  id           String              @id @default(cuid())
+  mobile       String              @unique
+  displayName  String
+  email        String?
+  companyName  String?
+  role         UserRole            @default(CUSTOMER)
+  status       AccountStatus       @default(ACTIVE)
+  lastLoginAt  DateTime?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  password     PasswordCredential?
+  sessions     AuthSession[]
+  auditEvents  SecurityAuditEvent[]
+
+  @@index([role, status])
+}
+
+model PasswordCredential {
+  userId       String   @id
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AuthSession {
+  id          String    @id @default(cuid())
+  tokenDigest String    @unique
+  csrfDigest  String
+  userId      String
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  lastSeenAt  DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt, revokedAt])
+}
+
+model SecurityAuditEvent {
+  id        String   @id @default(cuid())
+  action    String
+  userId    String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([action, createdAt])
+  @@index([userId, createdAt])
+}
+
 model Category {
   id              String        @id @default(cuid())
   name            String

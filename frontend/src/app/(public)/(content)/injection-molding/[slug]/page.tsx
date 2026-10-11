@@ -7,7 +7,7 @@ import { getService, isNotFoundError } from "@/lib/public-content";
 import { publicContentMetadata } from "@/lib/content-metadata";
 
 type Props = { params: Promise<{ slug: string }> };
-export async function generateMetadata({ params }: Props): Promise<Metadata> { try { const item = await getService((await params).slug); return publicContentMetadata({ title: item.name, summary: item.summary, metaTitle: item.metaTitle, metaDescription: item.metaDescription }); } catch (error) { if (isNotFoundError(error)) return { title: "خدمت پیدا نشد", robots: { index: false, follow: false } }; throw error; } }
+export async function generateMetadata({ params }: Props): Promise<Metadata> { try { const item = await getService((await params).slug); return publicContentMetadata({ title: item.name, path: `/injection-molding/${item.slug}`, summary: item.summary, metaTitle: item.metaTitle, metaDescription: item.metaDescription, images: item.images }); } catch (error) { if (isNotFoundError(error)) return { title: "خدمت پیدا نشد", robots: { index: false, follow: false } }; throw error; } }
 function safeCta(href: string | null) { return href && (/^https?:\/\//.test(href) || href.startsWith("/")) ? href : null; }
 export default async function ServiceDetailPage({ params }: Props) {
   let item; try { item = await getService((await params).slug); } catch (error) { if (isNotFoundError(error)) notFound(); throw error; }

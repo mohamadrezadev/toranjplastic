@@ -6,6 +6,7 @@ describe('loadEnvironment', () => {
     expect(loadEnvironment({})).toEqual({
       port: 3001,
       frontendOrigin: 'http://localhost:3000',
+      auth: { sessionDays: 7, loginLimit: 10, loginWindowSeconds: 900, cookieSecure: false },
     });
   });
 

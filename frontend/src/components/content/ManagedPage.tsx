@@ -8,7 +8,7 @@ import { DetailHero, ImageGallery, PreservedText, contentStyles } from "./Conten
 export async function managedPageMetadata(slug: string, fallbackTitle: string): Promise<Metadata> {
   try {
     const page = await getManagedPage(slug);
-    return publicContentMetadata({ title: page.title, summary: page.summary, metaTitle: page.metaTitle, metaDescription: page.metaDescription });
+    return publicContentMetadata({ title: page.title, path: `/${slug}`, summary: page.summary, metaTitle: page.metaTitle, metaDescription: page.metaDescription, images: page.images });
   } catch (error) {
     if (isNotFoundError(error)) return { title: `${fallbackTitle} | ترنج پلاستیک`, robots: { index: false, follow: false } };
     throw error;

@@ -2,11 +2,13 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "@fontsource-variable/estedad";
 import { themeBootstrapScript } from "@/design-system/theme";
+import { siteOrigin } from "@/lib/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ترنج پلاستیک | پایه فنی پروژه",
-  description: "پایه فنی وب‌سایت فارسی ترنج پلاستیک؛ محصولات، تزریق پلاستیک و تأمین مواد اولیه.",
+  metadataBase: new URL(siteOrigin),
+  title: "ترنج پلاستیک",
+  description: "معرفی محصولات، خدمات تزریق پلاستیک و مواد اولیه ترنج پلاستیک.",
   robots: { index: false, follow: false },
 };
 
