@@ -1,19 +1,42 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { Suspense } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui";
 import { getAdminAccess } from "@/lib/auth";
 import { logoutAction } from "../auth/actions";
-import styles from "../auth/Auth.module.css";
+import styles from "./Admin.module.css";
 
 export const metadata: Metadata = { title: "پنل مدیریت", robots: { index: false, follow: false } };
 
-async function AdminGate() {
+export default async function AdminPage() {
   const access = await getAdminAccess();
-  if (access.status === 401) redirect("/auth/login");
-  if (access.status === 403) return <section className={styles.card}><h1>دسترسی مجاز نیست</h1><p>این حساب مجوز ورود به پنل مدیریت را ندارد.</p><form action={logoutAction}><Button type="submit" variant="secondary">خروج</Button></form></section>;
-  if (!access.account) return <section className={styles.card}><h1>پنل موقتاً در دسترس نیست</h1><p>لطفاً کمی بعد دوباره تلاش کنید.</p></section>;
-  return <section className={styles.card}><h1>پنل مدیریت</h1><p>خوش آمدید، {access.account.displayName}. زیرساخت دسترسی امن فعال است؛ عملیات CMS در برش بعد اضافه می‌شود.</p><form action={logoutAction}><Button type="submit" variant="secondary">خروج امن</Button></form></section>;
-}
+  const name = access.account?.displayName ?? "";
 
-export default function AdminPage() { return <main className={styles.main}><Suspense fallback={<p role="status">در حال بررسی دسترسی…</p>}><AdminGate /></Suspense></main>; }
+  return (
+    <main className={styles.main}>
+      <div className={styles.shell}>
+        <section className={styles.card}>
+          <div className={styles.header}>
+            <div>
+              <h1>پنل مدیریت</h1>
+              <p className={styles.subtitle}>خوش آمدید، {name}.</p>
+            </div>
+            <form action={logoutAction}>
+              <Button type="submit" variant="secondary">خروج امن</Button>
+            </form>
+          </div>
+        </section>
+
+        <section className={styles.cardGrid}>
+          <Link href="/admin/categories" className={styles.navCard}>
+            <h2>دسته‌بندی‌ها</h2>
+            <p>ایجاد، ویرایش، انتشار و آرشیو دسته‌بندی محصولات.</p>
+          </Link>
+          <Link href="/admin/products" className={styles.navCard}>
+            <h2>محصولات</h2>
+            <p>ایجاد، ویرایش، انتشار و آرشیو محصولات کاتالوگ.</p>
+          </Link>
+        </section>
+      </div>
+    </main>
+  );
+}

@@ -102,12 +102,12 @@ const apiBaseUrl = (process.env.BACKEND_API_URL ?? process.env.NEXT_PUBLIC_API_U
 type RecordValue = Record<string, unknown>;
 type Parser<T> = (value: unknown) => value is T;
 
-function isRecord(value: unknown): value is RecordValue {
+export function isRecord(value: unknown): value is RecordValue {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function isString(value: unknown): value is string { return typeof value === "string"; }
-function isNullableString(value: unknown): value is string | null { return value === null || isString(value); }
+export function isString(value: unknown): value is string { return typeof value === "string"; }
+export function isNullableString(value: unknown): value is string | null { return value === null || isString(value); }
 function isNonNegativeInteger(value: unknown): value is number { return Number.isInteger(value) && Number(value) >= 0; }
 function isPositiveInteger(value: unknown): value is number { return Number.isInteger(value) && Number(value) > 0; }
 
@@ -115,12 +115,12 @@ function isSeo(value: RecordValue) {
   return isNullableString(value.metaTitle) && isNullableString(value.metaDescription);
 }
 
-function isImage(value: unknown): value is PublicImage {
+export function isImage(value: unknown): value is PublicImage {
   if (!isRecord(value) || !isString(value.url) || !isString(value.alt)) return false;
   return (value.width === undefined || isPositiveInteger(value.width)) && (value.height === undefined || isPositiveInteger(value.height));
 }
 
-function isSpecification(value: unknown): value is PublicSpecification {
+export function isSpecification(value: unknown): value is PublicSpecification {
   return isRecord(value) && isString(value.label) && isString(value.value);
 }
 
