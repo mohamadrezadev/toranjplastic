@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppModule } from '../src/app.module.js';
 import { configureApp } from '../src/app.setup.js';
 import { ADMIN_CONTENT_REPOSITORY, type AdminContentRepository } from '../src/admin-content/admin-content.repository.js';
-import type { AdminCategory, AdminProduct } from '../src/admin-content/admin-content.types.js';
+import type { AdminArticle, AdminCategory, AdminInjectionService, AdminManagedPage, AdminMaterial, AdminProduct } from '../src/admin-content/admin-content.types.js';
 import { PrismaService } from '../src/database/prisma.service.js';
 import { digestToken } from '../src/identity/identity.security.js';
 
@@ -28,10 +28,38 @@ const draftProduct: AdminProduct = {
   metaTitle: null, metaDescription: null,
 };
 
+const draftInjectionService: AdminInjectionService = {
+  id: 'svc-1', name: 'خدمت آزمایشی', slug: 'test-service', summary: null, description: null, images: [], specifications: [], ctaLabel: null, ctaHref: null, displayOrder: 0,
+  status: 'DRAFT' as never, publishedAt: null, createdAt: '2026-10-11T00:00:00.000Z', updatedAt: '2026-10-11T00:00:00.000Z',
+  metaTitle: null, metaDescription: null,
+};
+
+const draftMaterial: AdminMaterial = {
+  id: 'mat-1', name: 'ماده آزمایشی', slug: 'test-material', family: null, grade: null, manufacturer: null, summary: null, description: null, images: [], specifications: [], inquiryAvailable: true, displayOrder: 0,
+  status: 'DRAFT' as never, publishedAt: null, createdAt: '2026-10-11T00:00:00.000Z', updatedAt: '2026-10-11T00:00:00.000Z',
+  metaTitle: null, metaDescription: null,
+};
+
+const draftArticle: AdminArticle = {
+  id: 'art-1', title: 'مقاله آزمایشی', slug: 'test-article', summary: null, body: 'متن آزمایشی', featuredImage: null, displayOrder: 0,
+  status: 'DRAFT' as never, publishedAt: null, createdAt: '2026-10-11T00:00:00.000Z', updatedAt: '2026-10-11T00:00:00.000Z',
+  metaTitle: null, metaDescription: null,
+};
+
+const draftManagedPage: AdminManagedPage = {
+  id: 'page-1', title: 'صفحه آزمایشی', slug: 'test-page', summary: null, body: 'متن آزمایشی', images: [], displayOrder: 0,
+  status: 'DRAFT' as never, publishedAt: null, createdAt: '2026-10-11T00:00:00.000Z', updatedAt: '2026-10-11T00:00:00.000Z',
+  metaTitle: null, metaDescription: null,
+};
+
 function fakeAdminRepository() {
   const listCategories = vi.fn(async () => ({ items: [draftCategory], pageInfo: { page: 1, pageSize: 20, total: 1, totalPages: 1 } }));
   const createCategory = vi.fn(async () => draftCategory);
   const setProductStatus = vi.fn(async (id: string) => (id === draftProduct.id ? { ...draftProduct, status: 'PUBLISHED' as never } : null));
+  const createInjectionService = vi.fn(async () => draftInjectionService);
+  const createMaterial = vi.fn(async () => draftMaterial);
+  const createArticle = vi.fn(async () => draftArticle);
+  const createManagedPage = vi.fn(async () => draftManagedPage);
   const repository: AdminContentRepository = {
     listCategories,
     getCategory: vi.fn(async (id: string) => (id === draftCategory.id ? draftCategory : null)),
@@ -43,8 +71,28 @@ function fakeAdminRepository() {
     createProduct: vi.fn(async () => draftProduct),
     updateProduct: vi.fn(async (id: string) => (id === draftProduct.id ? draftProduct : null)),
     setProductStatus,
+    listInjectionServices: vi.fn(async () => ({ items: [draftInjectionService], pageInfo: { page: 1, pageSize: 20, total: 1, totalPages: 1 } })),
+    getInjectionService: vi.fn(async (id: string) => (id === draftInjectionService.id ? draftInjectionService : null)),
+    createInjectionService,
+    updateInjectionService: vi.fn(async (id: string) => (id === draftInjectionService.id ? draftInjectionService : null)),
+    setInjectionServiceStatus: vi.fn(async (id: string) => (id === draftInjectionService.id ? { ...draftInjectionService, status: 'PUBLISHED' as never } : null)),
+    listMaterials: vi.fn(async () => ({ items: [draftMaterial], pageInfo: { page: 1, pageSize: 20, total: 1, totalPages: 1 } })),
+    getMaterial: vi.fn(async (id: string) => (id === draftMaterial.id ? draftMaterial : null)),
+    createMaterial,
+    updateMaterial: vi.fn(async (id: string) => (id === draftMaterial.id ? draftMaterial : null)),
+    setMaterialStatus: vi.fn(async (id: string) => (id === draftMaterial.id ? { ...draftMaterial, status: 'PUBLISHED' as never } : null)),
+    listArticles: vi.fn(async () => ({ items: [draftArticle], pageInfo: { page: 1, pageSize: 20, total: 1, totalPages: 1 } })),
+    getArticle: vi.fn(async (id: string) => (id === draftArticle.id ? draftArticle : null)),
+    createArticle,
+    updateArticle: vi.fn(async (id: string) => (id === draftArticle.id ? draftArticle : null)),
+    setArticleStatus: vi.fn(async (id: string) => (id === draftArticle.id ? { ...draftArticle, status: 'PUBLISHED' as never } : null)),
+    listManagedPages: vi.fn(async () => ({ items: [draftManagedPage], pageInfo: { page: 1, pageSize: 20, total: 1, totalPages: 1 } })),
+    getManagedPage: vi.fn(async (id: string) => (id === draftManagedPage.id ? draftManagedPage : null)),
+    createManagedPage,
+    updateManagedPage: vi.fn(async (id: string) => (id === draftManagedPage.id ? draftManagedPage : null)),
+    setManagedPageStatus: vi.fn(async (id: string) => (id === draftManagedPage.id ? { ...draftManagedPage, status: 'PUBLISHED' as never } : null)),
   };
-  return { repository, listCategories, createCategory, setProductStatus };
+  return { repository, listCategories, createCategory, setProductStatus, createInjectionService, createMaterial, createArticle, createManagedPage };
 }
 
 describe('admin content API (e2e)', () => {
@@ -53,6 +101,10 @@ describe('admin content API (e2e)', () => {
   let listCategoriesSpy: ReturnType<typeof vi.fn>;
   let createCategorySpy: ReturnType<typeof vi.fn>;
   let setProductStatusSpy: ReturnType<typeof vi.fn>;
+  let createInjectionServiceSpy: ReturnType<typeof vi.fn>;
+  let createMaterialSpy: ReturnType<typeof vi.fn>;
+  let createArticleSpy: ReturnType<typeof vi.fn>;
+  let createManagedPageSpy: ReturnType<typeof vi.fn>;
   let prisma: {
     authSession: { findUnique: ReturnType<typeof vi.fn> };
     securityAuditEvent: { create: ReturnType<typeof vi.fn> };
@@ -64,6 +116,10 @@ describe('admin content API (e2e)', () => {
     listCategoriesSpy = fake.listCategories;
     createCategorySpy = fake.createCategory;
     setProductStatusSpy = fake.setProductStatus;
+    createInjectionServiceSpy = fake.createInjectionService;
+    createMaterialSpy = fake.createMaterial;
+    createArticleSpy = fake.createArticle;
+    createManagedPageSpy = fake.createManagedPage;
     prisma = { authSession: { findUnique: vi.fn(async () => null) }, securityAuditEvent: { create: vi.fn(async () => ({})) } };
 
     const moduleFixture: TestingModule = await Test.createTestingModule({ imports: [AppModule] })
@@ -156,5 +212,58 @@ describe('admin content API (e2e)', () => {
   it('returns 404 for an unknown product id on every route', async () => {
     await withAdminSession(request(app.getHttpServer()).get('/api/v1/admin/content/products/unknown')).expect(404);
     await withAdminSession(csrfHeader(request(app.getHttpServer()).post('/api/v1/admin/content/products/unknown/publish'))).expect(404);
+  });
+
+  it('rejects unauthenticated and customer requests on the four newly added resources', async () => {
+    await request(app.getHttpServer()).get('/api/v1/admin/content/services').expect(401);
+    await withCustomerSession(request(app.getHttpServer()).get('/api/v1/admin/content/materials')).expect(403);
+    await withCustomerSession(csrfHeader(request(app.getHttpServer()).post('/api/v1/admin/content/articles'))).send({ title: 'x', slug: 'x', body: 'x' }).expect(403);
+  });
+
+  it('creates an injection service as draft and rejects an unsafe external ctaHref with 400', async () => {
+    const response = await withAdminSession(csrfHeader(request(app.getHttpServer()).post('/api/v1/admin/content/services')))
+      .send({ name: 'خدمت آزمایشی', slug: 'test-service' })
+      .expect(201);
+    expect(response.body).toEqual(draftInjectionService);
+    expect(createInjectionServiceSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'خدمت آزمایشی', slug: 'test-service' }));
+
+    await withAdminSession(csrfHeader(request(app.getHttpServer()).post('/api/v1/admin/content/services')))
+      .send({ name: 'خدمت', slug: 'other-service', ctaHref: 'https://evil.example.com' })
+      .expect(400);
+  });
+
+  it('creates a material as draft', async () => {
+    const response = await withAdminSession(csrfHeader(request(app.getHttpServer()).post('/api/v1/admin/content/materials')))
+      .send({ name: 'ماده آزمایشی', slug: 'test-material' })
+      .expect(201);
+    expect(response.body).toEqual(draftMaterial);
+    expect(createMaterialSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'ماده آزمایشی', slug: 'test-material' }));
+  });
+
+  it('creates an article as draft and rejects a missing body with 400', async () => {
+    const response = await withAdminSession(csrfHeader(request(app.getHttpServer()).post('/api/v1/admin/content/articles')))
+      .send({ title: 'مقاله آزمایشی', slug: 'test-article', body: 'متن آزمایشی' })
+      .expect(201);
+    expect(response.body).toEqual(draftArticle);
+    expect(createArticleSpy).toHaveBeenCalledWith(expect.objectContaining({ title: 'مقاله آزمایشی', slug: 'test-article' }));
+
+    await withAdminSession(csrfHeader(request(app.getHttpServer()).post('/api/v1/admin/content/articles')))
+      .send({ title: 'مقاله', slug: 'other-article' })
+      .expect(400);
+  });
+
+  it('publishes and archives a managed page through dedicated action routes', async () => {
+    const response = await withAdminSession(csrfHeader(request(app.getHttpServer()).post('/api/v1/admin/content/pages')))
+      .send({ title: 'صفحه آزمایشی', slug: 'test-page', body: 'متن آزمایشی' })
+      .expect(201);
+    expect(response.body).toEqual(draftManagedPage);
+    expect(createManagedPageSpy).toHaveBeenCalledWith(expect.objectContaining({ title: 'صفحه آزمایشی', slug: 'test-page' }));
+
+    const published = await withAdminSession(csrfHeader(request(app.getHttpServer()).post('/api/v1/admin/content/pages/page-1/publish'))).expect(200);
+    expect(published.body.status).toBe('PUBLISHED');
+  });
+
+  it('returns 404 for an unknown service id', async () => {
+    await withAdminSession(request(app.getHttpServer()).get('/api/v1/admin/content/services/unknown')).expect(404);
   });
 });

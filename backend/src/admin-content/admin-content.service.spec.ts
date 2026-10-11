@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { PrismaService } from '../database/prisma.service.js';
 import { AdminContentService } from './admin-content.service.js';
 import type { AdminContentRepository } from './admin-content.repository.js';
-import type { AdminCategory, AdminProduct } from './admin-content.types.js';
+import type { AdminArticle, AdminCategory, AdminInjectionService, AdminManagedPage, AdminMaterial, AdminProduct } from './admin-content.types.js';
 
 const category: AdminCategory = {
   id: 'c1', name: 'دسته', slug: 'cat', description: null, image: null, displayOrder: 0,
@@ -12,6 +12,30 @@ const category: AdminCategory = {
 
 const product: AdminProduct = {
   id: 'p1', name: 'محصول', slug: 'prod', summary: null, description: null, categoryId: null, images: [], specifications: [], featured: false, displayOrder: 0,
+  status: 'DRAFT' as never, publishedAt: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
+  metaTitle: null, metaDescription: null,
+};
+
+const injectionService: AdminInjectionService = {
+  id: 'is1', name: 'خدمت', slug: 'svc', summary: null, description: null, images: [], specifications: [], ctaLabel: null, ctaHref: null, displayOrder: 0,
+  status: 'DRAFT' as never, publishedAt: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
+  metaTitle: null, metaDescription: null,
+};
+
+const material: AdminMaterial = {
+  id: 'm1', name: 'ماده', slug: 'mat', family: null, grade: null, manufacturer: null, summary: null, description: null, images: [], specifications: [], inquiryAvailable: true, displayOrder: 0,
+  status: 'DRAFT' as never, publishedAt: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
+  metaTitle: null, metaDescription: null,
+};
+
+const article: AdminArticle = {
+  id: 'a1', title: 'مقاله', slug: 'art', summary: null, body: 'متن', featuredImage: null, displayOrder: 0,
+  status: 'DRAFT' as never, publishedAt: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
+  metaTitle: null, metaDescription: null,
+};
+
+const managedPage: AdminManagedPage = {
+  id: 'mp1', title: 'صفحه', slug: 'page', summary: null, body: 'متن', images: [], displayOrder: 0,
   status: 'DRAFT' as never, publishedAt: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
   metaTitle: null, metaDescription: null,
 };
@@ -28,6 +52,26 @@ function emptyRepository(): AdminContentRepository {
     createProduct: vi.fn(),
     updateProduct: vi.fn(),
     setProductStatus: vi.fn(),
+    listInjectionServices: vi.fn(),
+    getInjectionService: vi.fn(),
+    createInjectionService: vi.fn(),
+    updateInjectionService: vi.fn(),
+    setInjectionServiceStatus: vi.fn(),
+    listMaterials: vi.fn(),
+    getMaterial: vi.fn(),
+    createMaterial: vi.fn(),
+    updateMaterial: vi.fn(),
+    setMaterialStatus: vi.fn(),
+    listArticles: vi.fn(),
+    getArticle: vi.fn(),
+    createArticle: vi.fn(),
+    updateArticle: vi.fn(),
+    setArticleStatus: vi.fn(),
+    listManagedPages: vi.fn(),
+    getManagedPage: vi.fn(),
+    createManagedPage: vi.fn(),
+    updateManagedPage: vi.fn(),
+    setManagedPageStatus: vi.fn(),
   };
 }
 
@@ -118,6 +162,109 @@ describe('AdminContentService', () => {
     expect(createProduct).toHaveBeenCalledWith(expect.objectContaining({ name: 'محصول', slug: 'prod' }));
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ action: 'PRODUCT_CREATED', userId: 'admin-1' }) }),
+    );
+  });
+
+  it('rejects an injection service with an unsafe external ctaHref before touching the repository', async () => {
+    const createInjectionService = vi.fn();
+    const repository = { ...emptyRepository(), createInjectionService };
+    const service = new AdminContentService(repository, prismaMock().prisma);
+
+    await expect(
+      service.createInjectionService({ name: 'خدمت', slug: 'svc', ctaHref: 'https://evil.example.com' } as never, 'admin-1'),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(createInjectionService).not.toHaveBeenCalled();
+  });
+
+  it('creates an injection service in draft status via the repository and audits the action', async () => {
+    const createInjectionService = vi.fn().mockResolvedValue(injectionService);
+    const repository = { ...emptyRepository(), createInjectionService };
+    const { prisma, create } = prismaMock();
+    const service = new AdminContentService(repository, prisma);
+
+    const result = await service.createInjectionService({ name: 'خدمت', slug: 'svc', ctaHref: '/contact' } as never, 'admin-1');
+
+    expect(result).toBe(injectionService);
+    expect(createInjectionService).toHaveBeenCalledWith(expect.objectContaining({ name: 'خدمت', slug: 'svc', ctaHref: '/contact' }));
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ action: 'INJECTION_SERVICE_CREATED', userId: 'admin-1' }) }),
+    );
+  });
+
+  it('publishing an already-published material is idempotent', async () => {
+    const getMaterial = vi.fn().mockResolvedValue({ ...material, status: 'PUBLISHED' as never });
+    const setMaterialStatus = vi.fn();
+    const repository = { ...emptyRepository(), getMaterial, setMaterialStatus };
+    const service = new AdminContentService(repository, prismaMock().prisma);
+
+    const result = await service.publishMaterial('m1', 'admin-1');
+
+    expect(result.status).toBe('PUBLISHED');
+    expect(setMaterialStatus).not.toHaveBeenCalled();
+  });
+
+  it('creates a material defaulting inquiryAvailable to true and audits the action', async () => {
+    const createMaterial = vi.fn().mockResolvedValue(material);
+    const repository = { ...emptyRepository(), createMaterial };
+    const { prisma, create } = prismaMock();
+    const service = new AdminContentService(repository, prisma);
+
+    const result = await service.createMaterial({ name: 'ماده', slug: 'mat' } as never, 'admin-1');
+
+    expect(result).toBe(material);
+    expect(createMaterial).toHaveBeenCalledWith(expect.objectContaining({ name: 'ماده', slug: 'mat', inquiryAvailable: true }));
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ action: 'MATERIAL_CREATED', userId: 'admin-1' }) }),
+    );
+  });
+
+  it('throws 404 when updating an article that does not exist', async () => {
+    const updateArticle = vi.fn().mockResolvedValue(null);
+    const repository = { ...emptyRepository(), updateArticle };
+    const service = new AdminContentService(repository, prismaMock().prisma);
+
+    await expect(service.updateArticle('missing', { title: 'جدید' } as never, 'admin-1')).rejects.toMatchObject({ status: 404 });
+  });
+
+  it('creates an article with a required body and audits the action', async () => {
+    const createArticle = vi.fn().mockResolvedValue(article);
+    const repository = { ...emptyRepository(), createArticle };
+    const { prisma, create } = prismaMock();
+    const service = new AdminContentService(repository, prisma);
+
+    const result = await service.createArticle({ title: 'مقاله', slug: 'art', body: 'متن' } as never, 'admin-1');
+
+    expect(result).toBe(article);
+    expect(createArticle).toHaveBeenCalledWith(expect.objectContaining({ title: 'مقاله', slug: 'art', body: 'متن' }));
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ action: 'ARTICLE_CREATED', userId: 'admin-1' }) }),
+    );
+  });
+
+  it('archiving an already-archived managed page is idempotent', async () => {
+    const getManagedPage = vi.fn().mockResolvedValue({ ...managedPage, status: 'ARCHIVED' as never });
+    const setManagedPageStatus = vi.fn();
+    const repository = { ...emptyRepository(), getManagedPage, setManagedPageStatus };
+    const service = new AdminContentService(repository, prismaMock().prisma);
+
+    const result = await service.archiveManagedPage('mp1', 'admin-1');
+
+    expect(result.status).toBe('ARCHIVED');
+    expect(setManagedPageStatus).not.toHaveBeenCalled();
+  });
+
+  it('creates a managed page and audits the action', async () => {
+    const createManagedPage = vi.fn().mockResolvedValue(managedPage);
+    const repository = { ...emptyRepository(), createManagedPage };
+    const { prisma, create } = prismaMock();
+    const service = new AdminContentService(repository, prisma);
+
+    const result = await service.createManagedPage({ title: 'صفحه', slug: 'page', body: 'متن' } as never, 'admin-1');
+
+    expect(result).toBe(managedPage);
+    expect(createManagedPage).toHaveBeenCalledWith(expect.objectContaining({ title: 'صفحه', slug: 'page', body: 'متن' }));
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ action: 'MANAGED_PAGE_CREATED', userId: 'admin-1' }) }),
     );
   });
 });

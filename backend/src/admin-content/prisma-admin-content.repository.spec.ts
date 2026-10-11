@@ -72,4 +72,46 @@ describe('PrismaAdminContentRepository', () => {
     expect(update).toHaveBeenCalledWith(expect.objectContaining({ data: { name: 'Renamed' } }));
     expect(result?.categoryId).toBe('existing-category');
   });
+
+  it('creates an injection service in draft status with ctaLabel/ctaHref persisted', async () => {
+    const create = vi.fn(async (args: unknown) => ({ ...(args as { data: object }).data, id: 'is1', images: [], specifications: [], createdAt: new Date(), updatedAt: new Date(), publishedAt: null }));
+    const prisma = { injectionService: { create } } as unknown as PrismaService;
+    const repository = new PrismaAdminContentRepository(prisma);
+
+    const result = await repository.createInjectionService({ name: 'خدمت', slug: 'svc', ctaLabel: 'تماس', ctaHref: '/contact' });
+
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'DRAFT', ctaLabel: 'تماس', ctaHref: '/contact' }) }));
+    expect(result.ctaHref).toBe('/contact');
+  });
+
+  it('sets publishedAt only when provided for a material status transition', async () => {
+    const update = vi.fn(async (args: unknown) => ({ ...(args as { data: object }).data, id: 'm1', name: 'M', slug: 'm', family: null, grade: null, manufacturer: null, summary: null, description: null, images: [], specifications: [], inquiryAvailable: true, displayOrder: 0, status: 'ARCHIVED', publishedAt: null, metaTitle: null, metaDescription: null, createdAt: new Date(), updatedAt: new Date() }));
+    const prisma = { material: { update } } as unknown as PrismaService;
+    const repository = new PrismaAdminContentRepository(prisma);
+
+    await repository.setMaterialStatus('m1', 'ARCHIVED' as never, null);
+
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ data: { status: 'ARCHIVED' } }));
+  });
+
+  it('returns null instead of throwing when updating a missing article', async () => {
+    const update = vi.fn(async () => {
+      throw { code: 'P2025' };
+    });
+    const prisma = { article: { update } } as unknown as PrismaService;
+    const repository = new PrismaAdminContentRepository(prisma);
+
+    await expect(repository.updateArticle('missing', { title: 'New title' })).resolves.toBeNull();
+  });
+
+  it('creates a managed page with an images array', async () => {
+    const create = vi.fn(async (args: unknown) => ({ ...(args as { data: object }).data, id: 'mp1', createdAt: new Date(), updatedAt: new Date(), publishedAt: null }));
+    const prisma = { managedPage: { create } } as unknown as PrismaService;
+    const repository = new PrismaAdminContentRepository(prisma);
+
+    const result = await repository.createManagedPage({ title: 'صفحه', slug: 'page', body: 'متن', images: [{ url: '/x.webp', alt: 'x' }] });
+
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'DRAFT', body: 'متن' }) }));
+    expect(result.images).toEqual([{ url: '/x.webp', alt: 'x' }]);
+  });
 });

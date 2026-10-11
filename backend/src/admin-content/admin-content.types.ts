@@ -67,6 +67,98 @@ export interface ProductWriteInput {
   metaDescription?: string | null;
 }
 
+export interface AdminInjectionService extends AdminLifecycle, AdminSeo {
+  name: string;
+  slug: string;
+  summary: string | null;
+  description: string | null;
+  images: PublicImage[];
+  specifications: PublicSpecification[];
+  ctaLabel: string | null;
+  ctaHref: string | null;
+}
+
+export interface AdminMaterial extends AdminLifecycle, AdminSeo {
+  name: string;
+  slug: string;
+  family: string | null;
+  grade: string | null;
+  manufacturer: string | null;
+  summary: string | null;
+  description: string | null;
+  images: PublicImage[];
+  specifications: PublicSpecification[];
+  inquiryAvailable: boolean;
+}
+
+export interface AdminArticle extends AdminLifecycle, AdminSeo {
+  title: string;
+  slug: string;
+  summary: string | null;
+  body: string;
+  featuredImage: PublicImage | null;
+}
+
+export interface AdminManagedPage extends AdminLifecycle, AdminSeo {
+  title: string;
+  slug: string;
+  summary: string | null;
+  body: string;
+  images: PublicImage[];
+}
+
+export interface InjectionServiceWriteInput {
+  name: string;
+  slug: string;
+  summary?: string | null;
+  description?: string | null;
+  images?: PublicImage[];
+  specifications?: PublicSpecification[];
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+  displayOrder?: number;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+}
+
+export interface MaterialWriteInput {
+  name: string;
+  slug: string;
+  family?: string | null;
+  grade?: string | null;
+  manufacturer?: string | null;
+  summary?: string | null;
+  description?: string | null;
+  images?: PublicImage[];
+  specifications?: PublicSpecification[];
+  inquiryAvailable?: boolean;
+  displayOrder?: number;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+}
+
+export interface ArticleWriteInput {
+  title: string;
+  slug: string;
+  summary?: string | null;
+  body: string;
+  featuredImage?: PublicImage | null;
+  displayOrder?: number;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+}
+
+export interface ManagedPageWriteInput {
+  title: string;
+  slug: string;
+  summary?: string | null;
+  body: string;
+  images?: PublicImage[];
+  displayOrder?: number;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+}
+
 export interface AdminListQuery extends PageRequest {
   status?: ContentStatus;
 }
