@@ -1,9 +1,7 @@
 ## Purpose
 
 Define the Persian RTL public application shell, responsive navigation, approved-content boundary, and indexing behavior.
-
 ## Requirements
-
 ### Requirement: Persian RTL public layout
 The public application shell SHALL declare Persian language and right-to-left direction at the document level and SHALL provide a shared content container that preserves RTL reading order across mobile, tablet, and desktop layouts.
 
@@ -59,14 +57,18 @@ The public shell SHALL be visually and functionally verified at 360, 390, 768, a
 - **THEN** the shell SHALL wrap, truncate with an accessible full value, or use controlled local scrolling without forcing page-level horizontal scrolling
 
 ### Requirement: Public-shell indexing boundary
-The shell SHALL support indexable metadata for approved public content and `noindex` metadata for unapproved placeholders and all future authentication, customer portal, and admin surfaces. Metadata MUST NOT be used as an access-control mechanism.
+The shell SHALL provide indexable metadata for approved public home, collection, detail, article, and managed-content routes and `noindex` metadata for unapproved placeholders, errors, not-found pages, authentication, account, inquiry, customer portal, and admin surfaces. Metadata MUST NOT be used as an access-control mechanism.
+
+#### Scenario: Approved public route is active
+- **WHEN** approved public content and route metadata are available
+- **THEN** the page SHALL allow indexing and following and SHALL expose its canonical route
 
 #### Scenario: Placeholder foundation page is active
-- **WHEN** production identity and content remain unapproved
+- **WHEN** a public route remains a placeholder or its content is not approved
 - **THEN** the page SHALL remain `noindex` and `nofollow`
 
 #### Scenario: Private surface later adopts shared primitives
-- **WHEN** an authentication, portal, or admin route uses the shared design system
+- **WHEN** an authentication, account, inquiry, portal, or admin route uses the shared design system
 - **THEN** that route SHALL remain `noindex` and protected by server-side authorization independently of UI visibility
 
 ### Requirement: Version-one public actions exclude ecommerce
@@ -75,3 +77,4 @@ The public shell MUST NOT expose cart, checkout, online payment, confirmed live 
 #### Scenario: Primary commercial call to action is rendered
 - **WHEN** the shell presents a commercial CTA
 - **THEN** it SHALL direct the user toward inquiry or approved contact behavior without implying purchase completion, guaranteed stock, or a binding automatic price
+
