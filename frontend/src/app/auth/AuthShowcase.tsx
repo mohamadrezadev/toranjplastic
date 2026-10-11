@@ -3,7 +3,7 @@ import styles from "./Auth.module.css";
 
 export function AuthShowcase() {
   return <aside className={styles.showcase} aria-label="معرفی ترنج پلاستیک">
-    <Link className={styles.brand} href="/"><span className={styles.brandMark} aria-hidden="true">ت</span><span>ترنج پلاستیک</span></Link>
+    <Link className={styles.brand} href="/" aria-label="ترنج پلاستیک — صفحه اصلی"><span className={styles.wordmark} dir="ltr" aria-hidden="true"><span>T</span><span className={styles.wordmarkIcon} /><span>ranj</span></span></Link>
     <div className={styles.showcaseContent}>
       <span className={styles.showcaseEyebrow}>ارتباط ساده‌تر، پیگیری روشن‌تر</span>
       <h2>از آشنایی تا پیگیری، <em>همراه مسیر شما.</em></h2>

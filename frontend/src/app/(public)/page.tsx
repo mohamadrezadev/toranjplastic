@@ -7,9 +7,12 @@ const homeDescription = "محصولات آشپزخانه و نظافتی، خد�
 export const metadata: Metadata = publicContentMetadata({ title: "ترنج پلاستیک", path: "/", summary: homeDescription });
 
 const areas = [
-  { number: "۰۱", title: "محصولات", description: "محصولات منتشرشده را ببینید و جزئیات هر مورد را بررسی کنید.", href: "/products", accent: "products" },
-  { number: "۰۲", title: "خدمات تزریق", description: "با حوزه خدمات تزریق پلاستیک و اطلاعات منتشرشده آن آشنا شوید.", href: "/injection-molding", accent: "injection" },
-  { number: "۰۳", title: "مواد اولیه", description: "مواد اولیه معرفی‌شده را بر اساس اطلاعات موجود مرور کنید.", href: "/materials", accent: "materials" },
+  {
+    number: "۰۱", title: "محصولات", description: "محصولات منتشرشده را ببینید و جزئیات هر مورد را بررسی کنید.", href: "/products", accent: "products",
+    image: { url: "/catalog/spice-dispenser.webp", alt: "نمک‌پاش و ادویه‌پاش ترنج، از محصولات منتشرشده کاتالوگ" },
+  },
+  { number: "۰۲", title: "خدمات تزریق", description: "با حوزه خدمات تزریق پلاستیک و اطلاعات منتشرشده آن آشنا شوید.", href: "/injection-molding", accent: "injection", image: null },
+  { number: "۰۳", title: "مواد اولیه", description: "مواد اولیه معرفی‌شده را بر اساس اطلاعات موجود مرور کنید.", href: "/materials", accent: "materials", image: null },
 ] as const;
 
 export default function Home() {
@@ -27,7 +30,10 @@ export default function Home() {
         </div>
         <div className={styles.heroArtwork} aria-hidden="true">
           <div className={styles.artFrame}>
-            <span className={styles.artIndex}>TP / 01</span><span className={styles.artDisc} /><span className={styles.artRing} /><span className={styles.artBar} />
+            {/* از کاتالوگ محصولات منتشرشده؛ منشأ در docs/catalog-media-provenance.md ثبت شده است. */}
+            <img className={styles.artPhoto} src="/catalog/all-purpose-liquid-dispenser.webp" alt="" width={1200} height={1200} />
+            <span className={styles.artScrim} />
+            <span className={styles.artIndex}>TP / 01</span>
             <span className={styles.artCaption}>FORM · MATERIAL · FUNCTION</span>
           </div>
         </div>
@@ -41,7 +47,7 @@ export default function Home() {
     <section className={`${styles.areas} content-container`} aria-label="حوزه‌های ترنج پلاستیک">
       {areas.map((area) => <Link className={`${styles.area} ${styles[area.accent]}`} key={area.href} href={area.href}>
         <span className={styles.areaTop}><span>{area.number} / حوزه فعالیت</span><span className={styles.areaArrow} aria-hidden="true">↖</span></span>
-        <span className={styles.areaGlyph} aria-hidden="true"><span /></span>
+        <span className={styles.areaGlyph} aria-hidden="true">{area.image ? <img className={styles.areaPhoto} src={area.image.url} alt={area.image.alt} width={1200} height={1200} loading="lazy" /> : <span />}</span>
         <span className={styles.areaBody}><strong>{area.title}</strong><span>{area.description}</span><span className={styles.areaMore}>مشاهده بخش <span aria-hidden="true">←</span></span></span>
       </Link>)}
     </section>

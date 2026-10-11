@@ -13,15 +13,13 @@
 .textAction { min-height: 3.4rem; display: inline-flex; align-items: center; gap: 1rem; border-block-end: 1px solid #63776d; font-weight: 600; }
 .textAction:hover { color: #ee9b73; }
 .heroArtwork { min-height: 30rem; display: grid; place-items: center; }
-.artFrame { width: min(100%, 31rem); aspect-ratio: .98; position: relative; display: grid; place-items: center; border: 1px solid #65766b; background: radial-gradient(circle at 50% 43%, #42594a 0, #23382e 43%, #172a23 69%); box-shadow: 2.3rem 2.3rem 0 #20362b, 2.3rem 2.3rem 0 1px #65766b; overflow: hidden; }
-.artFrame::before { content: ""; position: absolute; inset: 2rem; border: 1px solid #71877877; }
-.artFrame::after { content: ""; position: absolute; width: 140%; height: 1px; background: #91a79480; transform: rotate(-31deg); }
-.artIndex, .artCaption { position: absolute; z-index: 2; color: #bac9bb; font: 700 .72rem/1 var(--font-family-latin); letter-spacing: .16em; }
+.artFrame { width: min(100%, 31rem); aspect-ratio: .98; position: relative; border: 1px solid #65766b; box-shadow: 2.3rem 2.3rem 0 #20362b, 2.3rem 2.3rem 0 1px #65766b; overflow: hidden; }
+.artFrame::before { content: ""; position: absolute; z-index: 2; inset: 2rem; border: 1px solid #ffffff4d; pointer-events: none; }
+.artPhoto { width: 100%; height: 100%; display: block; object-fit: cover; }
+.artScrim { position: absolute; z-index: 1; inset: 0; background: linear-gradient(180deg, #0b1512b3 0, transparent 32%, transparent 66%, #0b1512cc 100%); }
+.artIndex, .artCaption { position: absolute; z-index: 3; color: #f5f8fb; font: 700 .72rem/1 var(--font-family-latin); letter-spacing: .16em; }
 .artIndex { inset-block-start: 3.4rem; inset-inline-start: 3.5rem; }
 .artCaption { inset-block-end: 3.4rem; inset-inline-end: 3.5rem; }
-.artDisc { width: 53%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #e4b394, #ae593a 52%, #462e25 100%); box-shadow: inset -1.5rem -1.8rem 2rem #40261d88, 1.4rem 1.4rem 3rem #07140d99; }
-.artRing { width: 70%; aspect-ratio: 1; position: absolute; border: 1.7rem solid #a8b8a288; border-inline-start-color: #e9dbb5; border-block-start-color: #c7d4b9; border-radius: 50%; transform: rotate(-29deg) scaleY(.58); box-shadow: 0 2rem 2rem #09160e77; }
-.artBar { width: 13%; height: 95%; position: absolute; background: linear-gradient(90deg, #627b69, #b1c3a8 35%, #4f6b59 70%, #273e31); transform: rotate(31deg) translate(165%, 6%); box-shadow: 1rem 1rem 2rem #09160e88; }
 .heroBottom { padding-block: 1.25rem; display: flex; justify-content: space-between; gap: 1rem; border-block-start: 1px solid #4e6355; color: #bdcabe; font-size: .77rem; }
 .intro { padding-block: clamp(4rem, 8vw, 7rem) 2.5rem; display: grid; grid-template-columns: 1.25fr .75fr; align-items: end; gap: 2rem; }
 .sectionNumber { color: var(--color-brand-action); font: 700 .78rem/1.5 var(--font-family-fa); }
@@ -32,7 +30,8 @@
 .area:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--color-border-strong); }
 .areaTop { display: flex; justify-content: space-between; align-items: center; gap: 1rem; color: var(--color-text-secondary); font-size: .8rem; }
 .areaArrow { width: 2rem; height: 2rem; display: grid; place-items: center; border: 1px solid var(--color-border-default); border-radius: 50%; color: var(--color-brand-primary); font-size: 1.2rem; }
-.areaGlyph { flex: 1; min-height: 9rem; display: grid; place-items: center; overflow: hidden; }
+.areaGlyph { flex: 1; min-height: 9rem; position: relative; display: grid; place-items: center; overflow: hidden; border-radius: .3rem; }
+.areaPhoto { width: 100%; height: 100%; display: block; object-fit: cover; }
 .areaGlyph span { width: 7.4rem; height: 7.4rem; display: block; border: 1.1rem solid #ad6a4c; border-radius: 1.2rem; transform: rotate(-28deg); box-shadow: 1rem 1rem 0 #e1c4ab; }
 .injection .areaGlyph span { width: 9rem; height: 4.5rem; border: 0; border-radius: 0; background: repeating-linear-gradient(90deg, #587561 0 1rem, #9db39b 1rem 1.45rem); transform: skewY(-22deg); box-shadow: 1.4rem 1.4rem 0 #c4d0b7; }
 .materials .areaGlyph span { width: 7rem; height: 7rem; border: 0; border-radius: 50%; background: #b5a07b; box-shadow: -2.5rem 1rem 0 -1rem #d8bfa1, 2rem 1.2rem 0 -.7rem #8e7657, 0 -2.2rem 0 -.9rem #d2b38b; transform: none; }

@@ -1,10 +1,10 @@
-/* Provisional editorial palette. Official brand assets remain subject to approval. */
+/* Approved Toranj brand palette (navy primary + orange accent). See docs/brand-identity-provenance.md for asset sourcing. */
 :root {
   color-scheme: light;
-  --color-brand-primary: #172824;
-  --color-brand-action: #b74e2e;
-  --color-brand-action-hover: #933b22;
-  --color-brand-action-soft: #f6e8df;
+  --color-brand-primary: #17324d;
+  --color-brand-action: #b74a00;
+  --color-brand-action-hover: #933c00;
+  --color-brand-action-soft: #fbe6d4;
   --color-brand-industrial: #667d71;
   --color-brand-kitchen: #8b7969;
   --color-text-primary: #1d2925;
@@ -16,9 +16,9 @@
   --color-surface-kitchen: #f1eee5;
   --color-border-default: #d9dcd0;
   --color-border-strong: #abb6a8;
-  --color-hero: #162722;
-  --color-hero-ink: #f8f4e9;
-  --color-hero-muted: #bbcbc0;
+  --color-hero: #12283c;
+  --color-hero-ink: #f5f8fb;
+  --color-hero-muted: #aebed0;
   --color-status-success: #19704a;
   --color-status-warning: #8a5a12;
   --color-status-danger: #b42336;
@@ -29,6 +29,7 @@
   --color-status-info-surface: #edf7fc;
   --font-family-fa: "Estedad Variable", Tahoma, Arial, sans-serif;
   --font-family-latin: Inter, "Segoe UI", Arial, sans-serif;
+  --font-family-brand: "Poppins", Inter, "Segoe UI", Arial, sans-serif;
   --font-size-sm: 0.875rem;
   --font-size-body: 1rem;
   --font-size-lg: 1.125rem;
@@ -66,10 +67,10 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-brand-primary: #e9eee4;
-  --color-brand-action: #ee956f;
-  --color-brand-action-hover: #ffc2a1;
-  --color-brand-action-soft: #352820;
+  --color-brand-primary: #e7edf5;
+  --color-brand-action: #ff9d52;
+  --color-brand-action-hover: #ffc08a;
+  --color-brand-action-soft: #3a2416;
   --color-brand-industrial: #a3b4a8;
   --color-brand-kitchen: #c5b7a5;
   --color-text-primary: #e8eee6;
@@ -81,9 +82,9 @@
   --color-surface-kitchen: #252c28;
   --color-border-default: #35443a;
   --color-border-strong: #667766;
-  --color-hero: #0b1512;
-  --color-hero-ink: #f8f4e9;
-  --color-hero-muted: #bbcbc0;
+  --color-hero: #0d1b29;
+  --color-hero-ink: #f5f8fb;
+  --color-hero-muted: #aebed0;
   --color-status-success: #6ee7b7;
   --color-status-warning: #fbbf24;
   --color-status-danger: #fda4af;

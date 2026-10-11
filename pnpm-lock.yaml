@@ -110,6 +110,9 @@ importers:
       '@fontsource-variable/estedad':
         specifier: ^5.3.0
         version: 5.3.0
+      '@fontsource/poppins':
+        specifier: ^5.3.0
+        version: 5.3.0
       next:
         specifier: 16.4.0
         version: 16.4.0(@babel/core@7.29.7)(@playwright/test@1.64.0)(@types/node@20.19.43)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -562,6 +565,9 @@ packages:
 
   '@fontsource-variable/estedad@5.3.0':
     resolution: {integrity: sha512-9x3G4AhfOKL+Ixyv2SUnoC7Q7Z/+1ks3zk8kp6/Iu28gGo1ygQNwOta4cePnwuwcmgOnkZX4DRgM5YkCjV3pFg==}
+
+  '@fontsource/poppins@5.3.0':
+    resolution: {integrity: sha512-cms1nM7U6SN8epIV1WMVOV8VsA645aSm3wHfzIQnkk188U341ThbJGSl2Sv54V29gnDbT2arMPfLzvVIIVCceQ==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -4964,6 +4970,8 @@ snapshots:
       '@noble/hashes': 1.8.0
 
   '@fontsource-variable/estedad@5.3.0': {}
+
+  '@fontsource/poppins@5.3.0': {}
 
   '@humanfs/core@0.19.2':
     dependencies:

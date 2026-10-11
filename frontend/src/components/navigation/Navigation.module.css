@@ -1,7 +1,8 @@
 .header { position: sticky; inset-block-start: 0; z-index: 20; background: color-mix(in srgb, var(--color-surface-canvas) 94%, transparent); border-block-end: 1px solid var(--color-border-default); backdrop-filter: blur(1rem); }
 .headerInner { min-height: 5.5rem; display: flex; align-items: center; gap: clamp(1rem, 2.5vw, 2.5rem); }
-.brand { min-height: var(--control-min-height); display: inline-flex; align-items: center; gap: .8rem; color: var(--color-brand-primary); font-size: 1.15rem; font-weight: 700; white-space: nowrap; letter-spacing: -.04em; }
-.brandMark { width: 2.6rem; height: 2.6rem; display: grid; place-items: center; color: var(--color-hero-ink); background: var(--color-hero); border-radius: .2rem .8rem .2rem .8rem; font-size: 1.45rem; transform: rotate(-8deg); }
+.brand { min-height: var(--control-min-height); display: inline-flex; align-items: center; }
+.wordmark { display: inline-flex; align-items: center; gap: .08em; color: var(--color-brand-primary); font-family: var(--font-family-brand); font-size: 1.55rem; font-weight: 800; letter-spacing: -.01em; }
+.wordmarkIcon { width: .78em; height: .78em; display: inline-block; background-color: currentColor; -webkit-mask-image: url("/branding/toranj-symbol-dots.svg"); mask-image: url("/branding/toranj-symbol-dots.svg"); -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; -webkit-mask-size: contain; mask-size: contain; }
 .desktopNav { margin-inline: auto; }
 .navList { display: flex; align-items: center; gap: .2rem; list-style: none; }
 .navLink { min-height: var(--control-min-height); padding-inline: .8rem; display: inline-flex; align-items: center; border-radius: var(--radius-sm); font-size: .9rem; font-weight: 600; }
@@ -21,12 +22,12 @@
 .drawer .navLink { width: 100%; }
 .drawerTheme { min-height: var(--control-min-height); margin-block-end: var(--space-4); display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); color: var(--color-text-secondary); }
 .drawerActions { display: grid; gap: var(--space-2); }
-.footer { margin-block-start: auto; padding-block: clamp(3rem, 6vw, 5rem) 2rem; color: var(--color-hero-muted); background: var(--color-hero); border-block-start: 1px solid #587263; }
+.footer { margin-block-start: auto; padding-block: clamp(3rem, 6vw, 5rem) 2rem; color: var(--color-hero-muted); background: var(--color-hero); border-block-start: 1px solid color-mix(in srgb, var(--color-hero-ink) 18%, transparent); }
 .footerInner { display: grid; grid-template-columns: 1fr auto; gap: 3rem; }
 .footerBrand { color: var(--color-hero-ink); font-size: clamp(1.6rem, 3vw, 2.3rem); font-weight: 700; letter-spacing: -.04em; }
 .footerNote { max-width: 36rem; margin-block-start: 1rem; color: var(--color-hero-muted); font-size: .88rem; }
 .footerLinks { display: grid; grid-template-columns: repeat(2, auto); align-content: start; gap: .6rem 2.5rem; color: var(--color-hero-ink); font-size: .9rem; }
-.footerLinks a:hover { color: #ee9b73; }
+.footerLinks a:hover { color: #ffb27a; }
 .breadcrumb { padding-block: 1.3rem; }
 .breadcrumb ol { display: flex; flex-wrap: wrap; gap: var(--space-2); list-style: none; color: var(--color-text-secondary); font-size: var(--font-size-sm); }
 .breadcrumb li + li::before { content: "/"; margin-inline-end: var(--space-2); color: var(--color-border-strong); }
