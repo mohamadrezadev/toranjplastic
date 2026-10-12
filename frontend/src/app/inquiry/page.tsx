@@ -8,5 +8,7 @@ const choices = [
   ["contact", "تماس عمومی", "برای موضوع‌های دیگر یک درخواست عمومی بفرستید."],
 ] as const;
 export default function InquiryPage() {
-  return <main className={styles.main}><section className={styles.shell}><p className={styles.eyebrow}>ثبت درخواست</p><h1>چه نوع درخواستی دارید؟</h1><p>برای بررسی و پیگیری توسط تیم ترنج، گزینه مناسب را انتخاب کنید.</p><div className={styles.grid}>{choices.map(([type,title,description]) => <Link key={type} href={`/inquiry/${type}`}><h2>{title}</h2><p>{description}</p></Link>)}</div></section></main>;
+  return <section className={styles.page}><header className={styles.pageHeader}><p className={styles.eyebrow}>پنل مشتری / درخواست جدید</p><h1>چه نوع درخواستی دارید؟</h1><p className={styles.lead}>مسیر مناسب را انتخاب کنید تا فقط اطلاعات مرتبط با نیاز شما نمایش داده شود.</p></header><div className={styles.choiceGrid}>{choices.map(([type,title,description], index) => <Link className={styles.choiceCard} key={type} href={`/inquiry/${type}`}><span className={styles.choiceTop}><span className={styles.choiceIndex}>0{index + 1}</span><span className={styles.choiceArrow} aria-hidden="true">←</span></span><span><h2>{title}</h2><p>{description}</p></span></Link>)}</div></section>;
 }
+
+export const instant = false;

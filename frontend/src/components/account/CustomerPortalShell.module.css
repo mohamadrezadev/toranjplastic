@@ -1,0 +1,149 @@
+.shell {
+  min-height: 100svh;
+  background: var(--color-surface-canvas);
+}
+
+.skipLink {
+  position: fixed;
+  inset-block-start: .75rem;
+  inset-inline-start: 1rem;
+  z-index: 20;
+  padding: .65rem 1rem;
+  border-radius: var(--radius-md);
+  color: var(--color-hero);
+  background: var(--color-hero-ink);
+  transform: translateY(-180%);
+}
+.skipLink:focus { transform: translateY(0); }
+
+.sidebar {
+  width: 16rem;
+  height: 100svh;
+  padding: 1.25rem;
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+  border-inline-start: 1px solid var(--color-border-default);
+  color: var(--color-text-primary);
+  background: linear-gradient(180deg, var(--color-surface-card), color-mix(in srgb, var(--color-surface-raised) 88%, var(--color-surface-card)));
+  box-shadow: -.75rem 0 2.5rem rgb(18 40 60 / 6%);
+  backdrop-filter: blur(18px);
+}
+.sidebar::before { content: ""; height: .22rem; position: absolute; inset-block-start: 0; inset-inline: 1.25rem; border-radius: 0 0 999px 999px; background: linear-gradient(90deg, var(--color-brand-action), color-mix(in srgb, var(--color-brand-action) 18%, transparent)); }
+
+.sidebarTop { display: grid; gap: 1.1rem; }
+.brand { width: fit-content; min-height: 2.75rem; display: grid; align-content: center; gap: .2rem; }
+.wordmark { display: inline-flex; align-items: center; gap: .07em; color: var(--color-brand-primary); font-family: var(--font-family-brand); font-size: 1.65rem; font-weight: 800; letter-spacing: -.02em; }
+.wordmarkIcon { width: .78em; height: .78em; display: inline-block; background-color: currentColor; -webkit-mask: url("/branding/toranj-symbol-dots.svg") center / contain no-repeat; mask: url("/branding/toranj-symbol-dots.svg") center / contain no-repeat; }
+.brandCaption { color: var(--color-text-secondary); font-size: .75rem; }
+
+.accountCard {
+  min-width: 0;
+  padding: .75rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+.avatar { width: 2.4rem; height: 2.4rem; flex: 0 0 auto; display: grid; place-items: center; border-radius: 50%; color: #fff; background: var(--color-brand-action); font-weight: var(--font-weight-bold); }
+.accountCopy { min-width: 0; display: grid; line-height: 1.55; }
+.accountCopy strong { overflow: hidden; color: var(--color-brand-primary); font-size: .88rem; text-overflow: ellipsis; white-space: nowrap; }
+.accountCopy span { color: var(--color-text-secondary); font-size: .72rem; text-align: end; }
+
+.navigation { display: grid; gap: .45rem; }
+.navigation a {
+  min-height: 3rem;
+  padding: .55rem .65rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  transition: color var(--motion-fast) var(--motion-easing), background-color var(--motion-fast) var(--motion-easing), border-color var(--motion-fast) var(--motion-easing);
+}
+.navigation a:hover { color: var(--color-brand-primary); border-color: var(--color-border-default); background: var(--color-surface-raised); }
+.navigation .activeLink { color: var(--color-brand-primary); border-color: color-mix(in srgb, var(--color-brand-action) 30%, var(--color-border-default)); background: var(--color-brand-action-soft); }
+.navMarker { width: 1.65rem; height: 1.65rem; flex: 0 0 auto; display: grid; place-items: center; border-radius: .4rem; color: var(--color-brand-action); background: var(--color-surface-card); font-family: var(--font-family-latin); font-size: .65rem; }
+
+.sidebarFooter { margin-block-start: auto; display: grid; gap: 1rem; }
+.sidebarFooter p { color: var(--color-text-secondary); font-size: .75rem; line-height: 1.75; }
+.sidebarFooter form, .sidebarFooter button { width: 100%; }
+
+.workspace {
+  min-width: 0;
+  min-height: 100svh;
+  margin-inline-start: 16rem;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 92% 4%, color-mix(in srgb, var(--color-brand-action) 11%, transparent) 0, transparent 26rem),
+    radial-gradient(circle at 4% 88%, color-mix(in srgb, var(--color-brand-industrial) 13%, transparent) 0, transparent 30rem),
+    linear-gradient(155deg, var(--color-surface-canvas) 0%, color-mix(in srgb, var(--color-surface-subtle) 72%, var(--color-surface-canvas)) 52%, var(--color-surface-canvas) 100%);
+}
+.workspace::before {
+  content: "";
+  position: fixed;
+  inset: 0 16rem 0 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .34;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-border-default) 42%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-border-default) 42%, transparent) 1px, transparent 1px);
+  background-size: 4rem 4rem;
+  mask-image: linear-gradient(to bottom left, #000 0, transparent 46%);
+}
+.mobileHeader { display: none; }
+.content { width: min(100%, 78rem); min-width: 0; margin-inline: auto; padding: clamp(1rem, 3vw, 3rem); position: relative; z-index: 1; }
+
+@media (max-width: 64rem) {
+  .sidebar { width: auto; height: auto; min-height: auto; padding: 1rem clamp(1rem, 3vw, 2rem); position: static; gap: 1rem; overflow: visible; border-inline-start: 0; border-block-end: 1px solid var(--color-border-default); box-shadow: 0 .5rem 2rem rgb(18 40 60 / 5%); backdrop-filter: none; }
+  .sidebar::before { inset-inline: clamp(1rem, 3vw, 2rem); }
+  .sidebarTop { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .accountCard { max-width: 18rem; }
+  .navigation { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .navigation a { justify-content: center; }
+  .sidebarFooter { display: none; }
+  .workspace { min-height: 0; margin-inline-start: 0; }
+  .workspace::before { inset-inline: 0; }
+  .mobileHeader { min-width: 0; padding: .8rem clamp(1rem, 3vw, 2rem); display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-block-end: 1px solid var(--color-border-default); color: var(--color-text-secondary); background: var(--color-surface-card); font-size: var(--font-size-sm); }
+  .mobileHeader strong { min-width: 0; overflow: hidden; color: var(--color-brand-primary); text-overflow: ellipsis; white-space: nowrap; }
+}
+
+@media (max-width: 35rem) {
+  .sidebar { padding: .7rem 1rem; position: sticky; inset-block-start: 0; z-index: 20; }
+  .sidebar::before { inset-inline: 1rem; }
+  .sidebarTop { min-height: 3rem; }
+  .brandCaption, .accountCopy span { display: none; }
+  .wordmark { font-size: 1.35rem; }
+  .accountCard { width: auto; padding: .35rem; border: 0; background: transparent; }
+  .avatar { width: 2.15rem; height: 2.15rem; }
+  .accountCopy strong { max-width: 7.5rem; font-size: .76rem; }
+  .navigation {
+    padding: .42rem .55rem calc(.42rem + env(safe-area-inset-bottom));
+    position: fixed;
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: 30;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .35rem;
+    border-block-start: 1px solid var(--color-border-default);
+    background: color-mix(in srgb, var(--color-surface-card) 94%, transparent);
+    box-shadow: 0 -.75rem 2.5rem rgb(18 40 60 / 12%);
+    backdrop-filter: blur(18px);
+  }
+  .navigation a { min-height: 3.55rem; padding: .35rem .25rem; flex-direction: column; justify-content: center; gap: .15rem; border-radius: var(--radius-sm); font-size: .68rem; line-height: 1.35; text-align: center; }
+  .navMarker { width: 1.35rem; height: 1.35rem; display: grid; border-radius: .35rem; font-size: .9rem; line-height: 1; }
+  .mobileHeader { display: none; }
+  .content { padding: .9rem .9rem calc(5.75rem + env(safe-area-inset-bottom)); }
+}
