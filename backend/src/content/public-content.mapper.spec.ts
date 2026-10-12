@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  mapArticle,
+  mapCategory,
+  mapManagedPage,
+  mapMaterial,
   mapProduct,
   mapService,
   normalizeImages,
@@ -73,5 +77,33 @@ describe('public content mappers', () => {
         publishedAt,
       }).ctaHref,
     ).toBeNull();
+  });
+
+  it('preserves the explicit public response contract for every resource family', () => {
+    const seo = { metaTitle: null, metaDescription: null, publishedAt };
+    const image = { url: '/media/item.webp', alt: 'تصویر' };
+
+    expect(mapCategory({ id: 'c1', name: 'دسته', slug: 'cat', description: null, image, ...seo }))
+      .toEqual({ id: 'c1', name: 'دسته', slug: 'cat', description: null, image, metaTitle: null, metaDescription: null, publishedAt: publishedAt.toISOString() });
+    expect(mapMaterial({
+      id: 'm1', name: 'ماده', slug: 'mat', family: null, grade: null, manufacturer: null,
+      summary: null, description: null, images: [image], specifications: [], inquiryAvailable: true, ...seo,
+    })).toEqual({
+      id: 'm1', name: 'ماده', slug: 'mat', family: null, grade: null, manufacturer: null,
+      summary: null, description: null, images: [image], specifications: [], inquiryAvailable: true,
+      metaTitle: null, metaDescription: null, publishedAt: publishedAt.toISOString(),
+    });
+    expect(mapArticle({
+      id: 'a1', title: 'مقاله', slug: 'article', summary: null, body: 'متن', featuredImage: image, ...seo,
+    })).toEqual({
+      id: 'a1', title: 'مقاله', slug: 'article', summary: null, body: 'متن', featuredImage: image,
+      metaTitle: null, metaDescription: null, publishedAt: publishedAt.toISOString(),
+    });
+    expect(mapManagedPage({
+      id: 'p1', title: 'صفحه', slug: 'page', summary: null, body: 'متن', images: [image], ...seo,
+    })).toEqual({
+      id: 'p1', title: 'صفحه', slug: 'page', summary: null, body: 'متن', images: [image],
+      metaTitle: null, metaDescription: null, publishedAt: publishedAt.toISOString(),
+    });
   });
 });

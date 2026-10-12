@@ -33,8 +33,11 @@ export async function recordContentAudit(
   record: LifecycleRecord,
   fromStatus?: ContentStatus,
 ) {
+  const entity = action.split('_').slice(0, -1)
+    .map((part) => part.charAt(0) + part.slice(1).toLowerCase())
+    .join('');
   return recordAuditEvent(audit, action, actorId, {
-    entity: action.split('_').slice(0, -1).join('_'),
+    entity,
     id: record.id,
     slug: record.slug,
     ...(fromStatus === undefined ? {} : { fromStatus, toStatus: record.status }),

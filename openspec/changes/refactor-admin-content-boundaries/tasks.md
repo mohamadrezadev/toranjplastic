@@ -1,19 +1,19 @@
 ## 1. Characterization and Shared Boundaries
 
-- [ ] 1.1 Expand backend admin-content unit tests to characterize all six resources, idempotent publish/archive auditing, unique-slug translation, and current public response contracts before moving production code.
+- [x] 1.1 Expand backend admin-content unit tests to characterize all six resources, idempotent publish/archive auditing, unique-slug translation, and current public response contracts before moving production code.
 - [x] 1.2 Move stored image and specification normalization into a neutral `content-shared` boundary, update public/admin consumers, and prove unchanged mappings with existing mapper and repository tests.
-- [ ] 1.3 Split the aggregate admin-content types and repository interface into shared paging/lifecycle types plus explicit resource contracts without changing exported DTO shapes.
+- [x] 1.3 Split the aggregate admin-content types and repository interface into shared paging/lifecycle types plus explicit resource contracts without changing exported DTO shapes.
 
 ## 2. Atomic Mutation Infrastructure
 
-- [ ] 2.1 Define the `AdminContentUnitOfWork`, transaction context, audit writer, and narrow Prisma-client-compatible contracts used by application services.
-- [ ] 2.2 Implement the Prisma unit of work and transaction-scoped resource repository factory without nested transactions or direct Prisma access from application services.
-- [ ] 2.3 Add unit tests proving commit on successful content+audit writes, rollback when audit persistence fails, and no committed audit event when content persistence fails.
-- [ ] 2.4 Add shared mutation/lifecycle helpers for validation, conflict translation, and audit metadata while keeping resource-specific field mapping explicit.
+- [x] 2.1 Define the `AdminContentUnitOfWork`, transaction context, audit writer, and narrow Prisma-client-compatible contracts used by application services.
+- [x] 2.2 Implement the Prisma unit of work and transaction-scoped resource repository factory without nested transactions or direct Prisma access from application services.
+- [x] 2.3 Add unit tests proving commit on successful content+audit writes, rollback when audit persistence fails, and no committed audit event when content persistence fails.
+- [x] 2.4 Add shared mutation/lifecycle helpers for validation, conflict translation, and audit metadata while keeping resource-specific field mapping explicit.
 
 ## 3. Resource-Focused Admin Content Slices
 
-- [ ] 3.1 Move Category routes, application operations, repository contract, Prisma adapter, and tests into a focused category slice using the unit of work.
+- [x] 3.1 Move Category routes, application operations, repository contract, Prisma adapter, and tests into a focused category slice using the unit of work.
 - [ ] 3.2 Move Product routes, application operations, repository contract, Prisma adapter, and tests into a focused product slice using the unit of work.
 - [ ] 3.3 Move InjectionService routes, application operations, repository contract, Prisma adapter, and tests into a focused injection-service slice using the unit of work.
 - [ ] 3.4 Move Material routes, application operations, repository contract, Prisma adapter, and tests into a focused material slice using the unit of work.

@@ -2,7 +2,6 @@ import { Body, Controller, Get, HttpCode, Param, Patch, Post, Query, Req, UseGua
 import { AdminGuard, CsrfGuard } from '../identity/auth.guard.js';
 import type { AuthenticatedRequest } from '../identity/identity.types.js';
 import { AdminContentService } from './admin-content.service.js';
-import { CreateCategoryDto, UpdateCategoryDto } from './dto/admin-category.dto.js';
 import { CreateProductDto, UpdateProductDto } from './dto/admin-product.dto.js';
 import { CreateInjectionServiceDto, UpdateInjectionServiceDto } from './dto/admin-injection-service.dto.js';
 import { CreateMaterialDto, UpdateMaterialDto } from './dto/admin-material.dto.js';
@@ -17,42 +16,6 @@ export class AdminContentController {
 
   private actorId(request: AuthenticatedRequest): string {
     return request.auth!.account.id;
-  }
-
-  @Get('categories')
-  listCategories(@Query() query: AdminPaginationQueryDto) {
-    return this.content.listCategories(query);
-  }
-
-  @Get('categories/:id')
-  getCategory(@Param() { id }: IdParamDto) {
-    return this.content.getCategory(id);
-  }
-
-  @Post('categories')
-  @UseGuards(CsrfGuard)
-  createCategory(@Body() dto: CreateCategoryDto, @Req() request: AuthenticatedRequest) {
-    return this.content.createCategory(dto, this.actorId(request));
-  }
-
-  @Patch('categories/:id')
-  @UseGuards(CsrfGuard)
-  updateCategory(@Param() { id }: IdParamDto, @Body() dto: UpdateCategoryDto, @Req() request: AuthenticatedRequest) {
-    return this.content.updateCategory(id, dto, this.actorId(request));
-  }
-
-  @Post('categories/:id/publish')
-  @HttpCode(200)
-  @UseGuards(CsrfGuard)
-  publishCategory(@Param() { id }: IdParamDto, @Req() request: AuthenticatedRequest) {
-    return this.content.publishCategory(id, this.actorId(request));
-  }
-
-  @Post('categories/:id/archive')
-  @HttpCode(200)
-  @UseGuards(CsrfGuard)
-  archiveCategory(@Param() { id }: IdParamDto, @Req() request: AuthenticatedRequest) {
-    return this.content.archiveCategory(id, this.actorId(request));
   }
 
   @Get('products')

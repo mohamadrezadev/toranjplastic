@@ -100,6 +100,40 @@ describe('AdminContentService', () => {
     await expect(service.createCategory({ name: 'دسته', slug: 'cat' } as never, 'admin-1')).rejects.toMatchObject({ status: 409 });
   });
 
+  it('translates duplicate slugs consistently for the other five resources', async () => {
+    const duplicate = { code: 'P2002' };
+
+    const productRepository = { ...emptyRepository(), createProduct: vi.fn().mockRejectedValue(duplicate) };
+    await expect(
+      new AdminContentService(productRepository, prismaMock().prisma)
+        .createProduct({ name: 'محصول', slug: 'prod' } as never, 'admin-1'),
+    ).rejects.toMatchObject({ status: 409 });
+
+    const serviceRepository = { ...emptyRepository(), createInjectionService: vi.fn().mockRejectedValue(duplicate) };
+    await expect(
+      new AdminContentService(serviceRepository, prismaMock().prisma)
+        .createInjectionService({ name: 'خدمت', slug: 'svc' } as never, 'admin-1'),
+    ).rejects.toMatchObject({ status: 409 });
+
+    const materialRepository = { ...emptyRepository(), createMaterial: vi.fn().mockRejectedValue(duplicate) };
+    await expect(
+      new AdminContentService(materialRepository, prismaMock().prisma)
+        .createMaterial({ name: 'ماده', slug: 'mat' } as never, 'admin-1'),
+    ).rejects.toMatchObject({ status: 409 });
+
+    const articleRepository = { ...emptyRepository(), createArticle: vi.fn().mockRejectedValue(duplicate) };
+    await expect(
+      new AdminContentService(articleRepository, prismaMock().prisma)
+        .createArticle({ title: 'مقاله', slug: 'art', body: 'متن' } as never, 'admin-1'),
+    ).rejects.toMatchObject({ status: 409 });
+
+    const pageRepository = { ...emptyRepository(), createManagedPage: vi.fn().mockRejectedValue(duplicate) };
+    await expect(
+      new AdminContentService(pageRepository, prismaMock().prisma)
+        .createManagedPage({ title: 'صفحه', slug: 'page', body: 'متن' } as never, 'admin-1'),
+    ).rejects.toMatchObject({ status: 409 });
+  });
+
   it('throws 404 when updating a category that does not exist', async () => {
     const updateCategory = vi.fn().mockResolvedValue(null);
     const repository = { ...emptyRepository(), updateCategory };
@@ -148,6 +182,26 @@ describe('AdminContentService', () => {
 
     expect(result.status).toBe('ARCHIVED');
     expect(setProductStatus).not.toHaveBeenCalled();
+  });
+
+  it('characterizes idempotent lifecycle calls without rewriting persisted status', async () => {
+    const getInjectionService = vi.fn().mockResolvedValue({ ...injectionService, status: 'PUBLISHED' as never });
+    const setInjectionServiceStatus = vi.fn();
+    const service = new AdminContentService(
+      { ...emptyRepository(), getInjectionService, setInjectionServiceStatus },
+      prismaMock().prisma,
+    );
+    expect((await service.publishInjectionService('is1', 'admin-1')).status).toBe('PUBLISHED');
+    expect(setInjectionServiceStatus).not.toHaveBeenCalled();
+
+    const getArticle = vi.fn().mockResolvedValue({ ...article, status: 'ARCHIVED' as never });
+    const setArticleStatus = vi.fn();
+    const articleService = new AdminContentService(
+      { ...emptyRepository(), getArticle, setArticleStatus },
+      prismaMock().prisma,
+    );
+    expect((await articleService.archiveArticle('a1', 'admin-1')).status).toBe('ARCHIVED');
+    expect(setArticleStatus).not.toHaveBeenCalled();
   });
 
   it('creates a product in draft status via the repository and audits the action', async () => {

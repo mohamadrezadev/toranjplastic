@@ -6,6 +6,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppModule } from '../src/app.module.js';
 import { configureApp } from '../src/app.setup.js';
 import { ADMIN_CONTENT_REPOSITORY, type AdminContentRepository } from '../src/admin-content/admin-content.repository.js';
+import { ADMIN_CATEGORY_REPOSITORY } from '../src/admin-content/categories/repository.js';
+import { resourceRepositories } from '../src/admin-content/shared/resource-repository-adapters.js';
+import { ADMIN_CONTENT_UNIT_OF_WORK } from '../src/admin-content/unit-of-work.js';
 import type { AdminArticle, AdminCategory, AdminInjectionService, AdminManagedPage, AdminMaterial, AdminProduct } from '../src/admin-content/admin-content.types.js';
 import { PrismaService } from '../src/database/prisma.service.js';
 import { digestToken } from '../src/identity/identity.security.js';
@@ -121,10 +124,18 @@ describe('admin content API (e2e)', () => {
     createArticleSpy = fake.createArticle;
     createManagedPageSpy = fake.createManagedPage;
     prisma = { authSession: { findUnique: vi.fn(async () => null) }, securityAuditEvent: { create: vi.fn(async () => ({})) } };
+      const repositories = resourceRepositories(adminRepository);
+      const unitOfWork = {
+        run: (work: (context: unknown) => Promise<unknown>) => work({ ...repositories, audit: prisma }),
+      };
 
     const moduleFixture: TestingModule = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(ADMIN_CONTENT_REPOSITORY)
       .useValue(adminRepository)
+        .overrideProvider(ADMIN_CATEGORY_REPOSITORY)
+        .useValue(repositories.categories)
+        .overrideProvider(ADMIN_CONTENT_UNIT_OF_WORK)
+        .useValue(unitOfWork)
       .overrideProvider(PrismaService)
       .useValue(prisma)
       .compile();

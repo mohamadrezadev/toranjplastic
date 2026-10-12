@@ -1,58 +1,64 @@
-import type { ContentStatus } from '../generated/prisma/enums.js';
-import type {
-  AdminArticle,
-  AdminCategory,
-  AdminInjectionService,
-  AdminListQuery,
-  AdminManagedPage,
-  AdminMaterial,
-  AdminProduct,
-  AdminProductListQuery,
-  ArticleWriteInput,
-  CategoryWriteInput,
-  InjectionServiceWriteInput,
-  ManagedPageWriteInput,
-  MaterialWriteInput,
-  PageResult,
-  ProductWriteInput,
-} from './admin-content.types.js';
+import type { AdminArticleRepository } from './articles/repository.js';
+import type { AdminCategoryRepository } from './categories/repository.js';
+import type { AdminInjectionServiceRepository } from './injection-services/repository.js';
+import type { AdminManagedPageRepository } from './managed-pages/repository.js';
+import type { AdminMaterialRepository } from './materials/repository.js';
+import type { AdminProductRepository } from './products/repository.js';
 
 export const ADMIN_CONTENT_REPOSITORY = Symbol('ADMIN_CONTENT_REPOSITORY');
 
-export interface AdminContentRepository {
-  listCategories(request: AdminListQuery): Promise<PageResult<AdminCategory>>;
-  getCategory(id: string): Promise<AdminCategory | null>;
-  createCategory(input: CategoryWriteInput): Promise<AdminCategory>;
-  updateCategory(id: string, input: Partial<CategoryWriteInput>): Promise<AdminCategory | null>;
-  setCategoryStatus(id: string, status: ContentStatus, publishedAt: Date | null): Promise<AdminCategory | null>;
+type CategoryCompatibility = {
+  listCategories: AdminCategoryRepository['list'];
+  getCategory: AdminCategoryRepository['get'];
+  createCategory: AdminCategoryRepository['create'];
+  updateCategory: AdminCategoryRepository['update'];
+  setCategoryStatus: AdminCategoryRepository['setStatus'];
+};
 
-  listProducts(request: AdminProductListQuery): Promise<PageResult<AdminProduct>>;
-  getProduct(id: string): Promise<AdminProduct | null>;
-  createProduct(input: ProductWriteInput): Promise<AdminProduct>;
-  updateProduct(id: string, input: Partial<ProductWriteInput>): Promise<AdminProduct | null>;
-  setProductStatus(id: string, status: ContentStatus, publishedAt: Date | null): Promise<AdminProduct | null>;
+type ProductCompatibility = {
+  listProducts: AdminProductRepository['list'];
+  getProduct: AdminProductRepository['get'];
+  createProduct: AdminProductRepository['create'];
+  updateProduct: AdminProductRepository['update'];
+  setProductStatus: AdminProductRepository['setStatus'];
+};
 
-  listInjectionServices(request: AdminListQuery): Promise<PageResult<AdminInjectionService>>;
-  getInjectionService(id: string): Promise<AdminInjectionService | null>;
-  createInjectionService(input: InjectionServiceWriteInput): Promise<AdminInjectionService>;
-  updateInjectionService(id: string, input: Partial<InjectionServiceWriteInput>): Promise<AdminInjectionService | null>;
-  setInjectionServiceStatus(id: string, status: ContentStatus, publishedAt: Date | null): Promise<AdminInjectionService | null>;
+type InjectionServiceCompatibility = {
+  listInjectionServices: AdminInjectionServiceRepository['list'];
+  getInjectionService: AdminInjectionServiceRepository['get'];
+  createInjectionService: AdminInjectionServiceRepository['create'];
+  updateInjectionService: AdminInjectionServiceRepository['update'];
+  setInjectionServiceStatus: AdminInjectionServiceRepository['setStatus'];
+};
 
-  listMaterials(request: AdminListQuery): Promise<PageResult<AdminMaterial>>;
-  getMaterial(id: string): Promise<AdminMaterial | null>;
-  createMaterial(input: MaterialWriteInput): Promise<AdminMaterial>;
-  updateMaterial(id: string, input: Partial<MaterialWriteInput>): Promise<AdminMaterial | null>;
-  setMaterialStatus(id: string, status: ContentStatus, publishedAt: Date | null): Promise<AdminMaterial | null>;
+type MaterialCompatibility = {
+  listMaterials: AdminMaterialRepository['list'];
+  getMaterial: AdminMaterialRepository['get'];
+  createMaterial: AdminMaterialRepository['create'];
+  updateMaterial: AdminMaterialRepository['update'];
+  setMaterialStatus: AdminMaterialRepository['setStatus'];
+};
 
-  listArticles(request: AdminListQuery): Promise<PageResult<AdminArticle>>;
-  getArticle(id: string): Promise<AdminArticle | null>;
-  createArticle(input: ArticleWriteInput): Promise<AdminArticle>;
-  updateArticle(id: string, input: Partial<ArticleWriteInput>): Promise<AdminArticle | null>;
-  setArticleStatus(id: string, status: ContentStatus, publishedAt: Date | null): Promise<AdminArticle | null>;
+type ArticleCompatibility = {
+  listArticles: AdminArticleRepository['list'];
+  getArticle: AdminArticleRepository['get'];
+  createArticle: AdminArticleRepository['create'];
+  updateArticle: AdminArticleRepository['update'];
+  setArticleStatus: AdminArticleRepository['setStatus'];
+};
 
-  listManagedPages(request: AdminListQuery): Promise<PageResult<AdminManagedPage>>;
-  getManagedPage(id: string): Promise<AdminManagedPage | null>;
-  createManagedPage(input: ManagedPageWriteInput): Promise<AdminManagedPage>;
-  updateManagedPage(id: string, input: Partial<ManagedPageWriteInput>): Promise<AdminManagedPage | null>;
-  setManagedPageStatus(id: string, status: ContentStatus, publishedAt: Date | null): Promise<AdminManagedPage | null>;
-}
+type ManagedPageCompatibility = {
+  listManagedPages: AdminManagedPageRepository['list'];
+  getManagedPage: AdminManagedPageRepository['get'];
+  createManagedPage: AdminManagedPageRepository['create'];
+  updateManagedPage: AdminManagedPageRepository['update'];
+  setManagedPageStatus: AdminManagedPageRepository['setStatus'];
+};
+
+/** Temporary aggregate compatibility port; resource slices depend on the focused contracts above. */
+export type AdminContentRepository = CategoryCompatibility
+  & ProductCompatibility
+  & InjectionServiceCompatibility
+  & MaterialCompatibility
+  & ArticleCompatibility
+  & ManagedPageCompatibility;
