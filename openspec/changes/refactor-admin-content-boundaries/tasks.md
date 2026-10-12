@@ -14,7 +14,7 @@
 ## 3. Resource-Focused Admin Content Slices
 
 - [x] 3.1 Move Category routes, application operations, repository contract, Prisma adapter, and tests into a focused category slice using the unit of work.
-- [ ] 3.2 Move Product routes, application operations, repository contract, Prisma adapter, and tests into a focused product slice using the unit of work.
+- [x] 3.2 Move Product routes, application operations, repository contract, Prisma adapter, and tests into a focused product slice using the unit of work.
 - [ ] 3.3 Move InjectionService routes, application operations, repository contract, Prisma adapter, and tests into a focused injection-service slice using the unit of work.
 - [ ] 3.4 Move Material routes, application operations, repository contract, Prisma adapter, and tests into a focused material slice using the unit of work.
 - [ ] 3.5 Move Article routes, application operations, repository contract, Prisma adapter, and tests into a focused article slice using the unit of work.

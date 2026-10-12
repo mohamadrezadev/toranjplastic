@@ -7,6 +7,7 @@ import { AppModule } from '../src/app.module.js';
 import { configureApp } from '../src/app.setup.js';
 import { ADMIN_CONTENT_REPOSITORY, type AdminContentRepository } from '../src/admin-content/admin-content.repository.js';
 import { ADMIN_CATEGORY_REPOSITORY } from '../src/admin-content/categories/repository.js';
+import { ADMIN_PRODUCT_REPOSITORY } from '../src/admin-content/products/repository.js';
 import { resourceRepositories } from '../src/admin-content/shared/resource-repository-adapters.js';
 import { ADMIN_CONTENT_UNIT_OF_WORK } from '../src/admin-content/unit-of-work.js';
 import type { AdminArticle, AdminCategory, AdminInjectionService, AdminManagedPage, AdminMaterial, AdminProduct } from '../src/admin-content/admin-content.types.js';
@@ -134,6 +135,8 @@ describe('admin content API (e2e)', () => {
       .useValue(adminRepository)
         .overrideProvider(ADMIN_CATEGORY_REPOSITORY)
         .useValue(repositories.categories)
+        .overrideProvider(ADMIN_PRODUCT_REPOSITORY)
+        .useValue(repositories.products)
         .overrideProvider(ADMIN_CONTENT_UNIT_OF_WORK)
         .useValue(unitOfWork)
       .overrideProvider(PrismaService)

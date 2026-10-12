@@ -11,16 +11,22 @@ import { AdminCategoryController } from './categories/category.controller.js';
 import { AdminCategoryService } from './categories/category.service.js';
 import { ADMIN_CATEGORY_REPOSITORY } from './categories/repository.js';
 import { PrismaAdminCategoryRepository } from './categories/prisma-category.repository.js';
+import { AdminProductController } from './products/product.controller.js';
+import { AdminProductService } from './products/product.service.js';
+import { ADMIN_PRODUCT_REPOSITORY } from './products/repository.js';
+import { PrismaAdminProductRepository } from './products/prisma-product.repository.js';
 
 @Module({
   imports: [DatabaseModule, IdentityModule],
-  controllers: [AdminCategoryController, AdminContentController],
+  controllers: [AdminCategoryController, AdminProductController, AdminContentController],
   providers: [
     AdminContentService,
     PrismaAdminContentRepository,
     PrismaAdminContentUnitOfWork,
     AdminCategoryService,
     PrismaAdminCategoryRepository,
+    AdminProductService,
+    PrismaAdminProductRepository,
     {
       provide: ADMIN_CONTENT_REPOSITORY,
       useExisting: PrismaAdminContentRepository,
@@ -32,6 +38,10 @@ import { PrismaAdminCategoryRepository } from './categories/prisma-category.repo
     {
       provide: ADMIN_CATEGORY_REPOSITORY,
       useExisting: PrismaAdminCategoryRepository,
+    },
+    {
+      provide: ADMIN_PRODUCT_REPOSITORY,
+      useExisting: PrismaAdminProductRepository,
     },
   ],
 })

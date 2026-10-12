@@ -2,12 +2,11 @@ import { Body, Controller, Get, HttpCode, Param, Patch, Post, Query, Req, UseGua
 import { AdminGuard, CsrfGuard } from '../identity/auth.guard.js';
 import type { AuthenticatedRequest } from '../identity/identity.types.js';
 import { AdminContentService } from './admin-content.service.js';
-import { CreateProductDto, UpdateProductDto } from './dto/admin-product.dto.js';
 import { CreateInjectionServiceDto, UpdateInjectionServiceDto } from './dto/admin-injection-service.dto.js';
 import { CreateMaterialDto, UpdateMaterialDto } from './dto/admin-material.dto.js';
 import { CreateArticleDto, UpdateArticleDto } from './dto/admin-article.dto.js';
 import { CreateManagedPageDto, UpdateManagedPageDto } from './dto/admin-managed-page.dto.js';
-import { AdminPaginationQueryDto, AdminProductQueryDto, IdParamDto } from './dto/admin-query.dto.js';
+import { AdminPaginationQueryDto, IdParamDto } from './dto/admin-query.dto.js';
 
 @Controller('admin/content')
 @UseGuards(AdminGuard)
@@ -16,42 +15,6 @@ export class AdminContentController {
 
   private actorId(request: AuthenticatedRequest): string {
     return request.auth!.account.id;
-  }
-
-  @Get('products')
-  listProducts(@Query() query: AdminProductQueryDto) {
-    return this.content.listProducts(query);
-  }
-
-  @Get('products/:id')
-  getProduct(@Param() { id }: IdParamDto) {
-    return this.content.getProduct(id);
-  }
-
-  @Post('products')
-  @UseGuards(CsrfGuard)
-  createProduct(@Body() dto: CreateProductDto, @Req() request: AuthenticatedRequest) {
-    return this.content.createProduct(dto, this.actorId(request));
-  }
-
-  @Patch('products/:id')
-  @UseGuards(CsrfGuard)
-  updateProduct(@Param() { id }: IdParamDto, @Body() dto: UpdateProductDto, @Req() request: AuthenticatedRequest) {
-    return this.content.updateProduct(id, dto, this.actorId(request));
-  }
-
-  @Post('products/:id/publish')
-  @HttpCode(200)
-  @UseGuards(CsrfGuard)
-  publishProduct(@Param() { id }: IdParamDto, @Req() request: AuthenticatedRequest) {
-    return this.content.publishProduct(id, this.actorId(request));
-  }
-
-  @Post('products/:id/archive')
-  @HttpCode(200)
-  @UseGuards(CsrfGuard)
-  archiveProduct(@Param() { id }: IdParamDto, @Req() request: AuthenticatedRequest) {
-    return this.content.archiveProduct(id, this.actorId(request));
   }
 
   @Get('services')
