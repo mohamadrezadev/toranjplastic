@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Button, Input, Textarea } from "@/components/ui";
-import { createCategoryAction } from "../../content/actions";
+import { createCategoryAction } from "@/features/admin-content/category";
 import styles from "../../Admin.module.css";
 
 export const metadata: Metadata = { title: "دسته جدید", robots: { index: false, follow: false } };

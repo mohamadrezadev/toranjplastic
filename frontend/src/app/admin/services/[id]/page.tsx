@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui";
-import { AdminContentError, getInjectionService } from "@/lib/admin-content";
-import { archiveInjectionServiceAction, publishInjectionServiceAction, updateInjectionServiceAction } from "../../content/actions";
+import { AdminContentError, archiveInjectionServiceAction, getInjectionService, publishInjectionServiceAction, updateInjectionServiceAction } from "@/features/admin-content/service";
 import { ServiceFields } from "../ServiceFields";
 import { StatusBadge } from "../../content/StatusBadge";
 import styles from "../../Admin.module.css";

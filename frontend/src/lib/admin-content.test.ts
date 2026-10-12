@@ -10,10 +10,13 @@ vi.mock("next/headers", () => ({
   }),
 }));
 
-const {
-  AdminContentError, listCategories, getCategory, createCategory, publishProduct,
-  createInjectionService, createMaterial, createArticle, createManagedPage,
-} = await import("./admin-content");
+const { AdminContentError } = await import('../features/admin-content/shared/errors');
+const { listCategories, getCategory, createCategory } = await import('../features/admin-content/category');
+const { publishProduct } = await import('../features/admin-content/product');
+const { createInjectionService } = await import('../features/admin-content/service');
+const { createMaterial } = await import('../features/admin-content/material');
+const { createArticle } = await import('../features/admin-content/article');
+const { createManagedPage } = await import('../features/admin-content/managed-page');
 
 const category = {
   id: "c1", name: "دسته", slug: "cat", description: null, image: null, displayOrder: 0,

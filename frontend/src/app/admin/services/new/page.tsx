@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Button } from "@/components/ui";
-import { createInjectionServiceAction } from "../../content/actions";
+import { createInjectionServiceAction } from "@/features/admin-content/service";
 import { ServiceFields } from "../ServiceFields";
 import styles from "../../Admin.module.css";
 

@@ -1,13 +1,11 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import {
-  articleInputFromForm,
-  categoryInputFromForm,
-  injectionServiceInputFromForm,
-  managedPageInputFromForm,
-  materialInputFromForm,
-  productInputFromForm,
-} from "./form-mapping";
+import { articleInputFromForm } from "@/features/admin-content/article/form-mapping";
+import { categoryInputFromForm } from "@/features/admin-content/category/form-mapping";
+import { injectionServiceInputFromForm } from "@/features/admin-content/service/form-mapping";
+import { managedPageInputFromForm } from "@/features/admin-content/managed-page/form-mapping";
+import { materialInputFromForm } from "@/features/admin-content/material/form-mapping";
+import { productInputFromForm } from "@/features/admin-content/product/form-mapping";
 
 function form(entries: Record<string, string>): FormData {
   const data = new FormData();

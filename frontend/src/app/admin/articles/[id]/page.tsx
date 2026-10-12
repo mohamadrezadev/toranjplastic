@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui";
-import { AdminContentError, getArticle } from "@/lib/admin-content";
-import { archiveArticleAction, publishArticleAction, updateArticleAction } from "../../content/actions";
+import { AdminContentError, archiveArticleAction, getArticle, publishArticleAction, updateArticleAction } from "@/features/admin-content/article";
 import { ArticleFields } from "../ArticleFields";
 import { StatusBadge } from "../../content/StatusBadge";
 import styles from "../../Admin.module.css";

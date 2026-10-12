@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Button, Select } from "@/components/ui";
-import { listInjectionServices, type ContentStatus } from "@/lib/admin-content";
+import { listInjectionServices, type ContentStatus } from "@/features/admin-content/service";
 import { StatusBadge } from "../content/StatusBadge";
 import styles from "../Admin.module.css";
 

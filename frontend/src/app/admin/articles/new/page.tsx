@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Button } from "@/components/ui";
-import { createArticleAction } from "../../content/actions";
+import { createArticleAction } from "@/features/admin-content/article";
 import { ArticleFields } from "../ArticleFields";
 import styles from "../../Admin.module.css";
 

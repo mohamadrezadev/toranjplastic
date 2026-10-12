@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Button } from "@/components/ui";
-import { listCategories } from "@/lib/admin-content";
-import { createProductAction } from "../../content/actions";
+import { listCategories } from "@/features/admin-content/category";
+import { createProductAction } from "@/features/admin-content/product";
 import { ProductFields } from "../ProductFields";
 import styles from "../../Admin.module.css";
 

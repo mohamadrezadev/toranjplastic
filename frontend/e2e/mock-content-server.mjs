@@ -7,6 +7,13 @@ const product = { id: "product-1", name: "سبد صنعتی نمونه", slug: "
 const article = { id: "article-1", title: "راهنمای انتخاب ماده", slug: "material-selection", summary: "خلاصه منتشرشده مقاله", body: "بند اول مقاله.\n\nبند دوم مقاله.", featuredImage: null, publishedAt, ...seo };
 const page = (slug, title) => ({ id: `page-${slug}`, title, slug, summary: `خلاصه منتشرشده ${title}`, body: `متن منتشرشده ${title}.`, images: [], publishedAt, ...seo });
 const collection = (items) => ({ items, pageInfo: { page: 1, pageSize: 12, total: items.length, totalPages: items.length ? 1 : 0 } });
+const lifecycle = { displayOrder: 0, status: "DRAFT", publishedAt: null, createdAt: publishedAt, updatedAt: publishedAt, ...seo };
+const adminCategory = { id: "admin-category-1", name: "دسته آزمایشی", slug: "test-category", description: null, image: null, ...lifecycle };
+const adminProduct = { id: "admin-product-1", name: "محصول آزمایشی", slug: "test-product", summary: null, description: null, categoryId: adminCategory.id, images: [], specifications: [], featured: false, ...lifecycle };
+const adminService = { id: "admin-service-1", name: "خدمت آزمایشی", slug: "test-service", summary: null, description: null, images: [], specifications: [], ctaLabel: null, ctaHref: null, ...lifecycle };
+const adminMaterial = { id: "admin-material-1", name: "ماده آزمایشی", slug: "test-material", family: null, grade: null, manufacturer: null, summary: null, description: null, images: [], specifications: [], inquiryAvailable: true, ...lifecycle };
+const adminArticle = { id: "admin-article-1", title: "مقاله آزمایشی", slug: "test-article", summary: null, body: "متن آزمون", featuredImage: null, ...lifecycle };
+const adminPage = { id: "admin-page-1", title: "صفحه آزمایشی", slug: "test-page", summary: null, body: "متن آزمون", images: [], ...lifecycle };
 
 const routes = new Map([
   ["/api/v1/health", { status: 200, body: { status: "ok" } }],
@@ -21,6 +28,28 @@ const routes = new Map([
   ["/api/v1/public/content/pages/privacy", { status: 200, body: page("privacy", "حریم خصوصی") }],
   ["/api/v1/public/content/pages/terms", { status: 200, body: page("terms", "شرایط استفاده") }],
 ]);
+
+routes.set("/api/v1/admin/content/categories", { status: 200, body: collection([adminCategory]) });
+routes.set("/api/v1/admin/content/products", { status: 200, body: collection([adminProduct]) });
+routes.set("/api/v1/admin/content/services", { status: 200, body: collection([adminService]) });
+routes.set("/api/v1/admin/content/materials", { status: 200, body: collection([adminMaterial]) });
+routes.set("/api/v1/admin/content/articles", { status: 200, body: collection([adminArticle]) });
+routes.set("/api/v1/admin/content/pages", { status: 200, body: collection([adminPage]) });
+routes.set("/api/v1/admin/content/categories/admin-category-1", { status: 200, body: adminCategory });
+routes.set("/api/v1/admin/content/products/admin-product-1", { status: 200, body: adminProduct });
+routes.set("/api/v1/admin/content/services/admin-service-1", { status: 200, body: adminService });
+routes.set("/api/v1/admin/content/materials/admin-material-1", { status: 200, body: adminMaterial });
+routes.set("/api/v1/admin/content/articles/admin-article-1", { status: 200, body: adminArticle });
+routes.set("/api/v1/admin/content/pages/admin-page-1", { status: 200, body: adminPage });
+
+const adminRecords = {
+  categories: adminCategory,
+  products: adminProduct,
+  services: adminService,
+  materials: adminMaterial,
+  articles: adminArticle,
+  pages: adminPage,
+};
 
 createServer((request, response) => {
   const url = new URL(request.url ?? "/", `http://127.0.0.1:${port}`);
@@ -40,6 +69,19 @@ createServer((request, response) => {
     }
     response.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
     return response.end(JSON.stringify({ authorized: true, account: { id: "admin-1", mobile: "+989123456789", displayName: "مدیر آزمون", email: null, companyName: null, role: "ADMIN", status: "ACTIVE", createdAt: publishedAt, lastLoginAt: publishedAt } }));
+  }
+  const mutation = url.pathname.match(/^\/api\/v1\/admin\/content\/(categories|products|services|materials|articles|pages)(?:\/[^/]+(?:\/(publish|archive))?)?$/);
+  if (mutation && ["POST", "PATCH"].includes(request.method ?? "")) {
+    const csrfCookie = (request.headers.cookie ?? "").split(";").some((cookie) => cookie.trim() === "toranj_csrf=fixture-csrf");
+    if (!csrfCookie || request.headers["x-csrf-token"] !== "fixture-csrf") {
+      response.writeHead(403, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+      return response.end(JSON.stringify({ message: "Invalid CSRF token" }));
+    }
+    const record = adminRecords[mutation[1]];
+    const status = mutation[2] === "publish" ? "PUBLISHED" : mutation[2] === "archive" ? "ARCHIVED" : record.status;
+    const isCreate = request.method === "POST" && !url.pathname.slice("/api/v1/admin/content/".length).includes("/");
+    response.writeHead(isCreate ? 201 : 200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    return response.end(JSON.stringify({ ...record, status, publishedAt: status === "PUBLISHED" ? publishedAt : record.publishedAt }));
   }
   const fixture = routes.get(url.pathname) ?? { status: 404, body: { message: "Not Found" } };
   response.writeHead(fixture.status, { "Content-Type": "application/json; charset=utf-8" });

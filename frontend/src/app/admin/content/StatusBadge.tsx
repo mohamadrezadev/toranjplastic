@@ -1,4 +1,4 @@
-import type { ContentStatus } from "@/lib/admin-content";
+import type { ContentStatus } from "@/features/admin-content/shared";
 import styles from "../Admin.module.css";
 
 const labels: Record<ContentStatus, string> = { DRAFT: "پیش‌نویس", PUBLISHED: "منتشرشده", ARCHIVED: "آرشیوشده" };

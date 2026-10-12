@@ -1,5 +1,5 @@
 import { Checkbox, Input, Textarea } from "@/components/ui";
-import type { AdminMaterial } from "@/lib/admin-content";
+import type { AdminMaterial } from "@/features/admin-content/material";
 import styles from "../Admin.module.css";
 
 const IMAGE_ROWS = 6;

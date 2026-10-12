@@ -1,5 +1,5 @@
 import { Input, Textarea } from "@/components/ui";
-import type { AdminManagedPage } from "@/lib/admin-content";
+import type { AdminManagedPage } from "@/features/admin-content/managed-page";
 import styles from "../Admin.module.css";
 
 const IMAGE_ROWS = 6;

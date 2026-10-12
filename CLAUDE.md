@@ -38,8 +38,11 @@ pnpm build
 pnpm check                       # lint && typecheck && test && build — run before considering work done
 
 pnpm db:migrate                  # prisma migrate dev (backend)
+pnpm db:migrate:deploy            # apply committed migrations (integration/CI)
 pnpm db:studio
 pnpm --filter backend admin:bootstrap   # one-time admin bootstrap, reads BOOTSTRAP_ADMIN_* env vars
+pnpm check:architecture          # frontend import-boundary checker + negative fixtures
+pnpm test:integration:postgres   # real transaction tests; requires disposable local PostgreSQL database with "test" in its name
 ```
 
 Single test / targeted runs:

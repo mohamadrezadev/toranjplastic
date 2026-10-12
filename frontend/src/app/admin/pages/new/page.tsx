@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Button } from "@/components/ui";
-import { createManagedPageAction } from "../../content/actions";
+import { createManagedPageAction } from "@/features/admin-content/managed-page";
 import { ManagedPageFields } from "../ManagedPageFields";
 import styles from "../../Admin.module.css";
 

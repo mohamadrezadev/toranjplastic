@@ -1,5 +1,5 @@
 import { Input, Textarea } from "@/components/ui";
-import type { AdminInjectionService } from "@/lib/admin-content";
+import type { AdminInjectionService } from "@/features/admin-content/service";
 import styles from "../Admin.module.css";
 
 const IMAGE_ROWS = 6;

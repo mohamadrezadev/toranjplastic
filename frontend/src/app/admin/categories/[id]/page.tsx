@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Button, Input, Textarea } from "@/components/ui";
-import { AdminContentError, getCategory } from "@/lib/admin-content";
-import { archiveCategoryAction, publishCategoryAction, updateCategoryAction } from "../../content/actions";
+import { AdminContentError, archiveCategoryAction, getCategory, publishCategoryAction, updateCategoryAction } from "@/features/admin-content/category";
 import { StatusBadge } from "../../content/StatusBadge";
 import styles from "../../Admin.module.css";
 

@@ -17,3 +17,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Private portal/admin responses must use `no-store` and private pages must be `noindex`.
 - Never add shopping cart, online payment, fake pricing/inventory or unverified industrial claims.
 - All interactive controls need keyboard focus, label, loading, disabled and error behavior.
+- Admin CMS route files own URL routing, metadata and page composition only. Resource API, types, form mapping and server actions live under `src/features/admin-content/<resource>/` and route files import them through that resource's `index.ts` public entrypoint.
+- `src/features/admin-content/shared/` may contain dependency-neutral contracts and transport primitives only. A resource feature MUST NOT deep-import another feature; cross-resource reuse goes through a public entrypoint.
+- Run `pnpm check:architecture` after changing frontend imports. It rejects frontend-to-backend imports, feature deep imports and feature cycles; fixture tests prove each forbidden pattern fails.
+- `src/lib/admin-content.ts` is compatibility-only. New or changed admin routes MUST NOT import it directly.

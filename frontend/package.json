@@ -10,6 +10,8 @@
     "test": "vitest run",
     "test:components": "vitest run --environment jsdom",
     "test:e2e": "playwright test",
+    "check:architecture": "node scripts/check-architecture.mjs",
+    "test:architecture": "node --test scripts/architecture-boundary-fixtures.mjs",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {

@@ -1,5 +1,6 @@
 import { Checkbox, Input, Select, Textarea } from "@/components/ui";
-import type { AdminCategory, AdminProduct } from "@/lib/admin-content";
+import type { AdminCategory } from "@/features/admin-content/category";
+import type { AdminProduct } from "@/features/admin-content/product";
 import styles from "../Admin.module.css";
 
 const IMAGE_ROWS = 6;

@@ -18,10 +18,13 @@
     "test:e2e:backend": "pnpm --filter backend test:e2e",
     "test:e2e:frontend": "pnpm --filter frontend test:e2e",
     "test:e2e": "pnpm test:e2e:backend && pnpm test:e2e:frontend",
+    "test:integration:postgres": "pnpm --filter backend test:integration:postgres",
     "typecheck": "pnpm -r typecheck",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "check:architecture": "pnpm --filter frontend check:architecture && pnpm --filter frontend test:architecture",
     "db:generate": "pnpm --filter backend db:generate",
     "db:migrate": "pnpm --filter backend db:migrate",
+    "db:migrate:deploy": "pnpm --filter backend db:migrate:deploy",
     "db:studio": "pnpm --filter backend db:studio"
   }
 }

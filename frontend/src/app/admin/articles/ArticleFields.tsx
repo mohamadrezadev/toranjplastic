@@ -1,5 +1,5 @@
 import { Input, Textarea } from "@/components/ui";
-import type { AdminArticle } from "@/lib/admin-content";
+import type { AdminArticle } from "@/features/admin-content/article";
 import styles from "../Admin.module.css";
 
 export function ArticleFields({ article }: { article?: AdminArticle }) {

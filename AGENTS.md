@@ -42,6 +42,9 @@
 ## Engineering boundaries
 
 - `frontend/`: Next.js؛ presentation و orchestration UI، بدون دسترسی مستقیم به دیتابیس.
+- منطق CMS مدیر در `frontend/src/features/admin-content/<resource>/` مالکیت می‌شود؛ routeها فقط routing/metadata/composition و مصرف `index.ts` عمومی هر feature را انجام می‌دهند. `shared/` فقط transport و contract بی‌طرف است.
+- featureها نباید deep import یا cycle بسازند و frontend نباید backend source را import کند؛ `pnpm check:architecture` این مرزها را در CI بررسی می‌کند.
+- آزمون atomicity مدیریت محتوا باید با PostgreSQL واقعی و دیتابیس disposable با نام شامل `test` اجرا شود؛ دستور `pnpm test:integration:postgres` بدون `DATABASE_URL` ایمن fail می‌کند.
 - `backend/`: NestJS modular monolith؛ مالک business rules، authorization، persistence و audit.
 - PostgreSQL فقط از backend قابل دسترسی است؛ Prisma schema و migration در کنترل نسخه می‌مانند.
 - ماژول‌های backend نباید repository داخلی یکدیگر را مستقیم import کنند؛ تعامل از public service/contract انجام شود.

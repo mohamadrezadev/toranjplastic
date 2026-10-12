@@ -8,6 +8,22 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: toranj_test
+          POSTGRES_USER: toranj_test
+          POSTGRES_PASSWORD: toranj_test_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U toranj_test -d toranj_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://toranj_test:toranj_test_only@127.0.0.1:5432/toranj_test?schema=public
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -20,6 +36,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm db:generate
       - run: pnpm check
+      - run: pnpm check:architecture
+      - run: pnpm db:migrate:deploy
+      - run: pnpm test:integration:postgres
       - run: pnpm test:e2e:backend
       - run: pnpm --filter frontend exec playwright install --with-deps chromium
       - run: pnpm test:e2e:frontend

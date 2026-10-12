@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui";
-import { AdminContentError, getManagedPage } from "@/lib/admin-content";
-import { archiveManagedPageAction, publishManagedPageAction, updateManagedPageAction } from "../../content/actions";
+import { AdminContentError, archiveManagedPageAction, getManagedPage, publishManagedPageAction, updateManagedPageAction } from "@/features/admin-content/managed-page";
 import { ManagedPageFields } from "../ManagedPageFields";
 import { StatusBadge } from "../../content/StatusBadge";
 import styles from "../../Admin.module.css";
