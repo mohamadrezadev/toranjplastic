@@ -19,5 +19,7 @@ export interface AdminContentTransaction {
 }
 
 export interface AdminContentUnitOfWork {
-  run<T>(work: (transaction: AdminContentTransaction) => Promise<T>): Promise<T>;
+  run<T>(
+    work: (transaction: AdminContentTransaction) => Promise<T>,
+  ): Promise<T>;
 }

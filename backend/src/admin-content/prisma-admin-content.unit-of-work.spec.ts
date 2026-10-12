@@ -17,7 +17,9 @@ const rawCategory = {
   updatedAt: new Date('2026-10-11T00:00:00.000Z'),
 };
 
-function transactionalPrisma(options: { failContent?: boolean; failAudit?: boolean } = {}) {
+function transactionalPrisma(
+  options: { failContent?: boolean; failAudit?: boolean } = {},
+) {
   const committed = { content: 0, audit: 0 };
   const auditCreate = vi.fn(async (_args: unknown) => {
     if (options.failAudit) throw new Error('audit failed');
@@ -27,29 +29,31 @@ function transactionalPrisma(options: { failContent?: boolean; failAudit?: boole
     if (options.failContent) throw new Error('content failed');
     return rawCategory;
   });
-  const transaction = vi.fn(async (work: (client: unknown) => Promise<unknown>) => {
-    const pending = { content: 0, audit: 0 };
-    const client = {
-      category: {
-        create: async (args: unknown) => {
-          const result = await categoryCreate(args);
-          pending.content += 1;
-          return result;
+  const transaction = vi.fn(
+    async (work: (client: unknown) => Promise<unknown>) => {
+      const pending = { content: 0, audit: 0 };
+      const client = {
+        category: {
+          create: async (args: unknown) => {
+            const result = await categoryCreate(args);
+            pending.content += 1;
+            return result;
+          },
         },
-      },
-      securityAuditEvent: {
-        create: async (args: unknown) => {
-          const result = await auditCreate(args);
-          pending.audit += 1;
-          return result;
+        securityAuditEvent: {
+          create: async (args: unknown) => {
+            const result = await auditCreate(args);
+            pending.audit += 1;
+            return result;
+          },
         },
-      },
-    };
-    const result = await work(client);
-    committed.content += pending.content;
-    committed.audit += pending.audit;
-    return result;
-  });
+      };
+      const result = await work(client);
+      committed.content += pending.content;
+      committed.audit += pending.audit;
+      return result;
+    },
+  );
   return {
     prisma: { $transaction: transaction } as unknown as PrismaService,
     committed,
@@ -66,7 +70,9 @@ describe('PrismaAdminContentUnitOfWork', () => {
 
     await unitOfWork.run(async ({ categories, audit }) => {
       await categories.create({ name: 'دسته', slug: 'category' });
-      await audit.securityAuditEvent.create({ data: { action: 'CATEGORY_CREATED', userId: 'admin-1' } });
+      await audit.securityAuditEvent.create({
+        data: { action: 'CATEGORY_CREATED', userId: 'admin-1' },
+      });
     });
 
     expect(fixture.committed).toEqual({ content: 1, audit: 1 });
@@ -77,10 +83,14 @@ describe('PrismaAdminContentUnitOfWork', () => {
     const fixture = transactionalPrisma({ failAudit: true });
     const unitOfWork = new PrismaAdminContentUnitOfWork(fixture.prisma);
 
-    await expect(unitOfWork.run(async ({ categories, audit }) => {
-      await categories.create({ name: 'دسته', slug: 'category' });
-      await audit.securityAuditEvent.create({ data: { action: 'CATEGORY_CREATED', userId: 'admin-1' } });
-    })).rejects.toThrow('audit failed');
+    await expect(
+      unitOfWork.run(async ({ categories, audit }) => {
+        await categories.create({ name: 'دسته', slug: 'category' });
+        await audit.securityAuditEvent.create({
+          data: { action: 'CATEGORY_CREATED', userId: 'admin-1' },
+        });
+      }),
+    ).rejects.toThrow('audit failed');
 
     expect(fixture.committed).toEqual({ content: 0, audit: 0 });
   });
@@ -89,10 +99,14 @@ describe('PrismaAdminContentUnitOfWork', () => {
     const fixture = transactionalPrisma({ failContent: true });
     const unitOfWork = new PrismaAdminContentUnitOfWork(fixture.prisma);
 
-    await expect(unitOfWork.run(async ({ categories, audit }) => {
-      await categories.create({ name: 'دسته', slug: 'category' });
-      await audit.securityAuditEvent.create({ data: { action: 'CATEGORY_CREATED', userId: 'admin-1' } });
-    })).rejects.toThrow('content failed');
+    await expect(
+      unitOfWork.run(async ({ categories, audit }) => {
+        await categories.create({ name: 'دسته', slug: 'category' });
+        await audit.securityAuditEvent.create({
+          data: { action: 'CATEGORY_CREATED', userId: 'admin-1' },
+        });
+      }),
+    ).rejects.toThrow('content failed');
 
     expect(fixture.auditCreate).not.toHaveBeenCalled();
     expect(fixture.committed).toEqual({ content: 0, audit: 0 });

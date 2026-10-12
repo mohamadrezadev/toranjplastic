@@ -1,5 +1,16 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsInt, IsOptional, IsString, Matches, Max, MaxLength, Min, MinLength, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  Matches,
+  Max,
+  MaxLength,
+  Min,
+  MinLength,
+  ValidateNested,
+} from 'class-validator';
 import { AdminImageDto, AdminSpecificationDto } from './admin-image.dto.js';
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -11,7 +22,9 @@ export class CreateInjectionServiceDto {
   name!: string;
 
   @IsString()
-  @Matches(SLUG_PATTERN, { message: 'اسلاگ فقط می‌تواند شامل حروف کوچک لاتین، عدد و خط تیره باشد.' })
+  @Matches(SLUG_PATTERN, {
+    message: 'اسلاگ فقط می‌تواند شامل حروف کوچک لاتین، عدد و خط تیره باشد.',
+  })
   @MinLength(1)
   @MaxLength(160)
   slug!: string;
@@ -74,7 +87,9 @@ export class UpdateInjectionServiceDto {
 
   @IsOptional()
   @IsString()
-  @Matches(SLUG_PATTERN, { message: 'اسلاگ فقط می‌تواند شامل حروف کوچک لاتین، عدد و خط تیره باشد.' })
+  @Matches(SLUG_PATTERN, {
+    message: 'اسلاگ فقط می‌تواند شامل حروف کوچک لاتین، عدد و خط تیره باشد.',
+  })
   @MinLength(1)
   @MaxLength(160)
   slug?: string;
