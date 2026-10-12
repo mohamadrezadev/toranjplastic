@@ -22,7 +22,7 @@ function isAccount(value: unknown): value is AuthAccount {
   return typeof item.id === "string" && typeof item.mobile === "string" && typeof item.displayName === "string" && ["CUSTOMER", "ADMIN"].includes(String(item.role)) && ["ACTIVE", "SUSPENDED", "DISABLED"].includes(String(item.status));
 }
 
-async function cookieHeader() {
+export async function cookieHeader() {
   return (await cookies()).getAll().map(({ name, value }) => `${name}=${encodeURIComponent(value)}`).join("; ");
 }
 
@@ -56,6 +56,21 @@ export async function getAdminAccess(): Promise<{ status: number; account?: Auth
   const payload: unknown = await response.json();
   if (!payload || typeof payload !== "object" || !("account" in payload) || !isAccount(payload.account)) return { status: 502 };
   return { status: 200, account: payload.account };
+}
+
+export async function getAccountAccess(): Promise<{ status: number; account?: AuthAccount }> {
+  const response = await fetch(`${backend}/auth/me`, { cache: "no-store", headers: { cookie: await cookieHeader() } });
+  if (!response.ok) return { status: response.status };
+  const payload: unknown = await response.json();
+  return isAccount(payload) ? { status: 200, account: payload } : { status: 502 };
+}
+
+export async function protectedHeaders(mutating = false) {
+  const jar = await cookies();
+  return {
+    cookie: await cookieHeader(),
+    ...(mutating ? { origin, "x-csrf-token": jar.get("toranj_csrf")?.value ?? "" } : {}),
+  };
 }
 
 export async function logoutAccount() {

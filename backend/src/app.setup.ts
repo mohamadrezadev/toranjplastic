@@ -10,7 +10,7 @@ export function configureApp(
   app.setGlobalPrefix('api/v1');
   app.use(helmet());
   app.use((request: Request, response: Response, next: NextFunction) => {
-    if (request.path.startsWith('/api/v1/auth') || request.path.startsWith('/api/v1/admin')) {
+    if (request.path.startsWith('/api/v1/auth') || request.path.startsWith('/api/v1/admin') || request.path.startsWith('/api/v1/inquiries')) {
       response.setHeader('Cache-Control', 'no-store');
     }
     next();

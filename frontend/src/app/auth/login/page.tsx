@@ -8,7 +8,7 @@ import styles from "../Auth.module.css";
 export const metadata: Metadata = { title: "ورود به حساب", robots: { index: false, follow: false } };
 export const instant = false;
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; registered?: string }> }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; registered?: string; next?: string }> }) {
   const state = await searchParams;
   return <main className={styles.main}><div className={styles.layout}><AuthShowcase /><section className={styles.card} aria-labelledby="login-title">
     <span className={styles.formEyebrow}>حساب کاربری / ورود</span>
@@ -16,6 +16,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     {state.error ? <p className={styles.feedback} role="alert">شماره موبایل یا رمز عبور صحیح نیست.</p> : null}
     {state.registered ? <p className={styles.success} role="status">حساب شما ساخته شد. اکنون وارد شوید.</p> : null}
     <form action={loginAction} className={styles.form}>
+      <input type="hidden" name="next" value={state.next ?? ""} />
       <Input label="شماره موبایل" name="mobile" inputMode="tel" autoComplete="tel" dir="ltr" required maxLength={32} />
       <Input label="رمز عبور" name="password" type="password" autoComplete="current-password" required minLength={10} maxLength={128} />
       <Button type="submit">ورود</Button>

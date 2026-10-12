@@ -47,7 +47,7 @@ export function MobileNavigation() {
         <div className={styles.drawerHeader}><strong>فهرست</strong><button className={styles.closeButton} type="button" aria-label="بستن فهرست" onClick={() => setOpen(false)}>×</button></div>
         <nav className={styles.drawerNav} aria-label="ناوبری موبایل"><ul className={styles.navList}>{primaryNavigationRoutes.map((route) => <li key={route.key}><Link className={styles.navLink} href={route.path} onClick={() => setOpen(false)}>{route.label}</Link></li>)}</ul></nav>
         <div className={styles.drawerTheme}><span>پوسته نمایش</span><ThemeToggle /></div>
-        <div className={styles.drawerActions}><ActionLink href={inquiryRoute.path} emphasis="primary">{inquiryRoute.label}</ActionLink><Link className={styles.action} href="/auth/login" onClick={() => setOpen(false)}>ورود / ثبت‌نام</Link></div>
+        <div className={styles.drawerActions}><ActionLink href={inquiryRoute.path} emphasis="primary">{inquiryRoute.label}</ActionLink><Link className={styles.action} href="/account" onClick={() => setOpen(false)}>حساب من</Link></div>
       </div>
     </> : null}
   </div>;

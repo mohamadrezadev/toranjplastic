@@ -14,6 +14,8 @@ const adminService = { id: "admin-service-1", name: "خدمت آزمایشی", s
 const adminMaterial = { id: "admin-material-1", name: "ماده آزمایشی", slug: "test-material", family: null, grade: null, manufacturer: null, summary: null, description: null, images: [], specifications: [], inquiryAvailable: true, ...lifecycle };
 const adminArticle = { id: "admin-article-1", title: "مقاله آزمایشی", slug: "test-article", summary: null, body: "متن آزمون", featuredImage: null, ...lifecycle };
 const adminPage = { id: "admin-page-1", title: "صفحه آزمایشی", slug: "test-page", summary: null, body: "متن آزمون", images: [], ...lifecycle };
+const inquiryHistory = { id: "history-1", fromStatus: null, toStatus: "SUBMITTED", createdAt: publishedAt };
+const inquiry = { id: "inquiry-1", type: "PRODUCT", status: "SUBMITTED", catalogItemName: product.name, description: "درخواست آزمون", approximateQuantity: "100", quantityUnit: null, deliveryCity: "تهران", requestedTiming: null, partDescription: null, moldStatus: null, materialName: null, color: null, materialRequestKind: null, polymerName: null, grade: null, brand: null, materialCondition: null, application: null, specifications: null, createdAt: publishedAt, updatedAt: publishedAt, statusHistory: [inquiryHistory] };
 
 const routes = new Map([
   ["/api/v1/health", { status: 200, body: { status: "ok" } }],
@@ -53,6 +55,28 @@ const adminRecords = {
 
 createServer((request, response) => {
   const url = new URL(request.url ?? "/", `http://127.0.0.1:${port}`);
+  if (url.pathname === "/api/v1/auth/me") {
+    if (!(request.headers.cookie ?? "").includes("toranj_session=")) {
+      response.writeHead(401, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+      return response.end(JSON.stringify({ message: "Unauthorized" }));
+    }
+    response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    return response.end(JSON.stringify({ id: "admin-1", mobile: "+989123456789", displayName: "مدیر آزمون", email: null, companyName: null, role: "ADMIN", status: "ACTIVE", createdAt: publishedAt, lastLoginAt: publishedAt }));
+  }
+  if (url.pathname === "/api/v1/inquiries/product" && request.method === "POST") {
+    const authenticated = (request.headers.cookie ?? "").includes("toranj_session=");
+    const csrf = request.headers["x-csrf-token"] === "fixture-csrf";
+    response.writeHead(authenticated && csrf ? 201 : 401, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    return response.end(JSON.stringify(authenticated && csrf ? inquiry : { message: "Unauthorized" }));
+  }
+  if (url.pathname === "/api/v1/inquiries/inquiry-1" && request.method === "GET") {
+    response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    return response.end(JSON.stringify(inquiry));
+  }
+  if (url.pathname === "/api/v1/inquiries" && request.method === "GET") {
+    response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    return response.end(JSON.stringify({ items: [inquiry], page: 1, pageSize: 12, total: 1, pageCount: 1 }));
+  }
   if (url.pathname === "/api/v1/auth/login/password" && request.method === "POST") {
     response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Set-Cookie": ["toranj_session=fixture-session; HttpOnly; Path=/; SameSite=Lax", "toranj_csrf=fixture-csrf; Path=/; SameSite=Lax"] });
     return response.end(JSON.stringify({ id: "admin-1", mobile: "+989123456789", displayName: "مدیر آزمون", email: null, companyName: null, role: "ADMIN", status: "ACTIVE", createdAt: publishedAt, lastLoginAt: publishedAt }));

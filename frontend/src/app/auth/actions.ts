@@ -8,7 +8,10 @@ const value = (form: FormData, name: string) => String(form.get(name) ?? "").tri
 export async function loginAction(form: FormData) {
   const response = await loginAccount({ mobile: value(form, "mobile"), password: value(form, "password") });
   if (!response.ok) redirect("/auth/login?error=invalid");
-  redirect("/admin");
+  const next = value(form, "next");
+  const account: unknown = await response.clone().json().catch(() => null);
+  const isAdmin = typeof account === "object" && account !== null && "role" in account && account.role === "ADMIN";
+  redirect(next.startsWith("/") && !next.startsWith("//") ? next : isAdmin ? "/admin" : "/account");
 }
 
 export async function registerAction(form: FormData) {

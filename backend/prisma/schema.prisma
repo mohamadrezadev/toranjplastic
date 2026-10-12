@@ -24,6 +24,36 @@ enum AccountStatus {
   DISABLED
 }
 
+enum InquiryType {
+  PRODUCT
+  INJECTION_SERVICE
+  MATERIAL
+  GENERAL_CONTACT
+}
+
+enum InquiryStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  NEED_MORE_INFO
+  QUOTED
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+enum MaterialRequestKind {
+  PRICE_QUOTE
+  SUPPLY_REQUEST
+  AVAILABILITY_REVIEW
+}
+
+enum MaterialCondition {
+  NEW
+  RECYCLED
+}
+
 model User {
   id           String              @id @default(cuid())
   mobile       String              @unique
@@ -38,6 +68,8 @@ model User {
   password     PasswordCredential?
   sessions     AuthSession[]
   auditEvents  SecurityAuditEvent[]
+  inquiries    Inquiry[]             @relation("InquiryOwner")
+  inquiryHistory InquiryStatusHistory[] @relation("InquiryHistoryActor")
 
   @@index([role, status])
 }
@@ -113,6 +145,7 @@ model Product {
   metaDescription String?       @db.Text
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+  inquiries       Inquiry[]
 
   @@index([status, publishedAt, displayOrder])
   @@index([categoryId])
@@ -136,6 +169,7 @@ model InjectionService {
   metaDescription String?       @db.Text
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+  inquiries       Inquiry[]
 
   @@index([status, publishedAt, displayOrder])
 }
@@ -159,6 +193,7 @@ model Material {
   metaDescription  String?       @db.Text
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
+  inquiries        Inquiry[]
 
   @@index([status, publishedAt, displayOrder])
 }
@@ -197,4 +232,59 @@ model ManagedPage {
   updatedAt       DateTime      @updatedAt
 
   @@index([status, publishedAt, displayOrder])
+}
+
+model Inquiry {
+  id                 String               @id @default(cuid())
+  type               InquiryType
+  status             InquiryStatus        @default(SUBMITTED)
+  ownerId            String
+  owner              User                 @relation("InquiryOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  productId          String?
+  product            Product?             @relation(fields: [productId], references: [id], onDelete: SetNull)
+  injectionServiceId String?
+  injectionService   InjectionService?    @relation(fields: [injectionServiceId], references: [id], onDelete: SetNull)
+  materialId         String?
+  material           Material?            @relation(fields: [materialId], references: [id], onDelete: SetNull)
+  catalogItemName    String?
+  description        String?              @db.Text
+  approximateQuantity String?
+  quantityUnit       String?
+  deliveryCity       String?
+  requestedTiming    String?
+  partDescription    String?              @db.Text
+  moldStatus         String?
+  materialName       String?
+  color              String?
+  materialRequestKind MaterialRequestKind?
+  polymerName        String?
+  grade              String?
+  brand              String?
+  materialCondition  MaterialCondition?
+  application        String?              @db.Text
+  specifications     String?              @db.Text
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  statusHistory      InquiryStatusHistory[]
+
+  @@index([ownerId, createdAt])
+  @@index([ownerId, type, createdAt])
+  @@index([ownerId, status, createdAt])
+  @@index([productId])
+  @@index([injectionServiceId])
+  @@index([materialId])
+}
+
+model InquiryStatusHistory {
+  id         String        @id @default(cuid())
+  inquiryId  String
+  inquiry    Inquiry       @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  fromStatus InquiryStatus?
+  toStatus   InquiryStatus
+  actorId    String
+  actor      User          @relation("InquiryHistoryActor", fields: [actorId], references: [id], onDelete: Restrict)
+  createdAt  DateTime      @default(now())
+
+  @@index([inquiryId, createdAt])
+  @@index([actorId, createdAt])
 }

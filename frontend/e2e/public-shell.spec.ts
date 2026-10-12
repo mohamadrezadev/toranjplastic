@@ -21,7 +21,7 @@ test("public shell is responsive without horizontal overflow", async ({ page }, 
   }
 
   await expect(page.getByRole("heading", { name: /برای هر نیاز صنعتی/ })).toBeVisible();
-  await expect(page.locator('a[href="/auth/login"]').first()).toHaveAttribute("href", "/auth/login");
+  await expect(page.locator('a[href="/account"]').first()).toHaveAttribute("href", "/account");
   const bodyFont = await page.locator("body").evaluate((element) => getComputedStyle(element).fontFamily);
   expect(bodyFont).toContain("Estedad Variable");
   expect(await page.evaluate(() => document.fonts.check('16px "Estedad Variable"'))).toBe(true);
