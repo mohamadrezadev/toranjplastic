@@ -15,7 +15,15 @@ export async function loginAction(form: FormData) {
 }
 
 export async function registerAction(form: FormData) {
-  const payload = { mobile: value(form, "mobile"), displayName: value(form, "displayName"), password: value(form, "password"), email: value(form, "email"), companyName: value(form, "companyName") };
+  const email = value(form, "email");
+  const companyName = value(form, "companyName");
+  const payload = {
+    mobile: value(form, "mobile"),
+    displayName: value(form, "displayName"),
+    password: value(form, "password"),
+    ...(email ? { email } : {}),
+    ...(companyName ? { companyName } : {}),
+  };
   const response = await registerAccount(payload);
   if (!response.ok) redirect("/auth/register?error=invalid");
   redirect("/auth/login?registered=1");
