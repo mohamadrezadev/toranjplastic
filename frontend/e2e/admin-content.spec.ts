@@ -20,7 +20,7 @@ for (const path of adminRoutes) {
     await expect(page.getByRole('status')).toBeHidden({ timeout: 15_000 });
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
-    await expect(page.locator('a[href="/admin/inquiries"]')).toBeVisible();
+    await expect(page.locator('a[href="/admin/inquiries"]')).toHaveCount(2);
     await expect(page.locator('main h1').first()).toBeVisible({ timeout: 15_000 });
     await expect(page.locator('a[href$="/new"]').first()).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);

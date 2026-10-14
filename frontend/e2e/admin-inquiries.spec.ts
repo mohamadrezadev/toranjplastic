@@ -17,7 +17,9 @@ test("admin inquiry inbox and detail remain RTL, private and responsive", async 
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.locator('a[href="/admin/inquiries"][aria-current="page"]')).toBeVisible();
+  const mobileMenu = page.locator('details').filter({ hasText: 'منو' });
+  if (await mobileMenu.isVisible()) await mobileMenu.locator('summary').click();
+  await expect(page.locator('a[href="/admin/inquiries"][aria-current="page"]').filter({ visible: true })).toBeVisible();
   await expect(page.locator('section[aria-label] strong').first()).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
 

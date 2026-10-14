@@ -65,7 +65,13 @@
   .summaryGrid, .filters, .details { grid-template-columns: 1fr; }
   .desktopTable { display: none; }
   .mobileCards { display: grid; }
-  .filterActions, .filterActions button { width: 100%; }
+  .filterActions { width: 100%; display: grid; grid-template-columns: 1fr; }
+  .filterActions button, .filterActions a, .operationForm button, .actionList, .actionList form, .actionList button { width: 100%; }
   .heading { align-items: flex-start; }
+  .panel { padding: 1rem; }
+  .detailHeader { align-items: stretch; }
+  .detailHeader .badge { align-self: flex-start; }
+  .mobileCardHeader { align-items: flex-start; }
+  .metaRow { align-items: flex-start; flex-direction: column; gap: .3rem; }
 }
 @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }

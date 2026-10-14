@@ -66,4 +66,8 @@
   .toolbar form { width: 100%; display: grid; grid-template-columns: 1fr; }
   .header { align-items: flex-start; }
   .linkButton { width: 100%; justify-content: center; }
+  .formActions, .statusActions { display: grid; grid-template-columns: 1fr; }
+  .formActions > *, .formActions button, .statusActions > *, .statusActions button { width: 100%; }
+  .tableWrap { margin-inline: -1.15rem; padding-inline: 1.15rem; scroll-padding-inline: 1.15rem; }
+  .table { min-width: 42rem; font-size: .82rem; }
 }

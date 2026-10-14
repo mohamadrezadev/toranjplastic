@@ -10,12 +10,14 @@ const account = { id: "admin-1", mobile: "+989121234567", displayName: "مدیر
 describe("AdminPortalShell", () => {
   it("renders the management identity, active route, breadcrumbs and workspace", () => {
     render(<AdminPortalShell account={account} logoutAction={async () => undefined}><h1>کارتابل</h1></AdminPortalShell>);
-    expect(screen.getByRole("navigation", { name: "بخش‌های پنل مدیریت" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "استعلام‌ها" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: "محصولات" })).toHaveAttribute("href", "/admin/products");
+    expect(screen.getAllByRole("navigation", { name: "بخش‌های پنل مدیریت" })).toHaveLength(2);
+    expect(screen.getAllByRole("link", { name: "استعلام‌ها" })).toHaveLength(2);
+    expect(screen.getAllByRole("link", { name: "استعلام‌ها" })[0]).toHaveAttribute("aria-current", "page");
+    expect(screen.getAllByRole("link", { name: "محصولات" })[0]).toHaveAttribute("href", "/admin/products");
     expect(screen.getByRole("navigation", { name: "مسیر صفحه" })).toHaveTextContent("استعلام‌ها");
-    expect(screen.getAllByText("مدیر نمونه")).toHaveLength(2);
+    expect(screen.getAllByText("مدیر نمونه")).toHaveLength(3);
     expect(screen.getByRole("main")).toContainElement(screen.getByRole("heading", { name: "کارتابل" }));
-    expect(screen.getByRole("button", { name: "خروج امن" })).toBeEnabled();
+    expect(screen.getAllByRole("button", { name: "خروج امن" })).toHaveLength(2);
+    expect(screen.getByText("منو")).toBeInTheDocument();
   });
 });

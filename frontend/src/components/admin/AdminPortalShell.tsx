@@ -16,6 +16,28 @@ export function AdminPortalShell({ account, children, logoutAction }: AdminPorta
   return (
     <div className={styles.shell}>
       <a className={styles.skipLink} href="#admin-content">رفتن به محتوای اصلی</a>
+      <header className={styles.mobileBar}>
+        <Link className={styles.mobileBrand} href="/admin" aria-label="پنل مدیریت ترنج پلاستیک">
+          <span className={styles.wordmark} dir="ltr" aria-hidden="true"><span>T</span><span className={styles.wordmarkIcon} /><span>ranj</span></span>
+          <span>مدیریت</span>
+        </Link>
+        <details className={styles.mobileMenu}>
+          <summary>
+            <span className={styles.avatar} aria-hidden="true">{account.displayName.trim().charAt(0) || "ت"}</span>
+            <span className={styles.mobileAccount}>{account.displayName}</span>
+            <span className={styles.menuLabel}>منو</span>
+            <span className={styles.menuIcon} aria-hidden="true" />
+          </summary>
+          <div className={styles.mobilePanel}>
+            <div className={styles.mobilePanelHeading}>
+              <strong>{account.displayName}</strong>
+              <span>مدیر فعال</span>
+            </div>
+            <AdminNavigation />
+            <form action={logoutAction}><Button type="submit" variant="secondary">خروج امن</Button></form>
+          </div>
+        </details>
+      </header>
       <aside className={styles.sidebar} aria-label="ناوبری پنل مدیریت">
         <div className={styles.sidebarTop}>
           <Link className={styles.brand} href="/" aria-label="ترنج پلاستیک — صفحه اصلی">
@@ -40,10 +62,6 @@ export function AdminPortalShell({ account, children, logoutAction }: AdminPorta
       </aside>
 
       <div className={styles.workspace}>
-        <header className={styles.mobileHeader}>
-          <span>فضای کاری مدیریت</span>
-          <strong>{account.displayName}</strong>
-        </header>
         <div id="admin-content" className={styles.content} role="main"><AdminBreadcrumbs />{children}</div>
       </div>
     </div>
