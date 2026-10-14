@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { Button } from "@/components/ui";
+import { AdminPortalShell } from "@/components/admin/AdminPortalShell";
 import { getAdminAccess } from "@/lib/auth";
 import { logoutAction } from "../auth/actions";
 import authStyles from "../auth/Auth.module.css";
@@ -34,7 +35,7 @@ async function AdminGate({ children }: { children: ReactNode }) {
       </main>
     );
   }
-  return children;
+  return <AdminPortalShell account={access.account} logoutAction={logoutAction}>{children}</AdminPortalShell>;
 }
 
 export default function AdminLayout({ children }: { children: ReactNode }) {

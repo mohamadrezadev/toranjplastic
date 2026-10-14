@@ -71,3 +71,83 @@ export interface InquiryPage {
   total: number;
   pageCount: number;
 }
+
+export interface AdminAccountSummary {
+  id: string;
+  displayName: string;
+  mobile: string;
+}
+
+export interface AdminInquiryListItem {
+  id: string;
+  type: InquiryType;
+  status: InquiryStatus;
+  version: number;
+  catalogItemName: string | null;
+  createdAt: string;
+  updatedAt: string;
+  ownerSummary: AdminAccountSummary & { companyName: string | null };
+  assigneeSummary: AdminAccountSummary | null;
+}
+
+export interface AdminInquiryHistoryItem extends InquiryHistoryItem {
+  actorSummary: Pick<AdminAccountSummary, 'id' | 'displayName'>;
+}
+
+export interface AdminInquiryAssignmentItem {
+  id: string;
+  fromAdminSummary: Pick<AdminAccountSummary, 'id' | 'displayName'> | null;
+  toAdminSummary: Pick<AdminAccountSummary, 'id' | 'displayName'> | null;
+  actorSummary: Pick<AdminAccountSummary, 'id' | 'displayName'>;
+  createdAt: string;
+}
+
+export interface AdminInquiryNote {
+  id: string;
+  text: string;
+  authorSummary: Pick<AdminAccountSummary, 'id' | 'displayName'>;
+  createdAt: string;
+}
+
+export interface AdminInquiry extends Omit<CustomerInquiry, 'statusHistory'> {
+  version: number;
+  ownerSummary: AdminAccountSummary & { companyName: string | null };
+  assigneeSummary: AdminAccountSummary | null;
+  statusHistory: AdminInquiryHistoryItem[];
+  assignmentHistory: AdminInquiryAssignmentItem[];
+  internalNotes: AdminInquiryNote[];
+  allowedTransitions: InquiryStatus[];
+}
+
+export interface AdminInquiryListQuery {
+  page: number;
+  pageSize: number;
+  type?: InquiryType;
+  status?: InquiryStatus;
+  assignedAdminId?: string;
+  unassigned?: boolean;
+  from?: Date;
+  to?: Date;
+  q?: string;
+}
+
+export interface AdminInquiryPage {
+  items: AdminInquiryListItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+  pageCount: number;
+}
+
+export interface AdminInquirySummary {
+  total: number;
+  unassigned: number;
+  submitted: number;
+  underReview: number;
+}
+
+export type AdminMutationResult =
+  | { kind: 'ok'; inquiry: AdminInquiry }
+  | { kind: 'not_found' }
+  | { kind: 'version_conflict' }
+  | { kind: 'invalid_assignee' };

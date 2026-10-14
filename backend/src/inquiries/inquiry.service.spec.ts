@@ -11,6 +11,8 @@ describe('InquiryService', () => {
     repository = {
       findPublishedProduct: vi.fn(), findPublishedService: vi.fn(), findPublishedMaterial: vi.fn(),
       create: vi.fn(), list: vi.fn(), getOwned: vi.fn(),
+      adminList: vi.fn(), adminSummary: vi.fn(), adminAssignees: vi.fn(), getAdmin: vi.fn(),
+      adminTransitionStatus: vi.fn(), adminAssign: vi.fn(), adminAddNote: vi.fn(),
     };
     service = new InquiryService(repository);
   });

@@ -55,21 +55,26 @@ enum MaterialCondition {
 }
 
 model User {
-  id           String              @id @default(cuid())
-  mobile       String              @unique
-  displayName  String
-  email        String?
-  companyName  String?
-  role         UserRole            @default(CUSTOMER)
-  status       AccountStatus       @default(ACTIVE)
-  lastLoginAt  DateTime?
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  password     PasswordCredential?
-  sessions     AuthSession[]
-  auditEvents  SecurityAuditEvent[]
-  inquiries    Inquiry[]             @relation("InquiryOwner")
-  inquiryHistory InquiryStatusHistory[] @relation("InquiryHistoryActor")
+  id                       String                     @id @default(cuid())
+  mobile                   String                     @unique
+  displayName              String
+  email                    String?
+  companyName              String?
+  role                     UserRole                   @default(CUSTOMER)
+  status                   AccountStatus              @default(ACTIVE)
+  lastLoginAt              DateTime?
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+  password                 PasswordCredential?
+  sessions                 AuthSession[]
+  auditEvents              SecurityAuditEvent[]
+  inquiries                Inquiry[]                  @relation("InquiryOwner")
+  inquiryHistory           InquiryStatusHistory[]     @relation("InquiryHistoryActor")
+  assignedInquiries        Inquiry[]                  @relation("InquiryAssignee")
+  inquiryNotes             InquiryInternalNote[]      @relation("InquiryNoteAuthor")
+  inquiryAssignmentsFrom   InquiryAssignmentHistory[] @relation("InquiryAssignmentFrom")
+  inquiryAssignmentsTo     InquiryAssignmentHistory[] @relation("InquiryAssignmentTo")
+  inquiryAssignmentActions InquiryAssignmentHistory[] @relation("InquiryAssignmentActor")
 
   @@index([role, status])
 }
@@ -235,55 +240,93 @@ model ManagedPage {
 }
 
 model Inquiry {
-  id                 String               @id @default(cuid())
-  type               InquiryType
-  status             InquiryStatus        @default(SUBMITTED)
-  ownerId            String
-  owner              User                 @relation("InquiryOwner", fields: [ownerId], references: [id], onDelete: Restrict)
-  productId          String?
-  product            Product?             @relation(fields: [productId], references: [id], onDelete: SetNull)
-  injectionServiceId String?
-  injectionService   InjectionService?    @relation(fields: [injectionServiceId], references: [id], onDelete: SetNull)
-  materialId         String?
-  material           Material?            @relation(fields: [materialId], references: [id], onDelete: SetNull)
-  catalogItemName    String?
-  description        String?              @db.Text
+  id                  String                     @id @default(cuid())
+  type                InquiryType
+  status              InquiryStatus              @default(SUBMITTED)
+  version             Int                        @default(0)
+  ownerId             String
+  owner               User                       @relation("InquiryOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  assignedAdminId     String?
+  assignedAdmin       User?                      @relation("InquiryAssignee", fields: [assignedAdminId], references: [id], onDelete: Restrict)
+  productId           String?
+  product             Product?                   @relation(fields: [productId], references: [id], onDelete: SetNull)
+  injectionServiceId  String?
+  injectionService    InjectionService?          @relation(fields: [injectionServiceId], references: [id], onDelete: SetNull)
+  materialId          String?
+  material            Material?                  @relation(fields: [materialId], references: [id], onDelete: SetNull)
+  catalogItemName     String?
+  description         String?                    @db.Text
   approximateQuantity String?
-  quantityUnit       String?
-  deliveryCity       String?
-  requestedTiming    String?
-  partDescription    String?              @db.Text
-  moldStatus         String?
-  materialName       String?
-  color              String?
+  quantityUnit        String?
+  deliveryCity        String?
+  requestedTiming     String?
+  partDescription     String?                    @db.Text
+  moldStatus          String?
+  materialName        String?
+  color               String?
   materialRequestKind MaterialRequestKind?
-  polymerName        String?
-  grade              String?
-  brand              String?
-  materialCondition  MaterialCondition?
-  application        String?              @db.Text
-  specifications     String?              @db.Text
-  createdAt          DateTime              @default(now())
-  updatedAt          DateTime              @updatedAt
-  statusHistory      InquiryStatusHistory[]
+  polymerName         String?
+  grade               String?
+  brand               String?
+  materialCondition   MaterialCondition?
+  application         String?                    @db.Text
+  specifications      String?                    @db.Text
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+  statusHistory       InquiryStatusHistory[]
+  internalNotes       InquiryInternalNote[]
+  assignmentHistory   InquiryAssignmentHistory[]
 
   @@index([ownerId, createdAt])
   @@index([ownerId, type, createdAt])
   @@index([ownerId, status, createdAt])
+  @@index([status, createdAt])
+  @@index([assignedAdminId, status, createdAt])
   @@index([productId])
   @@index([injectionServiceId])
   @@index([materialId])
 }
 
+model InquiryInternalNote {
+  id        String   @id @default(cuid())
+  inquiryId String
+  inquiry   Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation("InquiryNoteAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([inquiryId, createdAt])
+  @@index([authorId, createdAt])
+}
+
+model InquiryAssignmentHistory {
+  id          String   @id @default(cuid())
+  inquiryId   String
+  inquiry     Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  fromAdminId String?
+  fromAdmin   User?    @relation("InquiryAssignmentFrom", fields: [fromAdminId], references: [id], onDelete: Restrict)
+  toAdminId   String?
+  toAdmin     User?    @relation("InquiryAssignmentTo", fields: [toAdminId], references: [id], onDelete: Restrict)
+  actorId     String
+  actor       User     @relation("InquiryAssignmentActor", fields: [actorId], references: [id], onDelete: Restrict)
+  createdAt   DateTime @default(now())
+
+  @@index([inquiryId, createdAt])
+  @@index([fromAdminId, createdAt])
+  @@index([toAdminId, createdAt])
+  @@index([actorId, createdAt])
+}
+
 model InquiryStatusHistory {
-  id         String        @id @default(cuid())
+  id         String         @id @default(cuid())
   inquiryId  String
-  inquiry    Inquiry       @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  inquiry    Inquiry        @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
   fromStatus InquiryStatus?
   toStatus   InquiryStatus
   actorId    String
-  actor      User          @relation("InquiryHistoryActor", fields: [actorId], references: [id], onDelete: Restrict)
-  createdAt  DateTime      @default(now())
+  actor      User           @relation("InquiryHistoryActor", fields: [actorId], references: [id], onDelete: Restrict)
+  createdAt  DateTime       @default(now())
 
   @@index([inquiryId, createdAt])
   @@index([actorId, createdAt])

@@ -17,6 +17,7 @@ describe('inquiry PostgreSQL atomicity', () => {
   let prisma: PrismaService;
   let repository: PrismaInquiryRepository;
   let userId: string;
+  let adminId: string;
 
   beforeAll(async () => {
     expect(database).toMatch(/test/i);
@@ -25,11 +26,14 @@ describe('inquiry PostgreSQL atomicity', () => {
     await prisma.$connect();
     const user = await prisma.user.create({ data: { mobile: `+989${Date.now().toString().slice(-9)}`, displayName: marker } });
     userId = user.id;
+    const admin = await prisma.user.create({ data: { mobile: `+988${Date.now().toString().slice(-9)}`, displayName: `${marker}-admin`, role: 'ADMIN' } });
+    adminId = admin.id;
   });
   afterAll(async () => {
     if (!prisma) return;
     await prisma.inquiry.deleteMany({ where: { ownerId: userId } });
-    await prisma.user.deleteMany({ where: { id: userId } });
+    await prisma.securityAuditEvent.deleteMany({ where: { userId: { in: [userId, adminId] } } });
+    await prisma.user.deleteMany({ where: { id: { in: [userId, adminId] } } });
     await prisma.$disconnect();
   });
 
@@ -43,5 +47,27 @@ describe('inquiry PostgreSQL atomicity', () => {
   it('rolls back the inquiry if the history actor foreign key fails', async () => {
     await expect(repository.create('missing-user', { type: 'GENERAL_CONTACT', description: marker })).rejects.toThrow();
     expect(await prisma.inquiry.count({ where: { ownerId: 'missing-user' } })).toBe(0);
+  });
+
+  it('allows exactly one concurrent mutation for the same expected version', async () => {
+    const created = await repository.create(userId, { type: 'GENERAL_CONTACT', description: `${marker}-concurrency` });
+    const results = await Promise.all([
+      repository.adminTransitionStatus(created.id, 0, 'UNDER_REVIEW', adminId),
+      repository.adminTransitionStatus(created.id, 0, 'UNDER_REVIEW', adminId),
+    ]);
+    expect(results.map((result) => result.kind).sort()).toEqual(['ok', 'version_conflict']);
+    expect(await prisma.inquiryStatusHistory.count({ where: { inquiryId: created.id } })).toBe(2);
+    expect(await prisma.securityAuditEvent.count({ where: { action: 'INQUIRY_STATUS_CHANGED', metadata: { path: ['inquiryId'], equals: created.id } } })).toBe(1);
+  });
+
+  it('stores assignment and note audit metadata without changing version for the note', async () => {
+    const created = await repository.create(userId, { type: 'PRODUCT', description: `${marker}-operations` });
+    const assigned = await repository.adminAssign(created.id, 0, adminId, adminId);
+    expect(assigned.kind).toBe('ok');
+    const noted = await repository.adminAddNote(created.id, 'یادداشت داخلی', adminId);
+    expect(noted.kind).toBe('ok');
+    if (noted.kind === 'ok') expect(noted.inquiry.version).toBe(1);
+    expect(await prisma.inquiryAssignmentHistory.count({ where: { inquiryId: created.id } })).toBe(1);
+    expect(await prisma.inquiryInternalNote.count({ where: { inquiryId: created.id } })).toBe(1);
   });
 });

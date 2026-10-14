@@ -15,7 +15,20 @@ const adminMaterial = { id: "admin-material-1", name: "ماده آزمایشی",
 const adminArticle = { id: "admin-article-1", title: "مقاله آزمایشی", slug: "test-article", summary: null, body: "متن آزمون", featuredImage: null, ...lifecycle };
 const adminPage = { id: "admin-page-1", title: "صفحه آزمایشی", slug: "test-page", summary: null, body: "متن آزمون", images: [], ...lifecycle };
 const inquiryHistory = { id: "history-1", fromStatus: null, toStatus: "SUBMITTED", createdAt: publishedAt };
+const adminSummary = { id: "admin-1", displayName: "مدیر آزمون", mobile: "+989123456789" };
+const ownerSummary = { id: "customer-1", displayName: "مشتری آزمون", mobile: "+989111111111", companyName: "شرکت نمونه" };
 const inquiry = { id: "inquiry-1", type: "PRODUCT", status: "SUBMITTED", catalogItemName: product.name, description: "درخواست آزمون", approximateQuantity: "100", quantityUnit: null, deliveryCity: "تهران", requestedTiming: null, partDescription: null, moldStatus: null, materialName: null, color: null, materialRequestKind: null, polymerName: null, grade: null, brand: null, materialCondition: null, application: null, specifications: null, createdAt: publishedAt, updatedAt: publishedAt, statusHistory: [inquiryHistory] };
+
+const adminInquiry = {
+  ...inquiry,
+  version: 0,
+  ownerSummary,
+  assigneeSummary: null,
+  allowedTransitions: ["UNDER_REVIEW", "REJECTED"],
+  statusHistory: [{ ...inquiryHistory, actorSummary: { id: "customer-1", displayName: "مشتری آزمون" } }],
+  assignmentHistory: [],
+  internalNotes: [{ id: "note-1", text: "یادداشت فقط برای کارکنان", authorSummary: adminSummary, createdAt: publishedAt }],
+};
 
 const routes = new Map([
   ["/api/v1/health", { status: 200, body: { status: "ok" } }],
@@ -93,6 +106,32 @@ createServer((request, response) => {
     }
     response.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
     return response.end(JSON.stringify({ authorized: true, account: { id: "admin-1", mobile: "+989123456789", displayName: "مدیر آزمون", email: null, companyName: null, role: "ADMIN", status: "ACTIVE", createdAt: publishedAt, lastLoginAt: publishedAt } }));
+  }
+  if (url.pathname === "/api/v1/admin/inquiries" && request.method === "GET") {
+    response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    return response.end(JSON.stringify({ items: [adminInquiry], page: 1, pageSize: 20, total: 1, pageCount: 1 }));
+  }
+  if (url.pathname === "/api/v1/admin/inquiries/summary" && request.method === "GET") {
+    response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    return response.end(JSON.stringify({ total: 1, unassigned: 1, submitted: 1, underReview: 0 }));
+  }
+  if (url.pathname === "/api/v1/admin/inquiries/assignees" && request.method === "GET") {
+    response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    return response.end(JSON.stringify([adminSummary]));
+  }
+  if (url.pathname === "/api/v1/admin/inquiries/inquiry-1" && request.method === "GET") {
+    response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    return response.end(JSON.stringify(adminInquiry));
+  }
+  const inquiryMutation = url.pathname.match(/^\/api\/v1\/admin\/inquiries\/inquiry-1\/(status|assignment|notes)$/);
+  if (inquiryMutation && ["POST", "PATCH"].includes(request.method ?? "")) {
+    const csrfCookie = (request.headers.cookie ?? "").split(";").some((cookie) => cookie.trim() === "toranj_csrf=fixture-csrf");
+    if (!csrfCookie || request.headers["x-csrf-token"] !== "fixture-csrf") {
+      response.writeHead(403, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+      return response.end(JSON.stringify({ code: "INVALID_CSRF", message: "Invalid CSRF token" }));
+    }
+    response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    return response.end(JSON.stringify(adminInquiry));
   }
   const mutation = url.pathname.match(/^\/api\/v1\/admin\/content\/(categories|products|services|materials|articles|pages)(?:\/[^/]+(?:\/(publish|archive))?)?$/);
   if (mutation && ["POST", "PATCH"].includes(request.method ?? "")) {

@@ -23,3 +23,23 @@ describe('customer inquiry migration', () => {
     expect(migration).not.toMatch(/^\s*(DROP|TRUNCATE|DELETE|UPDATE|INSERT)\b/im);
   });
 });
+
+describe('admin inquiry operations migration', () => {
+  const migration = readFileSync(
+    resolve(process.cwd(), 'prisma/migrations/20261014110000_admin_inquiry_operations/migration.sql'),
+    'utf8',
+  );
+
+  it('adds versioning, assignment and append-only operational history', () => {
+    expect(migration).toContain('ADD COLUMN "version" INTEGER NOT NULL DEFAULT 0');
+    expect(migration).toContain('ADD COLUMN "assignedAdminId" TEXT');
+    expect(migration).toContain('CREATE TABLE "InquiryInternalNote"');
+    expect(migration).toContain('CREATE TABLE "InquiryAssignmentHistory"');
+  });
+
+  it('adds operational indexes and contains no destructive or data-rewrite statement', () => {
+    expect(migration).toContain('"Inquiry_status_createdAt_idx"');
+    expect(migration).toContain('"Inquiry_assignedAdminId_status_createdAt_idx"');
+    expect(migration).not.toMatch(/^\s*(DROP|TRUNCATE|DELETE|UPDATE|INSERT)\b/im);
+  });
+});
