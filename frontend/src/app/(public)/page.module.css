@@ -1,26 +1,17 @@
 .page { overflow: clip; }
-.hero { min-height: min(46rem, 88svh); display: flex; flex-direction: column; color: var(--color-hero-ink); background: var(--color-hero); overflow: hidden; }
-.heroInner { flex: 1; display: grid; grid-template-columns: minmax(0, 1.07fr) minmax(0, .93fr); align-items: center; gap: clamp(2rem, 6vw, 6rem); padding-block: clamp(3.5rem, 7vw, 7rem) clamp(2rem, 5vw, 4rem); }
-.heroCopy { position: relative; z-index: 1; }
+.campaignHero { padding-block: clamp(1rem, 2.5vw, 2.25rem); background: var(--color-surface-subtle); border-block-end: 1px solid var(--color-border-default); }
+.campaignFrame { position: relative; }
+.campaignImage { width: 100%; height: auto; display: block; overflow: hidden; border: 1px solid var(--color-border-default); border-radius: clamp(.5rem, 1vw, 1rem); background: #f4f7fb; box-shadow: var(--shadow-md); }
+.campaignSummary { width: 1px; height: 1px; padding: 0; position: absolute; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.campaignAction { height: 10.5%; position: absolute; z-index: 2; inset-block-start: 69%; border-radius: 999px; }
+.campaignAction span { width: 1px; height: 1px; padding: 0; position: absolute; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.campaignAction:hover { box-shadow: inset 0 0 0 3px rgb(255 255 255 / 65%); }
+.campaignAction:focus-visible { outline: .28rem solid var(--color-brand-action); outline-offset: .22rem; }
+.productAction { width: 16.1%; inset-inline-start: 6%; }
+.inquiryAction { width: 13.2%; inset-inline-start: 23.2%; }
 .eyebrow { display: inline-flex; align-items: center; gap: .75rem; color: #dbad95; font-size: .78rem; font-weight: 700; letter-spacing: .06em; }
-.eyebrowLine { width: 1.75rem; height: 1px; background: currentColor; }
-.hero h1 { max-width: 13ch; margin-block: 1.5rem; font-size: clamp(2.8rem, 6vw, 6.3rem); line-height: 1.22; letter-spacing: -.055em; font-weight: 700; }
-.hero h1 em { color: #e39a73; font-style: normal; }
-.heroCopy > p { max-width: 36rem; color: var(--color-hero-muted); font-size: clamp(1rem, 1.4vw, 1.15rem); line-height: 2; }
-.heroActions { margin-block-start: 2rem; display: flex; align-items: center; flex-wrap: wrap; gap: 1rem 2rem; }
-.primaryAction, .closingAction { min-height: 3.4rem; padding-inline: 1.5rem; display: inline-flex; align-items: center; justify-content: center; gap: 2.5rem; color: #1c2c25; background: #ee9b73; border-radius: .35rem; font-weight: 700; transition: transform .2s, background-color .2s; }
-.primaryAction:hover, .closingAction:hover { transform: translateY(-2px); background: #ffc29e; }
-.textAction { min-height: 3.4rem; display: inline-flex; align-items: center; gap: 1rem; border-block-end: 1px solid #63776d; font-weight: 600; }
-.textAction:hover { color: #ee9b73; }
-.heroArtwork { min-height: 30rem; display: grid; place-items: center; }
-.artFrame { width: min(100%, 31rem); aspect-ratio: .98; position: relative; border: 1px solid #65766b; box-shadow: 2.3rem 2.3rem 0 #20362b, 2.3rem 2.3rem 0 1px #65766b; overflow: hidden; }
-.artFrame::before { content: ""; position: absolute; z-index: 2; inset: 2rem; border: 1px solid #ffffff4d; pointer-events: none; }
-.artPhoto { width: 100%; height: 100%; display: block; object-fit: cover; }
-.artScrim { position: absolute; z-index: 1; inset: 0; background: linear-gradient(180deg, #0b1512b3 0, transparent 32%, transparent 66%, #0b1512cc 100%); }
-.artIndex, .artCaption { position: absolute; z-index: 3; color: #f5f8fb; font: 700 .72rem/1 var(--font-family-latin); letter-spacing: .16em; }
-.artIndex { inset-block-start: 3.4rem; inset-inline-start: 3.5rem; }
-.artCaption { inset-block-end: 3.4rem; inset-inline-end: 3.5rem; }
-.heroBottom { padding-block: 1.25rem; display: flex; justify-content: space-between; gap: 1rem; border-block-start: 1px solid #4e6355; color: #bdcabe; font-size: .77rem; }
+.closingAction { min-height: 3.4rem; padding-inline: 1.5rem; display: inline-flex; align-items: center; justify-content: center; gap: 2.5rem; color: #1c2c25; background: #ee9b73; border-radius: .35rem; font-weight: 700; transition: transform .2s, background-color .2s; }
+.closingAction:hover { transform: translateY(-2px); background: #ffc29e; }
 .intro { padding-block: clamp(4rem, 8vw, 7rem) 2.5rem; display: grid; grid-template-columns: 1.25fr .75fr; align-items: end; gap: 2rem; }
 .sectionNumber { color: var(--color-brand-action); font: 700 .78rem/1.5 var(--font-family-fa); }
 .intro h2 { max-width: 17ch; margin-block-start: 1rem; color: var(--color-brand-primary); font-size: clamp(2rem, 3.8vw, 3.7rem); line-height: 1.35; letter-spacing: -.045em; }
@@ -44,6 +35,5 @@
 .closing h2 { max-width: 24ch; color: var(--color-brand-primary); font-size: clamp(1.8rem, 3vw, 3rem); line-height: 1.4; }
 .closing p { max-width: 34rem; margin-block-start: .75rem; color: var(--color-text-secondary); }
 .closingAction { white-space: nowrap; }
-@media (max-width: 64rem) { .heroInner { grid-template-columns: 1fr 1fr; gap: 2rem; } .artFrame { box-shadow: 1rem 1rem 0 #20362b, 1rem 1rem 0 1px #65766b; } .heroArtwork { min-height: 22rem; } .closingInner { grid-template-columns: 1fr 2fr; } .closingAction { grid-column: 2; justify-self: start; } }
-@media (max-width: 48rem) { .heroInner { grid-template-columns: 1fr; padding-block-start: 3.5rem; } .hero h1 { max-width: 15ch; } .heroArtwork { min-height: 18rem; padding-block-end: 1rem; } .artFrame { width: min(70%, 22rem); } .intro { grid-template-columns: 1fr; gap: 1rem; } .areas { grid-template-columns: 1fr; } .area { min-height: 16rem; } .areaGlyph { min-height: 7rem; } .closingInner { grid-template-columns: 1fr; } .closingAction { grid-column: auto; } }
-@media (max-width: 30rem) { .hero h1 { font-size: clamp(2.65rem, 10vw, 3.5rem); } .artFrame { width: min(77%, 18rem); } .heroBottom span:last-child { display: none; } }
+@media (max-width: 64rem) { .closingInner { grid-template-columns: 1fr 2fr; } .closingAction { grid-column: 2; justify-self: start; } }
+@media (max-width: 48rem) { .campaignFrame { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; } .campaignImage { grid-column: 1 / -1; } .campaignSummary { width: auto; height: auto; padding: 1rem 0 .35rem; position: static; grid-column: 1 / -1; overflow: visible; clip: auto; white-space: normal; border: 0; } .campaignSummary h1 { margin-block: .55rem .35rem; color: var(--color-brand-primary); font-size: clamp(1.75rem, 8vw, 2.6rem); line-height: 1.35; } .campaignSummary p { color: var(--color-text-secondary); } .campaignAction { width: 100%; min-width: 0; min-height: 3rem; height: auto; padding-inline: .75rem; position: static; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--color-brand-action); border-radius: .45rem; font-weight: 700; } .campaignAction span { width: auto; height: auto; position: static; overflow: visible; clip: auto; white-space: nowrap; } .productAction { color: #fff; background: var(--color-brand-action); } .inquiryAction { color: var(--color-brand-primary); background: var(--color-surface-card); } .intro { grid-template-columns: 1fr; gap: 1rem; } .areas { grid-template-columns: 1fr; } .area { min-height: 16rem; } .areaGlyph { min-height: 7rem; } .closingInner { grid-template-columns: 1fr; } .closingAction { grid-column: auto; } }

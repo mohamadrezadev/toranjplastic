@@ -20,7 +20,7 @@ test("public shell is responsive without horizontal overflow", async ({ page }, 
     await expect(mobileTrigger).toBeVisible();
   }
 
-  await expect(page.getByRole("heading", { name: /برای هر نیاز صنعتی/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "محصولات و خدمات ترنج پلاستیک" })).toBeVisible();
   await expect(page.locator('a[href="/account"]').first()).toHaveAttribute("href", "/account");
   const bodyFont = await page.locator("body").evaluate((element) => getComputedStyle(element).fontFamily);
   expect(bodyFont).toContain("Estedad Variable");
@@ -147,4 +147,72 @@ test("connected content fits the viewport in both themes", async ({ page }) => {
       expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), `${path} must not overflow in ${colorScheme}`).toBe(false);
     }
   }
+});
+
+test("campaign artwork stays responsive and exposes real actions", async ({ page, request }, testInfo) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  const homeCampaign = page.getByTestId("home-campaign");
+  await expect(homeCampaign).toBeVisible();
+  await expect(homeCampaign.getByRole("img", { name: "معرفی محصولات و خدمات ترنج پلاستیک" })).toBeVisible();
+  const productsAction = homeCampaign.getByRole("link", { name: "مشاهده محصولات" });
+  const inquiryAction = homeCampaign.getByRole("link", { name: "ثبت استعلام" });
+  await expect(productsAction).toHaveAttribute("href", "/products");
+  await expect(inquiryAction).toHaveAttribute("href", "/inquiry");
+  await productsAction.focus();
+  expect(await productsAction.evaluate((element) => getComputedStyle(element).outlineStyle)).not.toBe("none");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+  await page.screenshot({ path: testInfo.outputPath("campaign-home.png"), fullPage: true });
+
+  await page.goto("/products");
+  await expect(page.getByRole("heading", { name: "محصولات را دقیق‌تر ببینید." })).toBeVisible();
+  await expect(page.getByRole("img", { name: "محصولات پلاستیکی ترنج در فضای آشپزخانه" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "ثبت استعلام محصول" })).toHaveAttribute("href", "/inquiry/product");
+  const landingHero = page.locator('section[aria-labelledby="catalog-landing-title"]');
+  const landingBox = await landingHero.boundingBox();
+  const viewportWidth = page.viewportSize()?.width ?? 1280;
+  expect(landingBox?.height).toBeLessThan(viewportWidth <= 390 ? 650 : viewportWidth <= 768 ? 850 : 620);
+  await expect(page.locator('[data-layout="featured"]')).toBeVisible();
+  const productCard = page.getByRole("article").first();
+  await expect(productCard).toBeVisible();
+  await productCard.scrollIntoViewIfNeeded();
+  await expect.poll(() => productCard.locator("img").evaluate((element) => (element as HTMLImageElement).complete && (element as HTMLImageElement).naturalWidth > 0)).toBe(true);
+  const cardBox = await productCard.boundingBox();
+  expect(cardBox?.height).toBeLessThan(600);
+  expect(cardBox?.width).toBeGreaterThan(viewportWidth * (viewportWidth <= 390 ? .85 : .72));
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+  await page.screenshot({ path: testInfo.outputPath("catalog-products.png"), fullPage: true });
+
+  await page.getByRole("link", { name: "مشاهده جزئیات" }).click();
+  await expect(page.getByRole("heading", { name: "سبد صنعتی نمونه", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "ثبت استعلام محصول" })).toHaveAttribute("href", "/inquiry/product?slug=industrial-basket");
+  await expect(page.getByText("ثبت استعلام به معنی تأیید قیمت یا موجودی نیست.")).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+  await page.screenshot({ path: testInfo.outputPath("catalog-product-detail.png"), fullPage: true });
+
+  const routes = [
+    ["/injection-molding", "injection-campaign", "ثبت درخواست خدمات تزریق پلاستیک", "/inquiry/injection"],
+    ["/contact", "contact-campaign", "مشاهده راه‌های تماس با ترنج پلاستیک", "#managed-content"],
+  ] as const;
+
+  for (const [path, testId, label, href] of routes) {
+    await page.goto(path);
+    const banner = page.getByTestId(testId);
+    await banner.scrollIntoViewIfNeeded();
+    await expect(banner).toBeVisible();
+    await expect(banner).toHaveAccessibleName(label);
+    await expect(banner).toHaveAttribute("href", href);
+    const image = banner.locator("img");
+    await expect(image).toBeVisible();
+    await expect(image).toHaveAttribute("width", "1122");
+    await expect(image).toHaveAttribute("height", "1402");
+    await expect.poll(() => image.evaluate((element) => {
+      const campaignImage = element as HTMLImageElement;
+      return campaignImage.complete && campaignImage.naturalWidth > 0;
+    })).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), `${path} campaign must not overflow`).toBe(false);
+  }
+  const materialsArtwork = await request.get("/branding/banners/materials.png");
+  expect(materialsArtwork.ok()).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath("campaign-contact.png"), fullPage: true });
 });

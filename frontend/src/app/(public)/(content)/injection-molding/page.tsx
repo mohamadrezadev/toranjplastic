@@ -1,6 +1,6 @@
 import { Breadcrumb } from "@/components/navigation";
 import { EmptyState } from "@/components/feedback";
-import { ContentCard, ContentGrid, ContentPageHeading, Pagination, contentStyles } from "@/components/content";
+import { CampaignBanner, ContentCard, ContentGrid, ContentPageHeading, Pagination, contentStyles } from "@/components/content";
 import { listServices, parsePageNumber } from "@/lib/public-content";
 import { publicCollectionMetadata } from "@/lib/content-metadata";
 
@@ -9,5 +9,12 @@ export const metadata = publicCollectionMetadata("خدمات تزریق پلاس
 
 export default async function ServicesPage({ searchParams }: { searchParams: Promise<{ page?: string | string[] }> }) {
   const result = await listServices(parsePageNumber((await searchParams).page));
-  return <main className={contentStyles.main}><Breadcrumb items={[{ label: "خانه", href: "/" }, { label: "تزریق پلاستیک" }]} /><section className={`${contentStyles.section} content-container`}><ContentPageHeading eyebrow="خدمات صنعتی" title="خدمات تزریق پلاستیک" description={description} />{result.items.length ? <><ContentGrid>{result.items.map((service) => <ContentCard key={service.id} title={service.name} summary={service.summary} href={`/injection-molding/${service.slug}`} image={service.images[0]} />)}</ContentGrid><Pagination pageInfo={result.pageInfo} basePath="/injection-molding" /></> : <div className={contentStyles.section}><EmptyState title="خدمت منتشرشده‌ای وجود ندارد" description="اطلاعات خدمات پس از بررسی فنی و انتشار رسمی در این بخش قرار می‌گیرد." /></div>}</section></main>;
+  return <main className={contentStyles.main}>
+    <Breadcrumb items={[{ label: "خانه", href: "/" }, { label: "تزریق پلاستیک" }]} />
+    <section className={`${contentStyles.section} content-container`}>
+      <CampaignBanner src="/branding/banners/injection-services.png" alt="معرفی خدمات تزریق پلاستیک ترنج" href="/inquiry/injection" actionLabel="ثبت درخواست خدمات تزریق پلاستیک" testId="injection-campaign" />
+      <ContentPageHeading eyebrow="خدمات صنعتی" title="خدمات تزریق پلاستیک" description={description} />
+      {result.items.length ? <><ContentGrid>{result.items.map((service) => <ContentCard key={service.id} title={service.name} summary={service.summary} href={`/injection-molding/${service.slug}`} image={service.images[0]} />)}</ContentGrid><Pagination pageInfo={result.pageInfo} basePath="/injection-molding" /></> : <div className={contentStyles.section}><EmptyState title="خدمت منتشرشده‌ای وجود ندارد" description="اطلاعات خدمات پس از بررسی فنی و انتشار رسمی در این بخش قرار می‌گیرد." /></div>}
+    </section>
+  </main>;
 }

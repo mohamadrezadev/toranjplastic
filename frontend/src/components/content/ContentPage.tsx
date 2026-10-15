@@ -9,12 +9,38 @@ export function ContentPageHeading({ eyebrow, title, description }: { eyebrow: s
   return <header className={styles.heading}><span className={styles.eyebrow}>{eyebrow}</span><h1>{title}</h1><p>{description}</p></header>;
 }
 
-export function ContentGrid({ children }: { children: ReactNode }) { return <div className={styles.grid}>{children}</div>; }
+export function CatalogLandingHero({ eyebrow, title, description, imageSrc, mobileImageSrc, imageAlt, imagePosition = "center", actions }: { eyebrow: string; title: string; description: string; imageSrc: string; mobileImageSrc?: string; imageAlt: string; imagePosition?: string; actions: ReactNode }) {
+  return <section className={styles.landingHero} aria-labelledby="catalog-landing-title">
+    <div className={styles.landingCopy}>
+      <span className={styles.eyebrow}>{eyebrow}</span>
+      <h1 id="catalog-landing-title">{title}</h1>
+      <p>{description}</p>
+      <div className={styles.landingActions}>{actions}</div>
+    </div>
+    <div className={styles.landingMedia}>
+      <picture>
+        {mobileImageSrc ? <source media="(max-width: 608px)" srcSet={mobileImageSrc} /> : null}
+        <img src={imageSrc} alt={imageAlt} width={1122} height={1402} fetchPriority="high" style={{ objectPosition: imagePosition }} />
+      </picture>
+      <span className={styles.landingMediaLabel}>TORANJ / PRODUCT CATALOG</span>
+    </div>
+  </section>;
+}
+
+export function CatalogSectionHeading({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
+  return <header className={styles.catalogHeading}><div><span className={styles.eyebrow}>{eyebrow}</span><h2>{title}</h2></div><p>{description}</p></header>;
+}
+
+export function ContentGrid({ children, featured = false }: { children: ReactNode; featured?: boolean }) {
+  return <div className={`${styles.grid} ${featured ? styles.gridFeatured : ""}`} data-layout={featured ? "featured" : "grid"}>{children}</div>;
+}
 
 export function ContentCard({ title, summary, href, image, meta }: { title: string; summary?: string | null; href: string; image?: PublicImage | null; meta?: ReactNode }) {
   return <article className={styles.card}>
-    {image ? <img className={styles.cardMedia} src={image.url} alt={image.alt} width={image.width} height={image.height} loading="lazy" /> : <div className={styles.cardPlaceholder} aria-hidden="true">تصویر ثبت نشده</div>}
-    <div className={styles.cardBody}><h2>{title}</h2>{meta ? <div className={styles.meta}>{meta}</div> : null}{summary ? <p>{summary}</p> : null}<Link className={styles.cardLink} href={href}>مشاهده جزئیات</Link></div>
+    <Link className={styles.cardMediaLink} href={href} tabIndex={-1} aria-hidden="true">
+      {image ? <img className={styles.cardMedia} src={image.url} alt="" width={image.width} height={image.height} loading="lazy" /> : <span className={styles.cardPlaceholder}>تصویر ثبت نشده</span>}
+    </Link>
+    <div className={styles.cardBody}>{meta ? <div className={styles.meta}>{meta}</div> : null}<h2><Link href={href}>{title}</Link></h2>{summary ? <p>{summary}</p> : null}<Link className={styles.cardLink} href={href}>مشاهده جزئیات <span aria-hidden="true">←</span></Link></div>
   </article>;
 }
 
@@ -31,8 +57,11 @@ export function Pagination({ pageInfo, basePath }: { pageInfo: PageInfo; basePat
   </nav>;
 }
 
-export function DetailHero({ eyebrow, title, summary, image, meta, action }: { eyebrow: string; title: string; summary?: string | null; image?: PublicImage | null; meta?: ReactNode; action?: ReactNode }) {
-  return <div className={styles.detailHero}><div className={styles.detailCopy}><span className={styles.eyebrow}>{eyebrow}</span><h1 className={styles.detailTitle}>{title}</h1>{meta ? <div className={styles.detailMeta}>{meta}</div> : null}{summary ? <p className={styles.summary}>{summary}</p> : null}{action}</div>{image ? <img className={styles.heroMedia} src={image.url} alt={image.alt} width={image.width} height={image.height} /> : null}</div>;
+export function DetailHero({ eyebrow, title, summary, image, meta, action, note }: { eyebrow: string; title: string; summary?: string | null; image?: PublicImage | null; meta?: ReactNode; action?: ReactNode; note?: string }) {
+  return <div className={styles.detailHero}>
+    <div className={styles.detailMedia}>{image ? <img className={styles.heroMedia} src={image.url} alt={image.alt} width={image.width} height={image.height} /> : <div className={styles.detailPlaceholder}>تصویر محصول ثبت نشده است</div>}</div>
+    <div className={styles.detailCopy}><span className={styles.eyebrow}>{eyebrow}</span><h1 className={styles.detailTitle}>{title}</h1>{meta ? <div className={styles.detailMeta}>{meta}</div> : null}{summary ? <p className={styles.summary}>{summary}</p> : null}{action}{note ? <span className={styles.detailNote}>{note}</span> : null}</div>
+  </div>;
 }
 
 export function PreservedText({ title = "توضیحات", body }: { title?: string; body?: string | null }) {
@@ -50,4 +79,4 @@ export function Specifications({ items }: { items: PublicSpecification[] }) {
   return <section className={styles.specifications}><h2>مشخصات تأییدشده</h2><dl>{items.map((item) => <div key={`${item.label}-${item.value}`} style={{ display: "contents" }}><dt>{item.label}</dt><dd dir={/^[\x00-\x7F]/.test(item.value) ? "ltr" : undefined}>{item.value}</dd></div>)}</dl></section>;
 }
 
-export const contentStyles = { main: styles.main, section: styles.section, managed: styles.managed, primaryLink: styles.primaryLink };
+export const contentStyles = { main: styles.main, section: styles.section, managed: styles.managed, primaryLink: styles.primaryLink, secondaryLink: styles.secondaryLink, catalogSection: styles.catalogSection, detailContent: styles.detailContent };
