@@ -16,6 +16,8 @@ enum ContentStatus {
 enum UserRole {
   CUSTOMER
   ADMIN
+  SALES
+  OPERATOR
 }
 
 enum AccountStatus {
@@ -62,6 +64,7 @@ model User {
   companyName              String?
   role                     UserRole                   @default(CUSTOMER)
   status                   AccountStatus              @default(ACTIVE)
+  version                  Int                        @default(0)
   lastLoginAt              DateTime?
   createdAt                DateTime                   @default(now())
   updatedAt                DateTime                   @updatedAt

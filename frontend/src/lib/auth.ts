@@ -7,11 +7,16 @@ export interface AuthAccount {
   displayName: string;
   email: string | null;
   companyName: string | null;
-  role: "CUSTOMER" | "ADMIN";
+  role: "CUSTOMER" | "ADMIN" | "SALES" | "OPERATOR";
   status: "ACTIVE" | "SUSPENDED" | "DISABLED";
   createdAt: string;
   lastLoginAt: string | null;
+  capabilities: Capability[];
 }
+
+export type Capability = "MANAGEMENT_ACCESS" | "STAFF_MANAGEMENT" | "INQUIRY_OPERATIONS" | "CONTENT_MANAGEMENT";
+const capabilities: Capability[] = ["MANAGEMENT_ACCESS", "STAFF_MANAGEMENT", "INQUIRY_OPERATIONS", "CONTENT_MANAGEMENT"];
+export const hasCapability = (account: AuthAccount, capability: Capability) => account.capabilities.includes(capability);
 
 const backend = (process.env.BACKEND_API_URL ?? "http://127.0.0.1:3001/api/v1").replace(/\/$/, "");
 const origin = process.env.FRONTEND_ORIGIN ?? "http://localhost:3000";
@@ -19,7 +24,7 @@ const origin = process.env.FRONTEND_ORIGIN ?? "http://localhost:3000";
 function isAccount(value: unknown): value is AuthAccount {
   if (!value || typeof value !== "object") return false;
   const item = value as Record<string, unknown>;
-  return typeof item.id === "string" && typeof item.mobile === "string" && typeof item.displayName === "string" && ["CUSTOMER", "ADMIN"].includes(String(item.role)) && ["ACTIVE", "SUSPENDED", "DISABLED"].includes(String(item.status));
+  return typeof item.id === "string" && typeof item.mobile === "string" && typeof item.displayName === "string" && ["CUSTOMER", "ADMIN", "SALES", "OPERATOR"].includes(String(item.role)) && ["ACTIVE", "SUSPENDED", "DISABLED"].includes(String(item.status)) && Array.isArray(item.capabilities) && item.capabilities.every((value) => capabilities.includes(value as Capability));
 }
 
 export async function cookieHeader() {

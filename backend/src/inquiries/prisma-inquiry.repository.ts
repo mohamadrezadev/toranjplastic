@@ -249,7 +249,7 @@ export class PrismaInquiryRepository implements InquiryRepository {
   }
 
   adminAssignees() {
-    return this.prisma.user.findMany({ where: { role: 'ADMIN', status: 'ACTIVE' }, orderBy: [{ displayName: 'asc' }, { id: 'asc' }], select: accountSummarySelect });
+    return this.prisma.user.findMany({ where: { role: { in: ['ADMIN', 'SALES'] }, status: 'ACTIVE' }, orderBy: [{ displayName: 'asc' }, { id: 'asc' }], select: accountSummarySelect });
   }
 
   async getAdmin(id: string) {
@@ -275,7 +275,7 @@ export class PrismaInquiryRepository implements InquiryRepository {
       const current = await transaction.inquiry.findUnique({ where: { id }, select: { assignedAdminId: true } });
       if (!current) return { kind: 'not_found' as const };
       if (assignedAdminId) {
-        const eligibleAssignee = await transaction.user.findFirst({ where: { id: assignedAdminId, role: 'ADMIN', status: 'ACTIVE' }, select: { id: true } });
+        const eligibleAssignee = await transaction.user.findFirst({ where: { id: assignedAdminId, role: { in: ['ADMIN', 'SALES'] }, status: 'ACTIVE' }, select: { id: true } });
         if (!eligibleAssignee) return { kind: 'invalid_assignee' as const };
       }
       const updated = await transaction.inquiry.updateMany({ where: { id, version: expectedVersion }, data: { assignedAdminId, version: { increment: 1 } } });

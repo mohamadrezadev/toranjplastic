@@ -12,6 +12,8 @@ interface AdminPortalShellProps {
   logoutAction: () => Promise<void>;
 }
 
+const roleLabels = { ADMIN: "مدیر فعال", SALES: "کارشناس فروش", OPERATOR: "اپراتور محتوا", CUSTOMER: "مشتری" } as const;
+
 export function AdminPortalShell({ account, children, logoutAction }: AdminPortalShellProps) {
   return (
     <div className={styles.shell}>
@@ -31,9 +33,9 @@ export function AdminPortalShell({ account, children, logoutAction }: AdminPorta
           <div className={styles.mobilePanel}>
             <div className={styles.mobilePanelHeading}>
               <strong>{account.displayName}</strong>
-              <span>مدیر فعال</span>
+              <span>{roleLabels[account.role]}</span>
             </div>
-            <AdminNavigation />
+            <AdminNavigation capabilities={account.capabilities} />
             <form action={logoutAction}><Button type="submit" variant="secondary">خروج امن</Button></form>
           </div>
         </details>
@@ -48,12 +50,12 @@ export function AdminPortalShell({ account, children, logoutAction }: AdminPorta
             <span className={styles.avatar} aria-hidden="true">{account.displayName.trim().charAt(0) || "ت"}</span>
             <span className={styles.accountCopy}>
               <strong>{account.displayName}</strong>
-              <span>مدیر فعال</span>
+              <span>{roleLabels[account.role]}</span>
             </span>
           </div>
         </div>
 
-        <AdminNavigation />
+        <AdminNavigation capabilities={account.capabilities} />
 
         <div className={styles.sidebarFooter}>
           <p>اطلاعات این محیط محرمانه و ویژه کارکنان مجاز است.</p>

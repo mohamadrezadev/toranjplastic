@@ -6,6 +6,7 @@ import { ProductFields } from "../ProductFields";
 import styles from "../../Admin.module.css";
 
 export const metadata: Metadata = { title: "محصول جدید", robots: { index: false, follow: false } };
+export const instant = false;
 
 const errorMessages: Record<string, string> = {
   validation: "اطلاعات واردشده معتبر نیست. مقادیر را بررسی کنید.",

@@ -4,12 +4,13 @@ import { INQUIRY_REPOSITORY, type InquiryRepository } from '../inquiry.repositor
 import type { AdminInquiry, AdminInquiryListQuery } from '../inquiry.types.js';
 import type { AdminInquiryListQueryDto } from './admin-inquiry.dto.js';
 import { allowedInquiryTransitions, canTransitionInquiry } from './inquiry-transition.policy.js';
+import { StaffService } from '../../identity/staff.service.js';
 
 const conflict = (code: string, message: string) => new ConflictException({ code, message });
 
 @Injectable()
 export class AdminInquiryService {
-  constructor(@Inject(INQUIRY_REPOSITORY) private readonly inquiries: InquiryRepository) {}
+  constructor(@Inject(INQUIRY_REPOSITORY) private readonly inquiries: InquiryRepository, private readonly staff: StaffService) {}
 
   list(query: AdminInquiryListQueryDto) {
     const normalized: AdminInquiryListQuery = {
@@ -27,7 +28,7 @@ export class AdminInquiryService {
   }
 
   summary() { return this.inquiries.adminSummary(); }
-  assignees() { return this.inquiries.adminAssignees(); }
+  assignees() { return this.staff.listInquiryAssignees(); }
 
   async get(id: string): Promise<AdminInquiry> {
     const inquiry = await this.inquiries.getAdmin(id);

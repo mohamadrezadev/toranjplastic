@@ -8,6 +8,7 @@ import { digestToken, hashPassword, normalizeIranianMobile, randomToken, readCoo
 import type { AuthenticatedRequest, PublicAccount } from './identity.types.js';
 import type { RegisterDto } from './dto/register.dto.js';
 import type { PasswordLoginDto } from './dto/login.dto.js';
+import { capabilitiesForRole } from './capabilities.js';
 
 const SESSION_COOKIE = 'toranj_session';
 const CSRF_COOKIE = 'toranj_csrf';
@@ -19,7 +20,7 @@ export class IdentityService {
   constructor(private readonly prisma: PrismaService) {}
 
   toPublic(user: User): PublicAccount {
-    return { id: user.id, mobile: user.mobile, displayName: user.displayName, email: user.email, companyName: user.companyName, role: user.role, status: user.status, createdAt: user.createdAt, lastLoginAt: user.lastLoginAt };
+    return { id: user.id, mobile: user.mobile, displayName: user.displayName, email: user.email, companyName: user.companyName, role: user.role, status: user.status, createdAt: user.createdAt, lastLoginAt: user.lastLoginAt, capabilities: capabilitiesForRole(user.role) };
   }
 
   assertOrigin(origin: string | undefined): void {

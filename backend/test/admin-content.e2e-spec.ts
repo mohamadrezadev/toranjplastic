@@ -56,6 +56,8 @@ const adminAccount = {
   updatedAt: new Date('2026-10-11'),
 };
 const customerAccount = { ...adminAccount, id: 'customer-1', role: 'CUSTOMER' };
+const operatorAccount = { ...adminAccount, id: 'operator-1', role: 'OPERATOR' };
+const salesAccount = { ...adminAccount, id: 'sales-1', role: 'SALES' };
 
 const CSRF_TOKEN = 'valid-csrf-token';
 const csrfDigest = digestToken(CSRF_TOKEN);
@@ -398,6 +400,11 @@ describe('admin content API (e2e)', () => {
     );
   }
 
+  function withStaffSession(req: request.Test, user: typeof operatorAccount) {
+    prisma.authSession.findUnique.mockResolvedValue({ id: `s-${user.id}`, expiresAt: new Date(Date.now() + 60_000), revokedAt: null, csrfDigest, user });
+    return req.set('cookie', `toranj_session=${user.id}; toranj_csrf=${CSRF_TOKEN}`);
+  }
+
   function csrfHeader(req: request.Test) {
     return req.set('x-csrf-token', CSRF_TOKEN);
   }
@@ -436,6 +443,12 @@ describe('admin content API (e2e)', () => {
       .send({ name: 'x', slug: 'x' })
       .expect(401);
     expect(createCategorySpy).not.toHaveBeenCalled();
+  });
+
+  it('allows Operator content access and denies Sales', async () => {
+    await withStaffSession(request(app.getHttpServer()).get('/api/v1/admin/content/categories'), operatorAccount).expect(200);
+    await withStaffSession(request(app.getHttpServer()).get('/api/v1/admin/content/categories'), salesAccount).expect(403);
+    await withStaffSession(csrfHeader(request(app.getHttpServer()).post('/api/v1/admin/content/categories')), operatorAccount).send({ name: 'Operator category', slug: 'operator-category' }).expect(201);
   });
 
   it('returns no-store and the admin category list for an authorized admin', async () => {

@@ -36,7 +36,7 @@ describe('AdminInquiryService', () => {
       create: vi.fn(), list: vi.fn(), getOwned: vi.fn(), adminList: vi.fn(), adminSummary: vi.fn(),
       adminAssignees: vi.fn(), getAdmin: vi.fn(), adminTransitionStatus: vi.fn(), adminAssign: vi.fn(), adminAddNote: vi.fn(),
     };
-    service = new AdminInquiryService(repository);
+    service = new AdminInquiryService(repository, { listInquiryAssignees: () => repository.adminAssignees() } as never);
   });
 
   it('returns safe not found and rejects invalid transitions before persistence', async () => {

@@ -1,5 +1,6 @@
 import type { Request } from 'express';
 import type { AccountStatus, UserRole } from '../generated/prisma/enums.js';
+import type { Capability } from './capabilities.js';
 
 export interface PublicAccount {
   id: string;
@@ -11,6 +12,7 @@ export interface PublicAccount {
   status: AccountStatus;
   createdAt: Date;
   lastLoginAt: Date | null;
+  capabilities: Capability[];
 }
 
 export interface AuthenticatedRequest extends Request {

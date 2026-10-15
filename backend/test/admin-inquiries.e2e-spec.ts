@@ -11,7 +11,7 @@ import { InquiriesModule } from '../src/inquiries/inquiries.module.js';
 import { INQUIRY_REPOSITORY, type InquiryRepository } from '../src/inquiries/inquiry.repository.js';
 import type { AdminInquiry } from '../src/inquiries/inquiry.types.js';
 
-const account = (role: 'ADMIN' | 'CUSTOMER') => ({ id: role === 'ADMIN' ? 'admin-1' : 'customer-1', mobile: '+989123456789', displayName: role === 'ADMIN' ? 'مدیر' : 'مشتری', email: null, companyName: null, role, status: 'ACTIVE', lastLoginAt: null, createdAt: new Date(), updatedAt: new Date() });
+const account = (role: 'ADMIN' | 'SALES' | 'OPERATOR' | 'CUSTOMER') => ({ id: `${role.toLowerCase()}-1`, mobile: '+989123456789', displayName: role, email: null, companyName: null, role, status: 'ACTIVE', lastLoginAt: null, createdAt: new Date(), updatedAt: new Date() });
 const detail: AdminInquiry = {
   id: 'i1', type: 'PRODUCT', status: 'SUBMITTED', version: 0, catalogItemName: 'محصول نمونه',
   description: null, approximateQuantity: null, quantityUnit: null, deliveryCity: null,
@@ -68,6 +68,13 @@ describe('admin inquiry API contract', () => {
     await admin('get', '/api/v1/admin/inquiries').expect(403);
     sessionAccount = account('ADMIN');
     await admin('post', '/api/v1/admin/inquiries/i1/status').send({ toStatus: 'UNDER_REVIEW', expectedVersion: 0 }).expect(401);
+  });
+
+  it('allows Sales and denies Operator inquiry access', async () => {
+    sessionAccount = account('SALES');
+    await admin('get', '/api/v1/admin/inquiries').expect(200);
+    sessionAccount = account('OPERATOR');
+    await admin('get', '/api/v1/admin/inquiries').expect(403);
   });
 
   it('returns stable version conflict and rejects forged note metadata', async () => {

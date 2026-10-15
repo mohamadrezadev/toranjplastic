@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 
 const port = 3199;
 const publishedAt = "2026-10-10T08:00:00.000Z";
+const adminCapabilities = ["MANAGEMENT_ACCESS", "STAFF_MANAGEMENT", "INQUIRY_OPERATIONS", "CONTENT_MANAGEMENT"];
 const seo = { metaTitle: null, metaDescription: null };
 const product = { id: "product-1", name: "سبد صنعتی نمونه", slug: "industrial-basket", summary: "خلاصه منتشرشده محصول", description: "توضیحات منتشرشده محصول.", category: { id: "category-1", name: "محصولات صنعتی", slug: "industrial" }, images: [{ url: "/catalog/refrigerator-organizer.webp", alt: "نظم‌دهنده‌های شفاف در طبقات یخچال", width: 1200, height: 1200 }], specifications: [{ label: "کد مرجع", value: "TRJ-P-001" }], featured: true, publishedAt, ...seo };
 const article = { id: "article-1", title: "راهنمای انتخاب ماده", slug: "material-selection", summary: "خلاصه منتشرشده مقاله", body: "بند اول مقاله.\n\nبند دوم مقاله.", featuredImage: null, publishedAt, ...seo };
@@ -74,7 +75,7 @@ createServer((request, response) => {
       return response.end(JSON.stringify({ message: "Unauthorized" }));
     }
     response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
-    return response.end(JSON.stringify({ id: "admin-1", mobile: "+989123456789", displayName: "مدیر آزمون", email: null, companyName: null, role: "ADMIN", status: "ACTIVE", createdAt: publishedAt, lastLoginAt: publishedAt }));
+    return response.end(JSON.stringify({ id: "admin-1", mobile: "+989123456789", displayName: "مدیر آزمون", email: null, companyName: null, role: "ADMIN", status: "ACTIVE", createdAt: publishedAt, lastLoginAt: publishedAt, capabilities: adminCapabilities }));
   }
   if (url.pathname === "/api/v1/inquiries/product" && request.method === "POST") {
     const authenticated = (request.headers.cookie ?? "").includes("toranj_session=");
@@ -92,11 +93,11 @@ createServer((request, response) => {
   }
   if (url.pathname === "/api/v1/auth/login/password" && request.method === "POST") {
     response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Set-Cookie": ["toranj_session=fixture-session; HttpOnly; Path=/; SameSite=Lax", "toranj_csrf=fixture-csrf; Path=/; SameSite=Lax"] });
-    return response.end(JSON.stringify({ id: "admin-1", mobile: "+989123456789", displayName: "مدیر آزمون", email: null, companyName: null, role: "ADMIN", status: "ACTIVE", createdAt: publishedAt, lastLoginAt: publishedAt }));
+    return response.end(JSON.stringify({ id: "admin-1", mobile: "+989123456789", displayName: "مدیر آزمون", email: null, companyName: null, role: "ADMIN", status: "ACTIVE", createdAt: publishedAt, lastLoginAt: publishedAt, capabilities: adminCapabilities }));
   }
   if (url.pathname === "/api/v1/auth/register" && request.method === "POST") {
     response.writeHead(201, { "Content-Type": "application/json; charset=utf-8" });
-    return response.end(JSON.stringify({ id: "customer-1", mobile: "+989123456789", displayName: "مشتری آزمون", email: null, companyName: null, role: "CUSTOMER", status: "ACTIVE", createdAt: publishedAt, lastLoginAt: null }));
+    return response.end(JSON.stringify({ id: "customer-1", mobile: "+989123456789", displayName: "مشتری آزمون", email: null, companyName: null, role: "CUSTOMER", status: "ACTIVE", createdAt: publishedAt, lastLoginAt: null, capabilities: [] }));
   }
   if (url.pathname === "/api/v1/admin/access") {
     const cookie = request.headers.cookie ?? "";
@@ -105,7 +106,22 @@ createServer((request, response) => {
       return response.end(JSON.stringify({ message: "Unauthorized" }));
     }
     response.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
-    return response.end(JSON.stringify({ authorized: true, account: { id: "admin-1", mobile: "+989123456789", displayName: "مدیر آزمون", email: null, companyName: null, role: "ADMIN", status: "ACTIVE", createdAt: publishedAt, lastLoginAt: publishedAt } }));
+    return response.end(JSON.stringify({ authorized: true, account: { id: "admin-1", mobile: "+989123456789", displayName: "مدیر آزمون", email: null, companyName: null, role: "ADMIN", status: "ACTIVE", createdAt: publishedAt, lastLoginAt: publishedAt, capabilities: adminCapabilities } }));
+  }
+  const staffRecord = { id: "staff-1", mobile: "+989121111111", displayName: "کارشناس فروش", role: "SALES", status: "ACTIVE", version: 0, createdAt: publishedAt, updatedAt: publishedAt, lastLoginAt: null };
+  if (url.pathname === "/api/v1/admin/staff" && request.method === "GET") {
+    response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    return response.end(JSON.stringify({ items: [staffRecord], page: 1, pageSize: 20, total: 1, pageCount: 1 }));
+  }
+  if (url.pathname === "/api/v1/admin/staff/staff-1" && request.method === "GET") {
+    response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    return response.end(JSON.stringify(staffRecord));
+  }
+  if ((url.pathname === "/api/v1/admin/staff" && request.method === "POST") || (/^\/api\/v1\/admin\/staff\/staff-1\/(role|status)$/.test(url.pathname) && request.method === "PATCH")) {
+    const csrfCookie = (request.headers.cookie ?? "").includes("toranj_csrf=fixture-csrf");
+    if (!csrfCookie || request.headers["x-csrf-token"] !== "fixture-csrf") { response.writeHead(403, { "Content-Type": "application/json; charset=utf-8" }); return response.end(JSON.stringify({ code: "INVALID_CSRF" })); }
+    response.writeHead(request.method === "POST" ? 201 : 200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    return response.end(JSON.stringify(staffRecord));
   }
   if (url.pathname === "/api/v1/admin/inquiries" && request.method === "GET") {
     response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });

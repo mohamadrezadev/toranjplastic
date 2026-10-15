@@ -10,7 +10,8 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { AdminGuard, CsrfGuard } from '../../identity/auth.guard.js';
+import { CapabilityGuard, CsrfGuard } from '../../identity/auth.guard.js';
+import { CAPABILITIES, RequireCapability } from '../../identity/capabilities.js';
 import type { AuthenticatedRequest } from '../../identity/identity.types.js';
 import {
   CreateProductDto,
@@ -20,7 +21,8 @@ import { AdminProductQueryDto, IdParamDto } from '../dto/admin-query.dto.js';
 import { AdminProductService } from './product.service.js';
 
 @Controller('admin/content/products')
-@UseGuards(AdminGuard)
+@RequireCapability(CAPABILITIES.CONTENT_MANAGEMENT)
+@UseGuards(CapabilityGuard)
 export class AdminProductController {
   constructor(private readonly products: AdminProductService) {}
   private actorId(request: AuthenticatedRequest) {

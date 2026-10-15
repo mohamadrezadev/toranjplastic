@@ -10,7 +10,7 @@ export async function loginAction(form: FormData) {
   if (!response.ok) redirect("/auth/login?error=invalid");
   const next = value(form, "next");
   const account: unknown = await response.clone().json().catch(() => null);
-  const isAdmin = typeof account === "object" && account !== null && "role" in account && account.role === "ADMIN";
+  const isAdmin = typeof account === "object" && account !== null && "role" in account && ["ADMIN", "SALES", "OPERATOR"].includes(String(account.role));
   redirect(next.startsWith("/") && !next.startsWith("//") ? next : isAdmin ? "/admin" : "/account");
 }
 

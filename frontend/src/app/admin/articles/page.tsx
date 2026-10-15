@@ -6,6 +6,7 @@ import { StatusBadge } from "../content/StatusBadge";
 import styles from "../Admin.module.css";
 
 export const metadata: Metadata = { title: "مقالات", robots: { index: false, follow: false } };
+export const instant = false;
 
 const statuses: ContentStatus[] = ["DRAFT", "PUBLISHED", "ARCHIVED"];
 

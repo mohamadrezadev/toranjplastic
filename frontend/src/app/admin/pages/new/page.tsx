@@ -5,6 +5,7 @@ import { ManagedPageFields } from "../ManagedPageFields";
 import styles from "../../Admin.module.css";
 
 export const metadata: Metadata = { title: "صفحه جدید", robots: { index: false, follow: false } };
+export const instant = false;
 
 const errorMessages: Record<string, string> = {
   validation: "اطلاعات واردشده معتبر نیست. مقادیر را بررسی کنید.",

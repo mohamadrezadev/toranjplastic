@@ -15,6 +15,7 @@ const account = {
   status: "ACTIVE" as const,
   createdAt: "2026-10-12T00:00:00.000Z",
   lastLoginAt: null,
+  capabilities: [],
 };
 
 describe("CustomerPortalShell", () => {

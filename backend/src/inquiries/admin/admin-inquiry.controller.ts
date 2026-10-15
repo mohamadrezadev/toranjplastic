@@ -1,12 +1,14 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
-import { AdminGuard, CsrfGuard } from '../../identity/auth.guard.js';
+import { CapabilityGuard, CsrfGuard } from '../../identity/auth.guard.js';
+import { CAPABILITIES, RequireCapability } from '../../identity/capabilities.js';
 import type { AuthenticatedRequest } from '../../identity/identity.types.js';
 import { InquiryIdParamDto } from '../dto/inquiry.dto.js';
 import { AddInquiryNoteDto, AdminInquiryListQueryDto, UpdateInquiryAssignmentDto, UpdateInquiryStatusDto } from './admin-inquiry.dto.js';
 import { AdminInquiryService } from './admin-inquiry.service.js';
 
 @Controller('admin/inquiries')
-@UseGuards(AdminGuard)
+@RequireCapability(CAPABILITIES.INQUIRY_OPERATIONS)
+@UseGuards(CapabilityGuard)
 export class AdminInquiryController {
   constructor(private readonly inquiries: AdminInquiryService) {}
   private actorId(request: AuthenticatedRequest) { return request.auth!.account.id; }

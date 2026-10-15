@@ -7,7 +7,7 @@ import styles from "./AdminPortalShell.module.css";
 const labels: Record<string, string> = {
   inquiries: "استعلام‌ها", categories: "دسته‌بندی‌ها", products: "محصولات",
   services: "خدمات", materials: "مواد اولیه", articles: "مقالات", pages: "صفحات ثابت",
-  new: "ایجاد جدید",
+  new: "ایجاد جدید", staff: "کاربران سازمانی",
 };
 
 export function AdminBreadcrumbs() {
