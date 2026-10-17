@@ -7,6 +7,14 @@ export interface InquiryHistoryItem {
   createdAt: string;
 }
 
+export interface InquiryMessageItem {
+  id: string;
+  senderType: 'CUSTOMER' | 'STAFF';
+  authorDisplayName: string;
+  text: string;
+  createdAt: string;
+}
+
 export interface CustomerInquiry {
   id: string;
   type: InquiryType;
@@ -31,6 +39,10 @@ export interface CustomerInquiry {
   createdAt: string;
   updatedAt: string;
   statusHistory: InquiryHistoryItem[];
+}
+
+export interface CustomerInquiryDetail extends CustomerInquiry {
+  messages: InquiryMessageItem[];
 }
 
 export interface InquiryCreateInput {
@@ -116,6 +128,7 @@ export interface AdminInquiry extends Omit<CustomerInquiry, 'statusHistory'> {
   statusHistory: AdminInquiryHistoryItem[];
   assignmentHistory: AdminInquiryAssignmentItem[];
   internalNotes: AdminInquiryNote[];
+  messages: InquiryMessageItem[];
   allowedTransitions: InquiryStatus[];
 }
 
@@ -151,3 +164,9 @@ export type AdminMutationResult =
   | { kind: 'not_found' }
   | { kind: 'version_conflict' }
   | { kind: 'invalid_assignee' };
+
+export type CustomerMessageMutationResult =
+  | { kind: 'ok'; inquiry: CustomerInquiryDetail }
+  | { kind: 'not_found' }
+  | { kind: 'version_conflict' }
+  | { kind: 'invalid_status' };

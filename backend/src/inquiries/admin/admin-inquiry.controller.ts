@@ -3,7 +3,7 @@ import { CapabilityGuard, CsrfGuard } from '../../identity/auth.guard.js';
 import { CAPABILITIES, RequireCapability } from '../../identity/capabilities.js';
 import type { AuthenticatedRequest } from '../../identity/identity.types.js';
 import { InquiryIdParamDto } from '../dto/inquiry.dto.js';
-import { AddInquiryNoteDto, AdminInquiryListQueryDto, UpdateInquiryAssignmentDto, UpdateInquiryStatusDto } from './admin-inquiry.dto.js';
+import { AddAdminInquiryMessageDto, AddInquiryNoteDto, AdminInquiryListQueryDto, UpdateInquiryAssignmentDto, UpdateInquiryStatusDto } from './admin-inquiry.dto.js';
 import { AdminInquiryService } from './admin-inquiry.service.js';
 
 @Controller('admin/inquiries')
@@ -38,5 +38,10 @@ export class AdminInquiryController {
   @Post(':id/notes') @UseGuards(CsrfGuard)
   note(@Param() { id }: InquiryIdParamDto, @Body() dto: AddInquiryNoteDto, @Req() request: AuthenticatedRequest) {
     return this.inquiries.addNote(id, dto.text, this.actorId(request));
+  }
+
+  @Post(':id/messages') @UseGuards(CsrfGuard)
+  message(@Param() { id }: InquiryIdParamDto, @Body() dto: AddAdminInquiryMessageDto, @Req() request: AuthenticatedRequest) {
+    return this.inquiries.addMessage(id, dto.text, this.actorId(request), dto.requestMoreInfo, dto.expectedVersion);
   }
 }

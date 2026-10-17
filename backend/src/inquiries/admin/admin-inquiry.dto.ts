@@ -27,3 +27,9 @@ export class UpdateInquiryAssignmentDto {
 export class AddInquiryNoteDto {
   @IsString() @MinLength(1) @MaxLength(4000) text!: string;
 }
+
+export class AddAdminInquiryMessageDto {
+  @IsString() @MinLength(1) @MaxLength(4000) text!: string;
+  @IsOptional() @IsBoolean() requestMoreInfo = false;
+  @IsOptional() @IsInt() @Min(0) expectedVersion?: number;
+}

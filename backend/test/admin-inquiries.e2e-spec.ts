@@ -20,15 +20,15 @@ const detail: AdminInquiry = {
   materialCondition: null, application: null, specifications: null,
   createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
   ownerSummary: { id: 'customer-1', displayName: 'مشتری', mobile: '+989123456789', companyName: null },
-  assigneeSummary: null, statusHistory: [], assignmentHistory: [], internalNotes: [], allowedTransitions: [],
+  assigneeSummary: null, statusHistory: [], assignmentHistory: [], internalNotes: [], messages: [], allowedTransitions: [],
 };
 
 describe('admin inquiry API contract', () => {
   let app: INestApplication;
   let sessionAccount = account('ADMIN');
   const repository: InquiryRepository = {
-    findPublishedProduct: vi.fn(), findPublishedService: vi.fn(), findPublishedMaterial: vi.fn(), create: vi.fn(), list: vi.fn(), getOwned: vi.fn(),
-    adminList: vi.fn(), adminSummary: vi.fn(), adminAssignees: vi.fn(), getAdmin: vi.fn(), adminTransitionStatus: vi.fn(), adminAssign: vi.fn(), adminAddNote: vi.fn(),
+    findPublishedProduct: vi.fn(), findPublishedService: vi.fn(), findPublishedMaterial: vi.fn(), create: vi.fn(), list: vi.fn(), getOwned: vi.fn(), customerAddMessage: vi.fn(),
+    adminList: vi.fn(), adminSummary: vi.fn(), adminAssignees: vi.fn(), getAdmin: vi.fn(), adminTransitionStatus: vi.fn(), adminAssign: vi.fn(), adminAddNote: vi.fn(), adminAddMessage: vi.fn(),
   };
   const prisma = { authSession: { findUnique: vi.fn() } };
 
@@ -82,5 +82,15 @@ describe('admin inquiry API contract', () => {
     const conflict = await admin('post', '/api/v1/admin/inquiries/i1/status').set('x-csrf-token', 'csrf').send({ toStatus: 'UNDER_REVIEW', expectedVersion: 0 }).expect(409);
     expect(conflict.body).toMatchObject({ code: 'INQUIRY_VERSION_CONFLICT' });
     await admin('post', '/api/v1/admin/inquiries/i1/notes').set('x-csrf-token', 'csrf').send({ text: 'یادداشت', authorId: 'forged' }).expect(400);
+  });
+
+  it('allows Sales customer-visible messages and validates request-more-info version', async () => {
+    sessionAccount = account('SALES');
+    const underReview = { ...detail, status: 'UNDER_REVIEW' as const, version: 1 };
+    vi.mocked(repository.getAdmin).mockResolvedValue(underReview);
+    vi.mocked(repository.adminAddMessage).mockResolvedValue({ kind: 'ok', inquiry: { ...underReview, status: 'NEED_MORE_INFO', version: 2 } });
+    await admin('post', '/api/v1/admin/inquiries/i1/messages').set('x-csrf-token', 'csrf').send({ text: 'اطلاعات تکمیلی', requestMoreInfo: true, expectedVersion: 1 }).expect(201);
+    expect(repository.adminAddMessage).toHaveBeenCalledWith('i1', 'اطلاعات تکمیلی', 'sales-1', true, 1);
+    await admin('post', '/api/v1/admin/inquiries/i1/messages').set('x-csrf-token', 'csrf').send({ text: 'x', authorId: 'forged' }).expect(400);
   });
 });

@@ -9,7 +9,7 @@ describe("admin inquiry contracts", () => {
   it("accepts explicit list/summary/detail shapes and rejects missing operational arrays", () => {
     expect(isAdminInquiryPage({ items: [listItem], page: 1, pageSize: 20, total: 1, pageCount: 1 })).toBe(true);
     expect(isAdminInquirySummary({ total: 1, unassigned: 1, submitted: 1, underReview: 0 })).toBe(true);
-    const detail = { ...listItem, description: null, approximateQuantity: null, quantityUnit: null, deliveryCity: null, requestedTiming: null, partDescription: null, moldStatus: null, materialName: null, color: null, polymerName: null, grade: null, brand: null, application: null, specifications: null, allowedTransitions: ["UNDER_REVIEW"], statusHistory: [], assignmentHistory: [], internalNotes: [] };
+    const detail = { ...listItem, description: null, approximateQuantity: null, quantityUnit: null, deliveryCity: null, requestedTiming: null, partDescription: null, moldStatus: null, materialName: null, color: null, polymerName: null, grade: null, brand: null, application: null, specifications: null, allowedTransitions: ["UNDER_REVIEW"], statusHistory: [], assignmentHistory: [], internalNotes: [], messages: [] };
     expect(isAdminInquiry(detail)).toBe(true);
     expect(isAdminInquiry({ ...detail, internalNotes: undefined })).toBe(false);
   });

@@ -6,6 +6,14 @@ export const inquiryStatuses = ["SUBMITTED", "UNDER_REVIEW", "NEED_MORE_INFO", "
 export type InquiryType = (typeof inquiryTypes)[number];
 export type InquiryStatus = (typeof inquiryStatuses)[number];
 
+export interface InquiryMessage {
+  id: string;
+  senderType: "CUSTOMER" | "STAFF";
+  authorDisplayName: string;
+  text: string;
+  createdAt: string;
+}
+
 export interface CustomerInquiry {
   id: string; type: InquiryType; status: InquiryStatus; catalogItemName: string | null;
   description: string | null; approximateQuantity: string | null; quantityUnit: string | null;
@@ -17,6 +25,8 @@ export interface CustomerInquiry {
   specifications: string | null; createdAt: string; updatedAt: string;
   statusHistory: Array<{ id: string; fromStatus: InquiryStatus | null; toStatus: InquiryStatus; createdAt: string }>;
 }
+
+export interface CustomerInquiryDetail extends CustomerInquiry { messages: InquiryMessage[] }
 
 export interface InquiryPage { items: CustomerInquiry[]; page: number; pageSize: number; total: number; pageCount: number }
 export class InquiryApiError extends Error { constructor(public status: number) { super("Inquiry API error"); } }
@@ -30,6 +40,9 @@ export function isCustomerInquiry(value: unknown): value is CustomerInquiry {
   const nullableKeys = ["catalogItemName", "description", "approximateQuantity", "quantityUnit", "deliveryCity", "requestedTiming", "partDescription", "moldStatus", "materialName", "color", "polymerName", "grade", "brand", "application", "specifications"];
   return nullableKeys.every((key) => nullableString(value[key])) && typeof value.createdAt === "string" && typeof value.updatedAt === "string" && Array.isArray(value.statusHistory) && value.statusHistory.every((item) => record(item) && typeof item.id === "string" && inquiryStatuses.includes(item.toStatus as InquiryStatus) && typeof item.createdAt === "string");
 }
+
+const isInquiryMessage = (value: unknown): value is InquiryMessage => record(value) && typeof value.id === "string" && (value.senderType === "CUSTOMER" || value.senderType === "STAFF") && typeof value.authorDisplayName === "string" && typeof value.text === "string" && typeof value.createdAt === "string";
+export const isCustomerInquiryDetail = (value: unknown): value is CustomerInquiryDetail => isCustomerInquiry(value) && record(value) && Array.isArray(value.messages) && value.messages.every(isInquiryMessage);
 
 async function parse(response: Response) {
   if (!response.ok) throw new InquiryApiError(response.status);
@@ -45,9 +58,20 @@ export async function listInquiries(filters: { type?: string; status?: string; p
   return payload as unknown as InquiryPage;
 }
 
-export async function getInquiry(id: string): Promise<CustomerInquiry> {
+export async function getInquiry(id: string): Promise<CustomerInquiryDetail> {
   const payload = await parse(await fetch(`${backend}/inquiries/${encodeURIComponent(id)}`, { cache: "no-store", headers: await protectedHeaders() }));
-  if (!isCustomerInquiry(payload)) throw new InquiryApiError(502);
+  if (!isCustomerInquiryDetail(payload)) throw new InquiryApiError(502);
+  return payload;
+}
+
+export async function addInquiryMessage(id: string, text: string): Promise<CustomerInquiryDetail> {
+  const payload = await parse(await fetch(`${backend}/inquiries/${encodeURIComponent(id)}/messages`, {
+    method: "POST",
+    cache: "no-store",
+    headers: { ...(await protectedHeaders(true)), "content-type": "application/json" },
+    body: JSON.stringify({ text }),
+  }));
+  if (!isCustomerInquiryDetail(payload)) throw new InquiryApiError(502);
   return payload;
 }
 

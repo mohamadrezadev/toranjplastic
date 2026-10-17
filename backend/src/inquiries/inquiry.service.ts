@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { CreateContactInquiryDto, CreateInjectionInquiryDto, CreateMaterialInquiryDto, CreateProductInquiryDto, InquiryListQueryDto } from './dto/inquiry.dto.js';
 import { INQUIRY_REPOSITORY, type InquiryRepository } from './inquiry.repository.js';
 
@@ -42,5 +42,15 @@ export class InquiryService {
     const inquiry = await this.inquiries.getOwned(ownerId, id);
     if (!inquiry) throw new NotFoundException('درخواست پیدا نشد.');
     return inquiry;
+  }
+
+  async addMessage(ownerId: string, id: string, text: string) {
+    const normalized = text.trim();
+    if (!normalized) throw new BadRequestException({ code: 'INQUIRY_INVALID_MESSAGE', message: 'متن پیام نمی‌تواند خالی باشد.' });
+    const result = await this.inquiries.customerAddMessage(ownerId, id, normalized, ownerId);
+    if (result.kind === 'ok') return result.inquiry;
+    if (result.kind === 'not_found') throw new NotFoundException('درخواست پیدا نشد.');
+    if (result.kind === 'version_conflict') throw new ConflictException({ code: 'INQUIRY_VERSION_CONFLICT', message: 'درخواست هم‌زمان تغییر کرده است؛ صفحه را تازه‌سازی کنید.' });
+    throw new ConflictException({ code: 'INQUIRY_MESSAGE_NOT_ALLOWED', message: 'ارسال پیام برای این درخواست مجاز نیست.' });
   }
 }

@@ -58,6 +58,19 @@ export class AdminInquiryService {
     return this.resolve(await this.inquiries.adminAddNote(id, normalized, actorId));
   }
 
+  async addMessage(id: string, text: string, actorId: string, requestMoreInfo: boolean, expectedVersion?: number) {
+    const normalized = text.trim();
+    if (!normalized) throw new BadRequestException({ code: 'INQUIRY_INVALID_MESSAGE', message: 'متن پیام نمی‌تواند خالی باشد.' });
+    const current = await this.get(id);
+    if (['COMPLETED', 'REJECTED', 'CANCELLED'].includes(current.status)) {
+      throw conflict('INQUIRY_MESSAGE_NOT_ALLOWED', 'ارسال پیام برای این درخواست مجاز نیست.');
+    }
+    if (requestMoreInfo && (expectedVersion === undefined || current.status !== 'UNDER_REVIEW')) {
+      throw conflict('INQUIRY_MESSAGE_NOT_ALLOWED', 'درخواست اطلاعات تکمیلی فقط در وضعیت بررسی و با نسخه فعلی مجاز است.');
+    }
+    return this.resolve(await this.inquiries.adminAddMessage(id, normalized, actorId, requestMoreInfo, expectedVersion));
+  }
+
   private resolve(result: Awaited<ReturnType<InquiryRepository['adminAssign']>>) {
     if (result.kind === 'ok') return { ...result.inquiry, allowedTransitions: allowedInquiryTransitions(result.inquiry.type, result.inquiry.status) };
     if (result.kind === 'not_found') throw new NotFoundException('درخواست پیدا نشد.');

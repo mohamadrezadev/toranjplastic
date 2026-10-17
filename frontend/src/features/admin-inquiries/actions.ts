@@ -1,8 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { addInquiryNote, AdminInquiryError, updateInquiryAssignment, updateInquiryStatus } from "./api";
-import { assignmentInputFromForm, noteInputFromForm, statusInputFromForm } from "./form-mapping";
+import { addCustomerVisibleMessage, addInquiryNote, AdminInquiryError, updateInquiryAssignment, updateInquiryStatus } from "./api";
+import { assignmentInputFromForm, messageInputFromForm, noteInputFromForm, statusInputFromForm } from "./form-mapping";
 
 const errorPath = (id: string, error: unknown) => {
   const code = error instanceof AdminInquiryError ? error.code ?? error.kind : "failed";
@@ -25,4 +25,10 @@ export async function addInquiryNoteAction(id: string, form: FormData) {
   const input = noteInputFromForm(form);
   try { await addInquiryNote(id, input.text); } catch (error) { redirect(errorPath(id, error)); }
   redirect(`/admin/inquiries/${id}?success=note`);
+}
+
+export async function addCustomerVisibleMessageAction(id: string, form: FormData) {
+  const input = messageInputFromForm(form);
+  try { await addCustomerVisibleMessage(id, input.text, input.requestMoreInfo, input.expectedVersion); } catch (error) { redirect(errorPath(id, error)); }
+  redirect(`/admin/inquiries/${id}?success=message`);
 }

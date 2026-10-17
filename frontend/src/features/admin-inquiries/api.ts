@@ -46,3 +46,4 @@ async function mutate(path: string, method: "POST" | "PATCH", body: unknown): Pr
 export const updateInquiryStatus = (id: string, toStatus: string, expectedVersion: number) => mutate(`/${encodeURIComponent(id)}/status`, "POST", { toStatus, expectedVersion });
 export const updateInquiryAssignment = (id: string, assignedAdminId: string | null, expectedVersion: number) => mutate(`/${encodeURIComponent(id)}/assignment`, "PATCH", { assignedAdminId, expectedVersion });
 export const addInquiryNote = (id: string, text: string) => mutate(`/${encodeURIComponent(id)}/notes`, "POST", { text });
+export const addCustomerVisibleMessage = (id: string, text: string, requestMoreInfo: boolean, expectedVersion: number) => mutate(`/${encodeURIComponent(id)}/messages`, "POST", { text, requestMoreInfo, expectedVersion });

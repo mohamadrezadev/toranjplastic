@@ -12,6 +12,7 @@ export interface AdminInquiryListItem {
 }
 export interface AdminInquiryPage { items: AdminInquiryListItem[]; page: number; pageSize: number; total: number; pageCount: number }
 export interface AdminInquirySummary { total: number; unassigned: number; submitted: number; underReview: number }
+export interface InquiryMessage { id: string; senderType: "CUSTOMER" | "STAFF"; authorDisplayName: string; text: string; createdAt: string }
 export interface AdminInquiry extends AdminInquiryListItem {
   description: string | null; approximateQuantity: string | null; quantityUnit: string | null;
   deliveryCity: string | null; requestedTiming: string | null; partDescription: string | null;
@@ -23,6 +24,7 @@ export interface AdminInquiry extends AdminInquiryListItem {
   statusHistory: Array<{ id: string; fromStatus: InquiryStatus | null; toStatus: InquiryStatus; createdAt: string; actorSummary: { id: string; displayName: string } }>;
   assignmentHistory: Array<{ id: string; fromAdminSummary: { id: string; displayName: string } | null; toAdminSummary: { id: string; displayName: string } | null; actorSummary: { id: string; displayName: string }; createdAt: string }>;
   internalNotes: Array<{ id: string; text: string; authorSummary: { id: string; displayName: string }; createdAt: string }>;
+  messages: InquiryMessage[];
 }
 export interface AdminInquiryFilters {
   page?: number; pageSize?: number; type?: string; status?: string; assignedAdminId?: string;

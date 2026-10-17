@@ -50,6 +50,18 @@
 .empty h2 { color: var(--color-brand-primary); font-size: 1.2rem; }
 .empty p { max-width: 34rem; color: var(--color-text-secondary); }
 .success { padding: .9rem 1rem; border: 1px solid color-mix(in srgb, var(--color-status-success) 28%, transparent); border-radius: var(--radius-md); color: var(--color-status-success); background: var(--color-status-success-surface); font-weight: var(--font-weight-medium); }
+.error { padding: .9rem 1rem; border: 1px solid color-mix(in srgb, var(--color-status-danger) 28%, transparent); border-radius: var(--radius-md); color: var(--color-status-danger); background: var(--color-status-danger-surface); font-weight: var(--font-weight-medium); }
+.conversation { display: grid; gap: .75rem; }
+.message { max-width: min(88%, 42rem); padding: .9rem 1rem; border: 1px solid var(--color-border-default); border-radius: var(--radius-md); background: var(--color-surface-raised); }
+.message[data-sender="CUSTOMER"] { margin-inline-start: auto; border-color: color-mix(in srgb, var(--color-brand-action) 35%, var(--color-border-default)); background: var(--color-brand-action-soft); }
+.message[data-sender="STAFF"] { margin-inline-end: auto; }
+.message p { margin-block-start: .45rem; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; }
+.messageMeta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; font-size: .78rem; }
+.messageMeta time { color: var(--color-text-secondary); }
+.messageForm { margin-block-start: 1rem; display: grid; gap: .65rem; }
+.messageForm label { font-weight: var(--font-weight-bold); }
+.messageForm textarea { width: 100%; min-height: 8rem; padding: .75rem .85rem; resize: vertical; color: var(--color-text-primary); border: 1px solid var(--color-border-default); border-radius: var(--radius-sm); background: var(--color-surface-card); }
+.messageForm small { color: var(--color-text-secondary); line-height: 1.7; }
 .detailHeader { min-width: 0; padding: clamp(1.25rem, 3vw, 2rem); position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; align-items: center; overflow: hidden; border: 1px solid color-mix(in srgb, var(--color-border-default) 82%, transparent); border-radius: var(--radius-xl); background: linear-gradient(135deg, var(--color-surface-card), color-mix(in srgb, var(--color-brand-action-soft) 14%, var(--color-surface-card))); box-shadow: 0 1rem 2.5rem rgb(18 40 60 / 8%); }
 .detailHeader::before { content: ""; width: .3rem; position: absolute; inset-block: 1.15rem; inset-inline-start: 0; border-radius: 999px 0 0 999px; background: var(--color-brand-action); }
 .detailHeader h1 { overflow-wrap: anywhere; font-size: clamp(1.45rem, 3vw, 2.25rem); }
@@ -67,4 +79,4 @@
 .timeline strong { color: var(--color-brand-primary); }
 .timeline span, .timeline time { color: var(--color-text-secondary); font-size: .8rem; }
 @media (max-width: 48rem) { .pageHeader, .hero, .detailHeader { grid-template-columns: minmax(0, 1fr); align-items: start; } .pageHeader { align-items: stretch; } .pageHeader .primary, .heroAction, .heroAction .primary { width: 100%; } .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } .filters button { grid-column: 1 / -1; width: 100%; } .listItem a { grid-template-columns: minmax(0, 1fr); } .itemMeta { justify-content: start; } }
-@media (max-width: 35rem) { .page { gap: .9rem; } .quickGrid, .filters, .details { grid-template-columns: minmax(0, 1fr); } .quickCard { min-height: 7.75rem; padding: 1rem; } .panel, .detailHeader { padding: 1rem; } .actions { gap: .5rem; } .backLink { min-height: 2.75rem; padding: .5rem .8rem; } .filters button { grid-column: auto; } .itemMeta { align-items: start; flex-direction: column; gap: .4rem; } .privacyNote { align-items: start; } }
+@media (max-width: 35rem) { .page { gap: .9rem; } .quickGrid, .filters, .details { grid-template-columns: minmax(0, 1fr); } .quickCard { min-height: 7.75rem; padding: 1rem; } .panel, .detailHeader { padding: 1rem; } .actions { gap: .5rem; } .backLink { min-height: 2.75rem; padding: .5rem .8rem; } .filters button { grid-column: auto; } .itemMeta { align-items: start; flex-direction: column; gap: .4rem; } .privacyNote { align-items: start; } .message { max-width: 96%; } .messageMeta { align-items: flex-start; flex-direction: column; } .messageForm button { width: 100%; } }

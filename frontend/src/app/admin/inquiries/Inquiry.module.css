@@ -52,6 +52,18 @@
 .note { padding: .85rem; border: 1px solid color-mix(in srgb, var(--color-status-warning) 24%, var(--color-border-default)); border-radius: var(--radius-md); background: var(--color-status-warning-surface); }
 .note p { margin-block-start: .4rem; white-space: pre-wrap; overflow-wrap: anywhere; }
 .staffOnly { color: var(--color-status-warning); font-size: .7rem; font-weight: 800; }
+.customerConversation { border-color: color-mix(in srgb, var(--color-brand-action) 35%, var(--color-border-default)); }
+.internalPanel { border-style: dashed; }
+.messageFormHint { margin-block-start: .4rem; color: var(--color-text-secondary); font-size: .8rem; line-height: 1.7; }
+.conversation { margin-block-start: 1rem; display: grid; gap: .75rem; }
+.message { max-width: min(88%, 42rem); padding: .85rem 1rem; border: 1px solid var(--color-border-default); border-radius: var(--radius-md); background: var(--color-surface-raised); }
+.message[data-sender="STAFF"] { margin-inline-start: auto; border-color: color-mix(in srgb, var(--color-brand-action) 35%, var(--color-border-default)); background: var(--color-brand-action-soft); }
+.message[data-sender="CUSTOMER"] { margin-inline-end: auto; }
+.message p { margin-block-start: .45rem; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; }
+.messageMeta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; font-size: .75rem; }
+.messageMeta time { color: var(--color-text-secondary); }
+.checkboxRow { min-height: 2.75rem; display: flex; align-items: center; gap: .55rem; color: var(--color-text-secondary); font-size: .82rem; }
+.checkboxRow input { width: 1rem; height: 1rem; accent-color: var(--color-brand-action); }
 .skeleton { min-height: 7rem; border-radius: var(--radius-lg); background: linear-gradient(90deg, var(--color-surface-raised), var(--color-surface-card), var(--color-surface-raised)); background-size: 200% 100%; animation: pulse 1.2s infinite; }
 @keyframes pulse { to { background-position: -200% 0; } }
 
@@ -73,5 +85,7 @@
   .detailHeader .badge { align-self: flex-start; }
   .mobileCardHeader { align-items: flex-start; }
   .metaRow { align-items: flex-start; flex-direction: column; gap: .3rem; }
+  .message { max-width: 96%; }
+  .messageMeta { align-items: flex-start; flex-direction: column; }
 }
 @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }

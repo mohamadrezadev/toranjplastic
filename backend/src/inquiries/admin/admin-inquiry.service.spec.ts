@@ -13,7 +13,7 @@ const inquiry = (overrides: Partial<AdminInquiry> = {}): AdminInquiry => ({
   materialCondition: null, application: null, specifications: null,
   createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
   ownerSummary: { id: 'c1', displayName: 'مشتری', mobile: '+989123456789', companyName: null },
-  assigneeSummary: null, statusHistory: [], assignmentHistory: [], internalNotes: [],
+  assigneeSummary: null, statusHistory: [], assignmentHistory: [], internalNotes: [], messages: [],
   allowedTransitions: ['UNDER_REVIEW', 'REJECTED'], ...overrides,
 });
 
@@ -33,8 +33,8 @@ describe('AdminInquiryService', () => {
   beforeEach(() => {
     repository = {
       findPublishedProduct: vi.fn(), findPublishedService: vi.fn(), findPublishedMaterial: vi.fn(),
-      create: vi.fn(), list: vi.fn(), getOwned: vi.fn(), adminList: vi.fn(), adminSummary: vi.fn(),
-      adminAssignees: vi.fn(), getAdmin: vi.fn(), adminTransitionStatus: vi.fn(), adminAssign: vi.fn(), adminAddNote: vi.fn(),
+      create: vi.fn(), list: vi.fn(), getOwned: vi.fn(), customerAddMessage: vi.fn(), adminList: vi.fn(), adminSummary: vi.fn(),
+      adminAssignees: vi.fn(), getAdmin: vi.fn(), adminTransitionStatus: vi.fn(), adminAssign: vi.fn(), adminAddNote: vi.fn(), adminAddMessage: vi.fn(),
     };
     service = new AdminInquiryService(repository, { listInquiryAssignees: () => repository.adminAssignees() } as never);
   });
@@ -63,6 +63,21 @@ describe('AdminInquiryService', () => {
 
   it('rejects whitespace-only notes as validation errors', async () => {
     await expect(service.addNote('i1', '   ', 'a1')).rejects.toMatchObject({ status: 400 });
+    expect(repository.adminAddNote).not.toHaveBeenCalled();
+  });
+
+  it('requires an under-review current version for an information request message', async () => {
+    vi.mocked(repository.getAdmin).mockResolvedValue(inquiry({ status: 'SUBMITTED' }));
+    await expect(service.addMessage('i1', 'اطلاعات بیشتری ارسال کنید', 'a1', true, 0)).rejects.toMatchObject({ response: expect.objectContaining({ code: 'INQUIRY_MESSAGE_NOT_ALLOWED' }) });
+    expect(repository.adminAddMessage).not.toHaveBeenCalled();
+  });
+
+  it('keeps a customer-visible message separate from notes', async () => {
+    const current = inquiry({ status: 'UNDER_REVIEW', version: 1 });
+    vi.mocked(repository.getAdmin).mockResolvedValue(current);
+    vi.mocked(repository.adminAddMessage).mockResolvedValue({ kind: 'ok', inquiry: { ...current, status: 'NEED_MORE_INFO', version: 2 } });
+    await service.addMessage('i1', '  لطفاً مشخصات را ارسال کنید  ', 'a1', true, 1);
+    expect(repository.adminAddMessage).toHaveBeenCalledWith('i1', 'لطفاً مشخصات را ارسال کنید', 'a1', true, 1);
     expect(repository.adminAddNote).not.toHaveBeenCalled();
   });
 });

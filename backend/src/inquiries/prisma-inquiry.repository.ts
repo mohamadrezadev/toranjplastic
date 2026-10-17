@@ -8,6 +8,7 @@ import type {
   AdminInquiryListItem,
   AdminInquiryListQuery,
   CustomerInquiry,
+  CustomerInquiryDetail,
   InquiryCreateInput,
   InquiryListQuery,
 } from './inquiry.types.js';
@@ -23,6 +24,23 @@ const select = {
 } satisfies Prisma.InquirySelect;
 
 type Row = Prisma.InquiryGetPayload<{ select: typeof select }>;
+
+const messageSelect = {
+  id: true,
+  senderType: true,
+  text: true,
+  createdAt: true,
+  author: { select: { displayName: true } },
+} as const;
+
+const detailSelect = {
+  ...select,
+  messages: {
+    orderBy: [{ createdAt: 'desc' as const }, { id: 'desc' as const }],
+    take: 200,
+    select: messageSelect,
+  },
+} satisfies Prisma.InquirySelect;
 
 const accountSummarySelect = { id: true, displayName: true, mobile: true } as const;
 const adminListSelect = {
@@ -60,10 +78,16 @@ const adminSelect = {
     orderBy: [{ createdAt: 'desc' as const }, { id: 'desc' as const }],
     select: { id: true, text: true, createdAt: true, author: { select: { id: true, displayName: true } } },
   },
+  messages: {
+    orderBy: [{ createdAt: 'desc' as const }, { id: 'desc' as const }],
+    take: 200,
+    select: messageSelect,
+  },
 } satisfies Prisma.InquirySelect;
 
 type AdminListRow = Prisma.InquiryGetPayload<{ select: typeof adminListSelect }>;
 type AdminRow = Prisma.InquiryGetPayload<{ select: typeof adminSelect }>;
+type DetailRow = Prisma.InquiryGetPayload<{ select: typeof detailSelect }>;
 
 export function mapCustomerInquiry(row: Row): CustomerInquiry {
   return {
@@ -91,6 +115,20 @@ export function mapCustomerInquiry(row: Row): CustomerInquiry {
     updatedAt: row.updatedAt.toISOString(),
     statusHistory: row.statusHistory.map((item) => ({ id: item.id, fromStatus: item.fromStatus, toStatus: item.toStatus, createdAt: item.createdAt.toISOString() })),
   };
+}
+
+function mapMessages(row: DetailRow | AdminRow) {
+  return [...row.messages].reverse().map((message) => ({
+    id: message.id,
+    senderType: message.senderType,
+    authorDisplayName: message.author.displayName,
+    text: message.text,
+    createdAt: message.createdAt.toISOString(),
+  }));
+}
+
+export function mapCustomerInquiryDetail(row: DetailRow): CustomerInquiryDetail {
+  return { ...mapCustomerInquiry(row), messages: mapMessages(row) };
 }
 
 function mapAdminListItem(row: AdminListRow): AdminInquiryListItem {
@@ -134,6 +172,7 @@ export function mapAdminInquiry(row: AdminRow): AdminInquiry {
       authorSummary: item.author,
       createdAt: item.createdAt.toISOString(),
     })),
+    messages: mapMessages(row),
     allowedTransitions: [],
   };
 }
@@ -225,8 +264,39 @@ export class PrismaInquiryRepository implements InquiryRepository {
   }
 
   async getOwned(ownerId: string, id: string) {
-    const row = await this.prisma.inquiry.findFirst({ where: { id, ownerId }, select });
-    return row ? mapCustomerInquiry(row) : null;
+    const row = await this.prisma.inquiry.findFirst({ where: { id, ownerId }, select: detailSelect });
+    return row ? mapCustomerInquiryDetail(row) : null;
+  }
+
+  customerAddMessage(ownerId: string, id: string, text: string, actorId: string) {
+    return this.prisma.$transaction(async (transaction) => {
+      const current = await transaction.inquiry.findFirst({ where: { id, ownerId }, select: { status: true, version: true } });
+      if (!current) return { kind: 'not_found' as const };
+      if (['COMPLETED', 'REJECTED', 'CANCELLED'].includes(current.status)) return { kind: 'invalid_status' as const };
+
+      if (current.status === 'NEED_MORE_INFO') {
+        const updated = await transaction.inquiry.updateMany({
+          where: { id, ownerId, status: 'NEED_MORE_INFO', version: current.version },
+          data: { status: 'UNDER_REVIEW', version: { increment: 1 } },
+        });
+        if (updated.count !== 1) return { kind: 'version_conflict' as const };
+      }
+
+      const message = await transaction.inquiryMessage.create({
+        data: { inquiryId: id, authorId: actorId, senderType: 'CUSTOMER', text },
+        select: { id: true },
+      });
+      if (current.status === 'NEED_MORE_INFO') {
+        await transaction.inquiryStatusHistory.create({ data: { inquiryId: id, fromStatus: 'NEED_MORE_INFO', toStatus: 'UNDER_REVIEW', actorId } });
+      }
+      await recordAuditEvent(transaction, 'INQUIRY_CUSTOMER_MESSAGE_ADDED', actorId, {
+        inquiryId: id,
+        messageId: message.id,
+        statusChanged: current.status === 'NEED_MORE_INFO',
+      });
+      const row = await transaction.inquiry.findFirstOrThrow({ where: { id, ownerId }, select: detailSelect });
+      return { kind: 'ok' as const, inquiry: mapCustomerInquiryDetail(row) };
+    }, { isolationLevel: 'Serializable' });
   }
 
   async adminList(query: AdminInquiryListQuery) {
@@ -296,5 +366,38 @@ export class PrismaInquiryRepository implements InquiryRepository {
       const row = await transaction.inquiry.findUniqueOrThrow({ where: { id }, select: adminSelect });
       return { kind: 'ok' as const, inquiry: mapAdminInquiry(row) };
     });
+  }
+
+  adminAddMessage(id: string, text: string, actorId: string, requestMoreInfo: boolean, expectedVersion?: number) {
+    return this.prisma.$transaction(async (transaction) => {
+      const current = await transaction.inquiry.findUnique({ where: { id }, select: { status: true, version: true } });
+      if (!current) return { kind: 'not_found' as const };
+      if (['COMPLETED', 'REJECTED', 'CANCELLED'].includes(current.status)) return { kind: 'version_conflict' as const };
+
+      if (requestMoreInfo) {
+        if (expectedVersion === undefined) return { kind: 'version_conflict' as const };
+        const updated = await transaction.inquiry.updateMany({
+          where: { id, status: 'UNDER_REVIEW', version: expectedVersion },
+          data: { status: 'NEED_MORE_INFO', version: { increment: 1 } },
+        });
+        if (updated.count !== 1) return { kind: 'version_conflict' as const };
+      }
+
+      const message = await transaction.inquiryMessage.create({
+        data: { inquiryId: id, authorId: actorId, senderType: 'STAFF', text },
+        select: { id: true },
+      });
+      if (requestMoreInfo) {
+        await transaction.inquiryStatusHistory.create({ data: { inquiryId: id, fromStatus: 'UNDER_REVIEW', toStatus: 'NEED_MORE_INFO', actorId } });
+      }
+      await recordAuditEvent(transaction, 'INQUIRY_STAFF_MESSAGE_ADDED', actorId, {
+        inquiryId: id,
+        messageId: message.id,
+        requestMoreInfo,
+        ...(requestMoreInfo ? { fromVersion: expectedVersion, toVersion: expectedVersion! + 1 } : {}),
+      });
+      const row = await transaction.inquiry.findUniqueOrThrow({ where: { id }, select: adminSelect });
+      return { kind: 'ok' as const, inquiry: mapAdminInquiry(row) };
+    }, { isolationLevel: 'Serializable' });
   }
 }

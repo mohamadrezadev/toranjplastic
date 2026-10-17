@@ -70,4 +70,21 @@ describe('inquiry PostgreSQL atomicity', () => {
     expect(await prisma.inquiryAssignmentHistory.count({ where: { inquiryId: created.id } })).toBe(1);
     expect(await prisma.inquiryInternalNote.count({ where: { inquiryId: created.id } })).toBe(1);
   });
+
+  it('commits request-more-info and the owner reply with messages and history', async () => {
+    const created = await repository.create(userId, { type: 'PRODUCT', description: `${marker}-messages` });
+    const reviewing = await repository.adminTransitionStatus(created.id, 0, 'UNDER_REVIEW', adminId);
+    expect(reviewing.kind).toBe('ok');
+    const requested = await repository.adminAddMessage(created.id, 'اطلاعات تکمیلی', adminId, true, 1);
+    expect(requested.kind).toBe('ok');
+    if (requested.kind === 'ok') expect(requested.inquiry.status).toBe('NEED_MORE_INFO');
+    const answered = await repository.customerAddMessage(userId, created.id, 'پاسخ مشتری', userId);
+    expect(answered.kind).toBe('ok');
+    if (answered.kind === 'ok') {
+      expect(answered.inquiry.status).toBe('UNDER_REVIEW');
+      expect(answered.inquiry.messages.map((message) => message.senderType)).toEqual(['STAFF', 'CUSTOMER']);
+    }
+    expect(await prisma.inquiryMessage.count({ where: { inquiryId: created.id } })).toBe(2);
+    expect(await prisma.inquiryStatusHistory.count({ where: { inquiryId: created.id } })).toBe(4);
+  });
 });

@@ -18,7 +18,7 @@ const adminPage = { id: "admin-page-1", title: "صفحه آزمایشی", slug: 
 const inquiryHistory = { id: "history-1", fromStatus: null, toStatus: "SUBMITTED", createdAt: publishedAt };
 const adminSummary = { id: "admin-1", displayName: "مدیر آزمون", mobile: "+989123456789" };
 const ownerSummary = { id: "customer-1", displayName: "مشتری آزمون", mobile: "+989111111111", companyName: "شرکت نمونه" };
-const inquiry = { id: "inquiry-1", type: "PRODUCT", status: "SUBMITTED", catalogItemName: product.name, description: "درخواست آزمون", approximateQuantity: "100", quantityUnit: null, deliveryCity: "تهران", requestedTiming: null, partDescription: null, moldStatus: null, materialName: null, color: null, materialRequestKind: null, polymerName: null, grade: null, brand: null, materialCondition: null, application: null, specifications: null, createdAt: publishedAt, updatedAt: publishedAt, statusHistory: [inquiryHistory] };
+const inquiry = { id: "inquiry-1", type: "PRODUCT", status: "SUBMITTED", catalogItemName: product.name, description: "درخواست آزمون", approximateQuantity: "100", quantityUnit: null, deliveryCity: "تهران", requestedTiming: null, partDescription: null, moldStatus: null, materialName: null, color: null, materialRequestKind: null, polymerName: null, grade: null, brand: null, materialCondition: null, application: null, specifications: null, createdAt: publishedAt, updatedAt: publishedAt, statusHistory: [inquiryHistory], messages: [] };
 
 const adminInquiry = {
   ...inquiry,
@@ -29,6 +29,7 @@ const adminInquiry = {
   statusHistory: [{ ...inquiryHistory, actorSummary: { id: "customer-1", displayName: "مشتری آزمون" } }],
   assignmentHistory: [],
   internalNotes: [{ id: "note-1", text: "یادداشت فقط برای کارکنان", authorSummary: adminSummary, createdAt: publishedAt }],
+  messages: [],
 };
 
 const routes = new Map([
@@ -87,6 +88,10 @@ createServer((request, response) => {
     response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
     return response.end(JSON.stringify(inquiry));
   }
+  if (url.pathname === "/api/v1/inquiries/inquiry-1/messages" && request.method === "POST") {
+    response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    return response.end(JSON.stringify(inquiry));
+  }
   if (url.pathname === "/api/v1/inquiries" && request.method === "GET") {
     response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
     return response.end(JSON.stringify({ items: [inquiry], page: 1, pageSize: 12, total: 1, pageCount: 1 }));
@@ -139,7 +144,7 @@ createServer((request, response) => {
     response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
     return response.end(JSON.stringify(adminInquiry));
   }
-  const inquiryMutation = url.pathname.match(/^\/api\/v1\/admin\/inquiries\/inquiry-1\/(status|assignment|notes)$/);
+  const inquiryMutation = url.pathname.match(/^\/api\/v1\/admin\/inquiries\/inquiry-1\/(status|assignment|notes|messages)$/);
   if (inquiryMutation && ["POST", "PATCH"].includes(request.method ?? "")) {
     const csrfCookie = (request.headers.cookie ?? "").split(";").some((cookie) => cookie.trim() === "toranj_csrf=fixture-csrf");
     if (!csrfCookie || request.headers["x-csrf-token"] !== "fixture-csrf") {

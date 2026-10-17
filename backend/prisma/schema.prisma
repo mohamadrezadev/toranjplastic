@@ -56,6 +56,11 @@ enum MaterialCondition {
   RECYCLED
 }
 
+enum InquiryMessageSender {
+  CUSTOMER
+  STAFF
+}
+
 model User {
   id                       String                     @id @default(cuid())
   mobile                   String                     @unique
@@ -75,6 +80,7 @@ model User {
   inquiryHistory           InquiryStatusHistory[]     @relation("InquiryHistoryActor")
   assignedInquiries        Inquiry[]                  @relation("InquiryAssignee")
   inquiryNotes             InquiryInternalNote[]      @relation("InquiryNoteAuthor")
+  inquiryMessages          InquiryMessage[]           @relation("InquiryMessageAuthor")
   inquiryAssignmentsFrom   InquiryAssignmentHistory[] @relation("InquiryAssignmentFrom")
   inquiryAssignmentsTo     InquiryAssignmentHistory[] @relation("InquiryAssignmentTo")
   inquiryAssignmentActions InquiryAssignmentHistory[] @relation("InquiryAssignmentActor")
@@ -278,6 +284,7 @@ model Inquiry {
   updatedAt           DateTime                   @updatedAt
   statusHistory       InquiryStatusHistory[]
   internalNotes       InquiryInternalNote[]
+  messages            InquiryMessage[]
   assignmentHistory   InquiryAssignmentHistory[]
 
   @@index([ownerId, createdAt])
@@ -288,6 +295,20 @@ model Inquiry {
   @@index([productId])
   @@index([injectionServiceId])
   @@index([materialId])
+}
+
+model InquiryMessage {
+  id         String               @id @default(cuid())
+  inquiryId  String
+  inquiry    Inquiry              @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  authorId   String
+  author     User                 @relation("InquiryMessageAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  senderType InquiryMessageSender
+  text       String               @db.Text
+  createdAt  DateTime             @default(now())
+
+  @@index([inquiryId, createdAt, id])
+  @@index([authorId, createdAt])
 }
 
 model InquiryInternalNote {

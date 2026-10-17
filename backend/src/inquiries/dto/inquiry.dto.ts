@@ -48,3 +48,7 @@ export class InquiryListQueryDto {
 export class InquiryIdParamDto {
   @IsString() @MinLength(1) @MaxLength(191) id!: string;
 }
+
+export class AddCustomerInquiryMessageDto {
+  @IsString() @MinLength(1) @MaxLength(4000) text!: string;
+}

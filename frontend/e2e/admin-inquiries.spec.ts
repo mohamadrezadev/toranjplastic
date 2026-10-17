@@ -26,7 +26,12 @@ test("admin inquiry inbox and detail remain RTL, private and responsive", async 
   await page.goto("/admin/inquiries/inquiry-1");
   await expect(page).toHaveURL(/\/admin\/inquiries\/inquiry-1$/);
   await expect(page.getByText("یادداشت فقط برای کارکنان")).toBeVisible();
-  await expect(page.locator('textarea[name="text"]')).toBeVisible();
+  await expect(page.getByRole("heading", { name: "گفتگو با مشتری" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "یادداشت‌های داخلی" })).toBeVisible();
+  await page.getByLabel("پیام جدید برای مشتری").fill("پیام آزمایشی برای مشتری");
+  await page.getByRole("button", { name: "ارسال پیام به مشتری" }).click();
+  await expect(page).toHaveURL(/success=message/);
+  await expect(page.getByRole("status")).toContainText("پیام برای مشتری ثبت شد");
   await expect(page.locator('input[name="expectedVersion"]').first()).toHaveValue("0");
   expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
 });

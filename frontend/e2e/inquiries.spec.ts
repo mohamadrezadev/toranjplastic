@@ -83,10 +83,15 @@ test("authenticated customer can submit and view a private product inquiry", asy
     }
     await page.getByRole("button", { name: "ثبت درخواست" }).click();
     await expect(page).toHaveURL(/\/account\/inquiries\/inquiry-1\?created=1$/, { timeout: 15_000 });
-    await expect(page.getByRole("status")).toContainText("با موفقیت ثبت شد");
+    await expect(page.getByRole("status")).toContainText("درخواست شما ثبت شد");
     await expect(page.getByText("ثبت‌شده", { exact: true }).first()).toBeVisible();
     await expect(page.getByRole("heading", { name: "اطلاعات ثبت‌شده" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "گفتگو با کارشناس" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "تاریخچه وضعیت" })).toBeVisible();
+    await page.getByLabel("پیام شما").fill("پاسخ آزمایشی مشتری");
+    await page.getByRole("button", { name: "ارسال پیام" }).click();
+    await expect(page).toHaveURL(/success=message/);
+    await expect(page.getByRole("status")).toContainText("پیام شما برای کارشناس ثبت شد");
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
     if (testInfo.project.name === "mobile-360" || testInfo.project.name === "mobile-390") await expectVisibleActionsNotToOverlap(page);
     if (testInfo.project.name === "desktop-1280") {

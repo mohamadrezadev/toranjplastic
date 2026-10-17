@@ -43,3 +43,23 @@ describe('admin inquiry operations migration', () => {
     expect(migration).not.toMatch(/^\s*(DROP|TRUNCATE|DELETE|UPDATE|INSERT)\b/im);
   });
 });
+
+describe('inquiry customer messaging migration', () => {
+  const migration = readFileSync(
+    resolve(process.cwd(), 'prisma/migrations/20261015143000_inquiry_customer_messages/migration.sql'),
+    'utf8',
+  );
+
+  it('creates a separate append-only message table and sender enum', () => {
+    expect(migration).toContain('CREATE TYPE "InquiryMessageSender"');
+    expect(migration).toContain('CREATE TABLE "InquiryMessage"');
+    expect(migration).toContain('"InquiryMessage_inquiryId_createdAt_id_idx"');
+    expect(migration).not.toContain('InquiryInternalNote" ADD');
+  });
+
+  it('is additive and links messages to inquiry and author', () => {
+    expect(migration).toContain('REFERENCES "Inquiry"("id") ON DELETE CASCADE');
+    expect(migration).toContain('REFERENCES "User"("id") ON DELETE RESTRICT');
+    expect(migration).not.toMatch(/^\s*(DROP|TRUNCATE|DELETE|UPDATE|INSERT)\b/im);
+  });
+});

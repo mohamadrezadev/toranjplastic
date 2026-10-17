@@ -10,9 +10,9 @@ describe('InquiryService', () => {
   beforeEach(() => {
     repository = {
       findPublishedProduct: vi.fn(), findPublishedService: vi.fn(), findPublishedMaterial: vi.fn(),
-      create: vi.fn(), list: vi.fn(), getOwned: vi.fn(),
+      create: vi.fn(), list: vi.fn(), getOwned: vi.fn(), customerAddMessage: vi.fn(),
       adminList: vi.fn(), adminSummary: vi.fn(), adminAssignees: vi.fn(), getAdmin: vi.fn(),
-      adminTransitionStatus: vi.fn(), adminAssign: vi.fn(), adminAddNote: vi.fn(),
+      adminTransitionStatus: vi.fn(), adminAssign: vi.fn(), adminAddNote: vi.fn(), adminAddMessage: vi.fn(),
     };
     service = new InquiryService(repository);
   });
@@ -34,5 +34,16 @@ describe('InquiryService', () => {
     vi.mocked(repository.getOwned).mockResolvedValue(null);
     await expect(service.get('owner-a', 'owned-by-b')).rejects.toBeInstanceOf(NotFoundException);
     expect(repository.getOwned).toHaveBeenCalledWith('owner-a', 'owned-by-b');
+  });
+
+  it('trims an owner message and maps terminal status rejection', async () => {
+    vi.mocked(repository.customerAddMessage).mockResolvedValue({ kind: 'invalid_status' });
+    await expect(service.addMessage('owner-a', 'i1', '  پاسخ مشتری  ')).rejects.toMatchObject({ status: 409 });
+    expect(repository.customerAddMessage).toHaveBeenCalledWith('owner-a', 'i1', 'پاسخ مشتری', 'owner-a');
+  });
+
+  it('rejects a whitespace-only customer message before persistence', async () => {
+    await expect(service.addMessage('owner-a', 'i1', '   ')).rejects.toBeInstanceOf(BadRequestException);
+    expect(repository.customerAddMessage).not.toHaveBeenCalled();
   });
 });

@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard, CsrfGuard } from '../identity/auth.guard.js';
 import type { AuthenticatedRequest } from '../identity/identity.types.js';
-import { CreateContactInquiryDto, CreateInjectionInquiryDto, CreateMaterialInquiryDto, CreateProductInquiryDto, InquiryIdParamDto, InquiryListQueryDto } from './dto/inquiry.dto.js';
+import { AddCustomerInquiryMessageDto, CreateContactInquiryDto, CreateInjectionInquiryDto, CreateMaterialInquiryDto, CreateProductInquiryDto, InquiryIdParamDto, InquiryListQueryDto } from './dto/inquiry.dto.js';
 import { InquiryService } from './inquiry.service.js';
 
 @Controller('inquiries')
@@ -18,6 +18,11 @@ export class InquiryController {
   @Get(':id')
   get(@Param() { id }: InquiryIdParamDto, @Req() request: AuthenticatedRequest) {
     return this.inquiries.get(this.ownerId(request), id);
+  }
+
+  @Post(':id/messages') @UseGuards(CsrfGuard)
+  message(@Param() { id }: InquiryIdParamDto, @Body() dto: AddCustomerInquiryMessageDto, @Req() request: AuthenticatedRequest) {
+    return this.inquiries.addMessage(this.ownerId(request), id, dto.text);
   }
 
   @Post('product') @UseGuards(CsrfGuard)
