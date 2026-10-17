@@ -14,8 +14,8 @@ export interface AuthAccount {
   capabilities: Capability[];
 }
 
-export type Capability = "MANAGEMENT_ACCESS" | "STAFF_MANAGEMENT" | "INQUIRY_OPERATIONS" | "CONTENT_MANAGEMENT";
-const capabilities: Capability[] = ["MANAGEMENT_ACCESS", "STAFF_MANAGEMENT", "INQUIRY_OPERATIONS", "CONTENT_MANAGEMENT"];
+export type Capability = "MANAGEMENT_ACCESS" | "STAFF_MANAGEMENT" | "INQUIRY_OPERATIONS" | "CONTENT_MANAGEMENT" | "QUOTATION_MANAGEMENT";
+const capabilities: Capability[] = ["MANAGEMENT_ACCESS", "STAFF_MANAGEMENT", "INQUIRY_OPERATIONS", "CONTENT_MANAGEMENT", "QUOTATION_MANAGEMENT"];
 export const hasCapability = (account: AuthAccount, capability: Capability) => account.capabilities.includes(capability);
 
 const backend = (process.env.BACKEND_API_URL ?? "http://127.0.0.1:3001/api/v1").replace(/\/$/, "");

@@ -9,7 +9,7 @@
 - [x] 2.1 Implement owner-scoped customer message read/write endpoints with Auth/CSRF, a bounded recent-message window and no-store responses.
 - [x] 2.2 Implement capability-protected Admin message endpoint and keep customer messages separate from internal notes.
 - [x] 2.3 Implement atomic request-more-info and customer-reply transitions with version/history/audit rollback guarantees.
-- [ ] 2.4 Add API/e2e and disposable PostgreSQL tests for 401/403/404/409, privacy, ordering, concurrency and transaction failure.
+- [x] 2.4 Add API/e2e and disposable PostgreSQL tests for 401/403/404/409, privacy, ordering, concurrency and transaction failure.
 
 ## 3. Frontend experience
 
@@ -20,5 +20,5 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Run Prisma validation/generation, architecture check, lint, typecheck, unit/integration/e2e tests and production builds.
+- [x] 4.1 Run Prisma validation/generation, architecture check, lint, typecheck, unit/integration/e2e tests and production builds.
 - [x] 4.2 Record verification evidence and confirm no message payload, internal note or private identifier is logged or publicly cached.

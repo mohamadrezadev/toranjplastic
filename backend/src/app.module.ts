@@ -4,8 +4,16 @@ import { ContentModule } from './content/content.module.js';
 import { HealthModule } from './health/health.module.js';
 import { IdentityModule } from './identity/identity.module.js';
 import { InquiriesModule } from './inquiries/inquiries.module.js';
+import { QuotationsModule } from './quotations/quotations.module.js';
 
 @Module({
-  imports: [HealthModule, ContentModule, IdentityModule, AdminContentModule, InquiriesModule],
+  imports: [
+    HealthModule,
+    ContentModule,
+    IdentityModule,
+    AdminContentModule,
+    InquiriesModule,
+    QuotationsModule,
+  ],
 })
 export class AppModule {}

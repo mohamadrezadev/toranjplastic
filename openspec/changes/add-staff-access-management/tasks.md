@@ -16,7 +16,7 @@
 - [x] 3.2 Implement Administrator-only staff creation with strict DTO validation, Iranian mobile normalization/uniqueness, approved Argon2id hashing, privileged-role allowlisting, generic conflicts, and atomic metadata-only audit.
 - [x] 3.3 Implement versioned role/status commands with self-change rejection, Customer exclusion, serialized last-active-Administrator protection, no hard delete, atomic session revocation, and metadata-only audit.
 - [x] 3.4 Add unit and HTTP tests for staff filtering, DTO privacy, CSRF, duplicate mobile, invalid/extra fields, role/status transitions, version conflicts, self-change, last-Administrator safety, no-store, and audit redaction.
-- [ ] 3.5 Add disposable PostgreSQL integration tests proving concurrent last-Administrator protection and rollback atomicity across account update, version increment, session revocation, and audit persistence.
+- [x] 3.5 Add disposable PostgreSQL integration tests proving concurrent last-Administrator protection and rollback atomicity across account update, version increment, session revocation, and audit persistence.
 
 ## 4. Sales and Operator operational access
 
@@ -34,7 +34,7 @@
 
 ## 6. End-to-end verification and handoff
 
-- [ ] 6.1 Add Playwright journeys for Administrator staff creation/role/status management, Sales inquiry access, Operator CMS access, cross-role direct-URL denial, session revocation, and last-Administrator/version-conflict feedback.
+- [x] 6.1 Add Playwright journeys for Administrator staff creation/role/status management, Sales inquiry access, Operator CMS access, cross-role direct-URL denial, session revocation, and last-Administrator/version-conflict feedback.
 - [x] 6.2 Verify the management shell and staff list/create/detail flows in light and dark themes at 360, 390, 768, and 1280 pixels with no unintended document overflow and record the evidence.
 - [ ] 6.3 Run architecture checks, lint, typecheck, unit tests, disposable PostgreSQL integration tests, touched-file coverage, production builds, and the full relevant end-to-end suite; resolve every regression.
 - [ ] 6.4 Update the change artifacts with implementation evidence, confirm every acceptance scenario is traceable, and prepare the completed change for OpenSpec archive only after review.

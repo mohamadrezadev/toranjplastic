@@ -60,6 +60,11 @@ enum InquiryMessageSender {
   CUSTOMER
   STAFF
 }
+enum QuotationStatus {
+  DRAFT
+  SENT
+  SUPERSEDED
+}
 
 model User {
   id                       String                     @id @default(cuid())
@@ -84,6 +89,8 @@ model User {
   inquiryAssignmentsFrom   InquiryAssignmentHistory[] @relation("InquiryAssignmentFrom")
   inquiryAssignmentsTo     InquiryAssignmentHistory[] @relation("InquiryAssignmentTo")
   inquiryAssignmentActions InquiryAssignmentHistory[] @relation("InquiryAssignmentActor")
+  createdQuotations        Quotation[]                @relation("QuotationCreator")
+  sentQuotations           Quotation[]                @relation("QuotationSender")
 
   @@index([role, status])
 }
@@ -286,6 +293,7 @@ model Inquiry {
   internalNotes       InquiryInternalNote[]
   messages            InquiryMessage[]
   assignmentHistory   InquiryAssignmentHistory[]
+  quotations         Quotation[]
 
   @@index([ownerId, createdAt])
   @@index([ownerId, type, createdAt])
@@ -297,6 +305,55 @@ model Inquiry {
   @@index([materialId])
 }
 
+model Quotation {
+  id                  String          @id @default(cuid())
+  inquiryId           String
+  inquiry             Inquiry         @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  quotationNumber     String
+  version             Int
+  editVersion         Int             @default(0)
+  status              QuotationStatus @default(DRAFT)
+  subtotalRials       BigInt
+  discountRials       BigInt          @default(0)
+  taxRials            BigInt          @default(0)
+  additionalCostRials BigInt          @default(0)
+  totalRials          BigInt
+  validUntil          DateTime
+  deliveryTerms       String          @db.Text
+  paymentTerms        String          @db.Text
+  notes               String?         @db.Text
+  createdById         String
+  createdBy           User            @relation("QuotationCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  sentById            String?
+  sentBy              User?           @relation("QuotationSender", fields: [sentById], references: [id], onDelete: Restrict)
+  sentAt              DateTime?
+  supersededAt        DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  items               QuotationItem[]
+
+  @@unique([inquiryId, version])
+  @@unique([quotationNumber, version])
+  @@index([inquiryId, status, version])
+  @@index([createdById, createdAt])
+  @@index([sentById, sentAt])
+}
+
+model QuotationItem {
+  id             String    @id @default(cuid())
+  quotationId    String
+  quotation      Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  position       Int
+  description    String    @db.Text
+  quantity       String
+  unit           String
+  unitPriceRials BigInt
+  lineTotalRials BigInt
+  createdAt      DateTime  @default(now())
+
+  @@unique([quotationId, position])
+  @@index([quotationId])
+}
 model InquiryMessage {
   id         String               @id @default(cuid())
   inquiryId  String

@@ -5,6 +5,7 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['test/**/*.postgres.integration.ts'],
+    fileParallelism: false,
     testTimeout: 15_000,
     hookTimeout: 15_000,
   },

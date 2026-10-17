@@ -1,16 +1,16 @@
 ## 1. Quotation persistence and authorization
 
-- [ ] 1.1 Add quotation/item enums, models, constraints, relations, indexes and additive PostgreSQL migration with rollback/backup notes.
-- [ ] 1.2 Add `QUOTATION_MANAGEMENT` to server-derived capabilities and cover Admin/Sales allow plus Operator/Customer deny paths.
-- [ ] 1.3 Define explicit BigInt-as-string quotation DTOs, validation bounds, calculation utilities and unit tests.
+- [x] 1.1 Add quotation/item enums, models, constraints, relations, indexes and additive PostgreSQL migration with rollback/backup notes.
+- [x] 1.2 Add `QUOTATION_MANAGEMENT` to server-derived capabilities and cover Admin/Sales allow plus Operator/Customer deny paths.
+- [x] 1.3 Define explicit BigInt-as-string quotation DTOs, validation bounds, calculation utilities and unit tests.
 
 ## 2. Backend quotation workflow
 
-- [ ] 2.1 Implement QuotationsModule draft create/read/update and revision cloning with one-draft/current-sent invariants and optimistic concurrency.
-- [ ] 2.2 Implement atomic send, supersede and Inquiry `QUOTED` transition with status history and metadata-only audit.
-- [ ] 2.3 Implement owner-scoped customer sent-quotation list/detail endpoints and prohibit draft/staff metadata disclosure.
-- [ ] 2.4 Add a bounded Persian-capable PDF renderer and authenticated no-store Admin/customer streaming endpoints.
-- [ ] 2.5 Add unit, API/e2e and disposable PostgreSQL tests for totals, concurrency, atomicity, ownership, draft isolation and PDF authorization.
+- [x] 2.1 Implement QuotationsModule draft create/read/update and revision cloning with one-draft/current-sent invariants and optimistic concurrency.
+- [x] 2.2 Implement atomic send, supersede and Inquiry `QUOTED` transition with status history and metadata-only audit.
+- [x] 2.3 Implement owner-scoped customer sent-quotation list/detail endpoints and prohibit draft/staff metadata disclosure.
+- [x] 2.4 Add a bounded Persian-capable PDF renderer and authenticated no-store Admin/customer streaming endpoints.
+- [x] 2.5 Add unit, API/e2e and disposable PostgreSQL tests for totals, concurrency, atomicity, ownership, draft isolation and PDF authorization.
 
 ## 3. Admin and customer UI
 
