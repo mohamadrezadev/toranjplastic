@@ -60,10 +60,24 @@ enum InquiryMessageSender {
   CUSTOMER
   STAFF
 }
+
 enum QuotationStatus {
   DRAFT
   SENT
   SUPERSEDED
+}
+
+enum MediaAssetStatus {
+  PROCESSING
+  READY
+  FAILED
+  DELETION_PENDING
+  DELETED
+}
+
+enum MediaReferenceUsage {
+  PRODUCT_GALLERY
+  ARTICLE_FEATURED
 }
 
 model User {
@@ -91,6 +105,7 @@ model User {
   inquiryAssignmentActions InquiryAssignmentHistory[] @relation("InquiryAssignmentActor")
   createdQuotations        Quotation[]                @relation("QuotationCreator")
   sentQuotations           Quotation[]                @relation("QuotationSender")
+  createdMediaAssets       MediaAsset[]               @relation("MediaAssetCreator")
 
   @@index([role, status])
 }
@@ -149,24 +164,26 @@ model Category {
 }
 
 model Product {
-  id              String        @id @default(cuid())
+  id              String           @id @default(cuid())
   name            String
-  slug            String        @unique
-  summary         String?       @db.Text
-  description     String?       @db.Text
+  slug            String           @unique
+  summary         String?          @db.Text
+  description     String?          @db.Text
   categoryId      String?
-  category        Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  images          Json          @default("[]")
-  specifications  Json          @default("[]")
-  displayOrder    Int           @default(0)
-  featured        Boolean       @default(false)
-  status          ContentStatus @default(DRAFT)
+  category        Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  images          Json             @default("[]")
+  specifications  Json             @default("[]")
+  displayOrder    Int              @default(0)
+  featured        Boolean          @default(false)
+  status          ContentStatus    @default(DRAFT)
   publishedAt     DateTime?
   metaTitle       String?
-  metaDescription String?       @db.Text
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  metaDescription String?          @db.Text
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  contentVersion  Int              @default(0)
   inquiries       Inquiry[]
+  mediaReferences MediaReference[]
 
   @@index([status, publishedAt, displayOrder])
   @@index([categoryId])
@@ -220,21 +237,65 @@ model Material {
 }
 
 model Article {
-  id              String        @id @default(cuid())
+  id              String           @id @default(cuid())
   title           String
-  slug            String        @unique
-  summary         String?       @db.Text
-  body            String        @db.Text
+  slug            String           @unique
+  summary         String?          @db.Text
+  body            String           @db.Text
   featuredImage   Json?
-  displayOrder    Int           @default(0)
-  status          ContentStatus @default(DRAFT)
+  displayOrder    Int              @default(0)
+  status          ContentStatus    @default(DRAFT)
   publishedAt     DateTime?
   metaTitle       String?
-  metaDescription String?       @db.Text
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  metaDescription String?          @db.Text
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  contentVersion  Int              @default(0)
+  mediaReferences MediaReference[]
 
   @@index([status, publishedAt, displayOrder])
+}
+
+model MediaAsset {
+  id                   String           @id @default(cuid())
+  status               MediaAssetStatus @default(PROCESSING)
+  objectPrefix         String           @unique
+  sourceChecksumSha256 String?
+  sourceMimeType       String?
+  sourceWidth          Int?
+  sourceHeight         Int?
+  variants             Json             @default("[]")
+  defaultAlt           String?
+  failureCode          String?
+  createdById          String
+  createdBy            User             @relation("MediaAssetCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  deletedAt            DateTime?
+  references           MediaReference[]
+
+  @@index([status, createdAt])
+  @@index([createdById, createdAt])
+}
+
+model MediaReference {
+  id           String              @id @default(cuid())
+  mediaAssetId String
+  mediaAsset   MediaAsset          @relation(fields: [mediaAssetId], references: [id], onDelete: Restrict)
+  usage        MediaReferenceUsage
+  productId    String?
+  product      Product?            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  articleId    String?
+  article      Article?            @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  position     Int?
+  alt          String
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@unique([productId, position])
+  @@unique([articleId])
+  @@index([mediaAssetId])
+  @@index([usage, mediaAssetId])
 }
 
 model ManagedPage {
@@ -293,7 +354,7 @@ model Inquiry {
   internalNotes       InquiryInternalNote[]
   messages            InquiryMessage[]
   assignmentHistory   InquiryAssignmentHistory[]
-  quotations         Quotation[]
+  quotations          Quotation[]
 
   @@index([ownerId, createdAt])
   @@index([ownerId, type, createdAt])
@@ -354,6 +415,7 @@ model QuotationItem {
   @@unique([quotationId, position])
   @@index([quotationId])
 }
+
 model InquiryMessage {
   id         String               @id @default(cuid())
   inquiryId  String

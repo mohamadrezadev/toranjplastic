@@ -7,7 +7,7 @@ Every content create, update, publish, and archive endpoint SHALL require an aut
 - **WHEN** a request with no valid session cookie calls a content create, update, publish, or archive endpoint
 - **THEN** the server SHALL respond `401` and SHALL NOT create, modify, or change the status of any record
 
-#### Scenario: Authenticated account without content capability attempts a mutation
+#### Scenario: Authenticated customer attempts a mutation
 - **WHEN** a valid `CUSTOMER` or `SALES` session calls a content create, update, publish, or archive endpoint
 - **THEN** the server SHALL respond `403` and SHALL NOT create, modify, or change the status of any record
 
@@ -15,7 +15,7 @@ Every content create, update, publish, and archive endpoint SHALL require an aut
 - **WHEN** an active `OPERATOR` submits a valid content mutation with a valid CSRF token
 - **THEN** the backend SHALL perform the operation with the same validation, transaction, lifecycle, and audit guarantees used for an Administrator
 
-#### Scenario: Authorized session without a valid CSRF token attempts a mutation
+#### Scenario: Admin session without a valid CSRF token attempts a mutation
 - **WHEN** an authenticated `ADMIN` or `OPERATOR` request omits the CSRF header or sends a CSRF value that does not match the session
 - **THEN** the server SHALL reject the request and SHALL NOT create, modify, or change the status of any record
 

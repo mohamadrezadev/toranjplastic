@@ -4,6 +4,7 @@ import { ContentModule } from './content/content.module.js';
 import { HealthModule } from './health/health.module.js';
 import { IdentityModule } from './identity/identity.module.js';
 import { InquiriesModule } from './inquiries/inquiries.module.js';
+import { MediaModule } from './media/media.module.js';
 import { QuotationsModule } from './quotations/quotations.module.js';
 
 @Module({
@@ -14,6 +15,7 @@ import { QuotationsModule } from './quotations/quotations.module.js';
     AdminContentModule,
     InquiriesModule,
     QuotationsModule,
+    MediaModule,
   ],
 })
 export class AppModule {}

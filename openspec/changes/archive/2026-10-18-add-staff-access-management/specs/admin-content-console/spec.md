@@ -7,7 +7,7 @@ Every route under the admin content console SHALL require a server-side content-
 - **WHEN** a request with no valid staff session loads any admin content console route
 - **THEN** the server SHALL redirect to the login page before rendering any content data
 
-#### Scenario: Authenticated account without content capability requests an admin content page
+#### Scenario: Authenticated non-admin visitor requests an admin content page
 - **WHEN** a valid `CUSTOMER` or `SALES` session loads any admin content console route
 - **THEN** the server SHALL render an access-denied view and SHALL NOT render any content data or form
 

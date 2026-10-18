@@ -3,9 +3,12 @@ import type { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import type { AppEnvironment } from './config/environment.js';
 
+type AppSetupEnvironment = Pick<AppEnvironment, 'frontendOrigin'> &
+  Partial<Omit<AppEnvironment, 'frontendOrigin'>>;
+
 export function configureApp(
   app: INestApplication,
-  environment: AppEnvironment,
+  environment: AppSetupEnvironment,
 ): void {
   app.setGlobalPrefix('api/v1');
   app.use(helmet());
