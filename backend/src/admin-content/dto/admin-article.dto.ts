@@ -11,7 +11,7 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
-import { AdminImageDto } from './admin-image.dto.js';
+import { AdminManagedImageDto } from './admin-image.dto.js';
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -40,8 +40,8 @@ export class CreateArticleDto {
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => AdminImageDto)
-  featuredImage?: AdminImageDto;
+  @Type(() => AdminManagedImageDto)
+  featuredImage?: AdminManagedImageDto;
 
   @IsOptional()
   @IsInt()
@@ -61,6 +61,11 @@ export class CreateArticleDto {
 }
 
 export class UpdateArticleDto {
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  expectedVersion?: number;
+
   @IsOptional()
   @IsString()
   @MinLength(1)
@@ -88,8 +93,8 @@ export class UpdateArticleDto {
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => AdminImageDto)
-  featuredImage?: AdminImageDto;
+  @Type(() => AdminManagedImageDto)
+  featuredImage?: AdminManagedImageDto | null;
 
   @IsOptional()
   @IsInt()

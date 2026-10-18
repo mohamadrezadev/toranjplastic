@@ -13,6 +13,7 @@ export interface AdminProductRepository {
   update(
     id: string,
     input: Partial<ProductWriteInput>,
+    expectedVersion?: number,
   ): Promise<AdminProduct | null>;
   setStatus(
     id: string,

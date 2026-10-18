@@ -8,6 +8,8 @@ export type AdminContentPrismaClient = Pick<
   | 'injectionService'
   | 'material'
   | 'article'
+  | 'mediaAsset'
+  | 'mediaReference'
   | 'managedPage'
   | 'securityAuditEvent'
 >;

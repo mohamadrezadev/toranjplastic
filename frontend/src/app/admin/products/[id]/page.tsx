@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui";
 import { AdminContentError, archiveProductAction, getProduct, publishProductAction, updateProductAction } from "@/features/admin-content/product";
 import { listCategories } from "@/features/admin-content/category";
+import { listMedia } from "@/features/admin-media";
 import { ProductFields } from "../ProductFields";
 import { StatusBadge } from "../../content/StatusBadge";
 import styles from "../../Admin.module.css";
@@ -27,7 +28,10 @@ export default async function EditProductPage({ params, searchParams }: { params
     if (caught instanceof AdminContentError && caught.kind === "not_found") notFound();
     throw caught;
   }
-  const categoryPage = await listCategories({ pageSize: 100 });
+  const [categoryPage, mediaPage] = await Promise.all([
+    listCategories({ pageSize: 100 }),
+    listMedia({ pageSize: 50, status: 'READY' }),
+  ]);
 
   const updateAction = updateProductAction.bind(null, id);
   const publishAction = publishProductAction.bind(null, id);
@@ -57,7 +61,7 @@ export default async function EditProductPage({ params, searchParams }: { params
           </div>
 
           <form action={updateAction} className={styles.form}>
-            <ProductFields product={product} categories={categoryPage.items} />
+            <ProductFields product={product} categories={categoryPage.items} mediaAssets={mediaPage.items} />
             <div className={styles.formActions}>
               <Button type="submit">ذخیره تغییرات</Button>
             </div>

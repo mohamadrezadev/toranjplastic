@@ -79,9 +79,15 @@ function fixture(
   const audit = {
     securityAuditEvent: { create: auditCreate },
   } as AuditEventWriter;
+  const media = {
+    productHasReferences: vi.fn(async () => false),
+    articleHasReference: vi.fn(async () => false),
+    assertProductPublishable: vi.fn(async () => undefined),
+    assertArticlePublishable: vi.fn(async () => undefined),
+  };
   const unitOfWork = {
     run: vi.fn(async (work: (context: Input) => Promise<unknown>) =>
-      work({ [key]: repository, audit }),
+      work({ [key]: repository, audit, media }),
     ),
   } as unknown as AdminContentUnitOfWork;
   return {

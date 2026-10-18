@@ -19,6 +19,7 @@ const record = {
   updatedAt: '2026-10-11T00:00:00.000Z',
   metaTitle: null,
   metaDescription: null,
+  contentVersion: 0,
 };
 function fixture(overrides: Partial<AdminArticleRepository> = {}) {
   const create = vi.fn(async () => record);
@@ -35,9 +36,22 @@ function fixture(overrides: Partial<AdminArticleRepository> = {}) {
   const audit = {
     securityAuditEvent: { create: auditCreate },
   } as AuditEventWriter;
+  const media = {
+    prepareArticle: vi.fn(async (image: { mediaAssetId?: string; alt?: string } | null) => image ? ({
+      projection: { url: 'https://media.example/api/v1/media/public/media-1/detail', alt: image.alt ?? 'تصویر', width: 800, height: 600 },
+      reference: { mediaAssetId: image.mediaAssetId ?? 'media-1', alt: image.alt ?? 'تصویر' },
+    }) : ({ projection: null, reference: null })),
+    replaceArticleReference: vi.fn(async () => undefined),
+    articleHasReference: vi.fn(async () => false),
+    assertArticlePublishable: vi.fn(async () => undefined),
+  };
   const unitOfWork = {
     run: vi.fn(async (work: (context: unknown) => Promise<unknown>) =>
-      work({ articles: repository, audit }),
+      work({
+        articles: repository,
+        audit,
+        media,
+      }),
     ),
   } as unknown as AdminContentUnitOfWork;
   return {
@@ -45,6 +59,7 @@ function fixture(overrides: Partial<AdminArticleRepository> = {}) {
     create,
     update,
     auditCreate,
+    media,
   };
 }
 
@@ -85,6 +100,22 @@ describe('AdminArticleService', () => {
     expect(auditCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({ action: 'ARTICLE_UPDATED' }),
     });
+  });
+  it('atomically selects and explicitly clears a managed featured image', async () => {
+    const managed = fixture();
+    await managed.service.create({
+      title: 'مقاله', slug: 'article', body: 'متن',
+      featuredImage: { mediaAssetId: 'media-1', alt: 'تصویر' },
+    }, 'admin-1');
+    expect(managed.create).toHaveBeenCalledWith(expect.objectContaining({ contentVersion: 1 }));
+    expect(managed.media.replaceArticleReference).toHaveBeenCalledWith(record.id, {
+      mediaAssetId: 'media-1', alt: 'تصویر',
+    });
+
+    const clearing = fixture();
+    await clearing.service.update(record.id, { expectedVersion: 0, featuredImage: null }, 'admin-1');
+    expect(clearing.update).toHaveBeenCalledWith(record.id, { featuredImage: null }, 0);
+    expect(clearing.media.replaceArticleReference).toHaveBeenCalledWith(record.id, null);
   });
   it('audits an idempotent publish without writing status', async () => {
     const published = { ...record, status: ContentStatus.PUBLISHED };

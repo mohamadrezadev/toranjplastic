@@ -1,5 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { AppEnvironment } from '../config/environment.js';
 import { PrismaService } from '../database/prisma.service.js';
+import { MEDIA_CONFIG } from '../media/media.tokens.js';
 import { PrismaAdminArticleRepository } from './articles/prisma-article.repository.js';
 import { PrismaAdminCategoryRepository } from './categories/prisma-category.repository.js';
 import { PrismaAdminInjectionServiceRepository } from './injection-services/prisma-injection-service.repository.js';
@@ -10,11 +12,16 @@ import type {
   AdminContentTransaction,
   AdminContentUnitOfWork,
 } from './unit-of-work.js';
+import { PrismaContentMediaTransaction } from './content-media.transaction.js';
 
 /* v8 ignore next */
 @Injectable()
 export class PrismaAdminContentUnitOfWork implements AdminContentUnitOfWork {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(MEDIA_CONFIG)
+    private readonly mediaConfig: Pick<AppEnvironment['media'], 'publicOrigin'>,
+  ) {}
 
   run<T>(
     work: (transaction: AdminContentTransaction) => Promise<T>,
@@ -28,6 +35,7 @@ export class PrismaAdminContentUnitOfWork implements AdminContentUnitOfWork {
         articles: new PrismaAdminArticleRepository(client),
         managedPages: new PrismaAdminManagedPageRepository(client),
         audit: client,
+        media: new PrismaContentMediaTransaction(client, this.mediaConfig.publicOrigin),
       });
     });
   }

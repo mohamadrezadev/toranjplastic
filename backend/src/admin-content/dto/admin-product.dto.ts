@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  ArrayMaxSize,
   IsBoolean,
   IsInt,
   IsOptional,
@@ -12,7 +13,7 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
-import { AdminImageDto, AdminSpecificationDto } from './admin-image.dto.js';
+import { AdminManagedImageDto, AdminSpecificationDto } from './admin-image.dto.js';
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -46,9 +47,10 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(6)
   @ValidateNested({ each: true })
-  @Type(() => AdminImageDto)
-  images?: AdminImageDto[];
+  @Type(() => AdminManagedImageDto)
+  images?: AdminManagedImageDto[];
 
   @IsOptional()
   @IsArray()
@@ -78,6 +80,11 @@ export class CreateProductDto {
 }
 
 export class UpdateProductDto {
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  expectedVersion?: number;
+
   @IsOptional()
   @IsString()
   @MinLength(1)
@@ -109,9 +116,10 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(6)
   @ValidateNested({ each: true })
-  @Type(() => AdminImageDto)
-  images?: AdminImageDto[];
+  @Type(() => AdminManagedImageDto)
+  images?: AdminManagedImageDto[];
 
   @IsOptional()
   @IsArray()

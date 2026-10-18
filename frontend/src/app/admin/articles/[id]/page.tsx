@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui";
 import { AdminContentError, archiveArticleAction, getArticle, publishArticleAction, updateArticleAction } from "@/features/admin-content/article";
+import { listMedia } from "@/features/admin-media";
 import { ArticleFields } from "../ArticleFields";
 import { StatusBadge } from "../../content/StatusBadge";
 import styles from "../../Admin.module.css";
@@ -26,6 +27,7 @@ export default async function EditArticlePage({ params, searchParams }: { params
     if (caught instanceof AdminContentError && caught.kind === "not_found") notFound();
     throw caught;
   }
+  const mediaPage = await listMedia({ pageSize: 50, status: 'READY' });
 
   const updateAction = updateArticleAction.bind(null, id);
   const publishAction = publishArticleAction.bind(null, id);
@@ -55,7 +57,7 @@ export default async function EditArticlePage({ params, searchParams }: { params
           </div>
 
           <form action={updateAction} className={styles.form}>
-            <ArticleFields article={article} />
+            <ArticleFields article={article} mediaAssets={mediaPage.items} />
             <div className={styles.formActions}>
               <Button type="submit">ذخیره تغییرات</Button>
             </div>

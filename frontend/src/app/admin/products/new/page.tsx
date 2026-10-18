@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Button } from "@/components/ui";
 import { listCategories } from "@/features/admin-content/category";
 import { createProductAction } from "@/features/admin-content/product";
+import { listMedia } from "@/features/admin-media";
 import { ProductFields } from "../ProductFields";
 import styles from "../../Admin.module.css";
 
@@ -16,7 +17,10 @@ const errorMessages: Record<string, string> = {
 
 export default async function NewProductPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams;
-  const categoryPage = await listCategories({ pageSize: 100 });
+  const [categoryPage, mediaPage] = await Promise.all([
+    listCategories({ pageSize: 100 }),
+    listMedia({ pageSize: 50, status: 'READY' }),
+  ]);
 
   return (
     <main className={styles.main}>
@@ -27,7 +31,7 @@ export default async function NewProductPage({ searchParams }: { searchParams: P
           </div>
           {error ? <p className={styles.feedback} role="alert">{errorMessages[error] ?? errorMessages.failed}</p> : null}
           <form action={createProductAction} className={styles.form}>
-            <ProductFields categories={categoryPage.items} />
+            <ProductFields categories={categoryPage.items} mediaAssets={mediaPage.items} />
             <div className={styles.formActions}>
               <Button type="submit">ایجاد محصول</Button>
             </div>

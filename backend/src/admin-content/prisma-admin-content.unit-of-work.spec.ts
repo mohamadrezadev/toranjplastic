@@ -64,9 +64,11 @@ function transactionalPrisma(
 }
 
 describe('PrismaAdminContentUnitOfWork', () => {
+  const mediaConfig = { publicOrigin: 'https://media.example' };
+
   it('commits content and audit writes together on success', async () => {
     const fixture = transactionalPrisma();
-    const unitOfWork = new PrismaAdminContentUnitOfWork(fixture.prisma);
+    const unitOfWork = new PrismaAdminContentUnitOfWork(fixture.prisma, mediaConfig);
 
     await unitOfWork.run(async ({ categories, audit }) => {
       await categories.create({ name: 'دسته', slug: 'category' });
@@ -81,7 +83,7 @@ describe('PrismaAdminContentUnitOfWork', () => {
 
   it('rolls back the content write when audit persistence fails', async () => {
     const fixture = transactionalPrisma({ failAudit: true });
-    const unitOfWork = new PrismaAdminContentUnitOfWork(fixture.prisma);
+    const unitOfWork = new PrismaAdminContentUnitOfWork(fixture.prisma, mediaConfig);
 
     await expect(
       unitOfWork.run(async ({ categories, audit }) => {
@@ -97,7 +99,7 @@ describe('PrismaAdminContentUnitOfWork', () => {
 
   it('does not attempt or commit an audit write when content persistence fails', async () => {
     const fixture = transactionalPrisma({ failContent: true });
-    const unitOfWork = new PrismaAdminContentUnitOfWork(fixture.prisma);
+    const unitOfWork = new PrismaAdminContentUnitOfWork(fixture.prisma, mediaConfig);
 
     await expect(
       unitOfWork.run(async ({ categories, audit }) => {

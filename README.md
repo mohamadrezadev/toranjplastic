@@ -18,9 +18,11 @@ compose.yaml          local PostgreSQL
 
 ```bash
 cp .env.example .env
-docker compose up -d postgres
 pnpm install
+docker compose up -d postgres
 pnpm db:generate
+pnpm db:migrate:deploy
+pnpm admin:bootstrap
 pnpm dev
 ```
 
@@ -28,5 +30,7 @@ pnpm dev
 - Backend health: `http://localhost:3001/api/v1/health`
 
 روی PowerShell به‌جای `cp` از `Copy-Item .env.example .env` استفاده کنید. برای اجرای همه gateها: `pnpm check`.
+
+راهنمای کامل اجرای اولیه، اجرای روزمره، توقف سرویس‌ها و رفع خطاها در [راهنمای اجرای محلی](docs/local-development-runbook.md) قرار دارد.
 
 قبل از توسعه قابلیت جدید، [OpenSpec](openspec/config.yaml) و [قوانین پروژه](AGENTS.md) را بخوانید. چرخه رسمی پروژه `explore → propose → review → apply → archive` است.

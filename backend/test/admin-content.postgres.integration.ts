@@ -27,7 +27,9 @@ describe('admin content PostgreSQL transaction integration', () => {
   beforeAll(async () => {
     expect(testDatabase).toMatch(/test/i);
     prisma = new PrismaService();
-    unitOfWork = new PrismaAdminContentUnitOfWork(prisma);
+    unitOfWork = new PrismaAdminContentUnitOfWork(prisma, {
+      publicOrigin: 'https://media.example',
+    });
     await prisma.$connect();
     await prisma.category.deleteMany({ where: { slug: { startsWith: marker } } });
     await prisma.securityAuditEvent.deleteMany({ where: { OR: auditMarkers.map((value) => ({ metadata: { path: ['integrationMarker'], equals: value } })) } });

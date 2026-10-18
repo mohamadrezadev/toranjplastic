@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Button } from "@/components/ui";
 import { createArticleAction } from "@/features/admin-content/article";
+import { listMedia } from "@/features/admin-media";
 import { ArticleFields } from "../ArticleFields";
 import styles from "../../Admin.module.css";
 
@@ -15,6 +16,7 @@ const errorMessages: Record<string, string> = {
 
 export default async function NewArticlePage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams;
+  const mediaPage = await listMedia({ pageSize: 50, status: 'READY' });
 
   return (
     <main className={styles.main}>
@@ -25,7 +27,7 @@ export default async function NewArticlePage({ searchParams }: { searchParams: P
           </div>
           {error ? <p className={styles.feedback} role="alert">{errorMessages[error] ?? errorMessages.failed}</p> : null}
           <form action={createArticleAction} className={styles.form}>
-            <ArticleFields />
+            <ArticleFields mediaAssets={mediaPage.items} />
             <div className={styles.formActions}>
               <Button type="submit">ایجاد مقاله</Button>
             </div>

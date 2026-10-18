@@ -60,6 +60,26 @@ describe('public content mappers', () => {
     expect(result).not.toHaveProperty('inventory');
   });
 
+  it('preserves mixed legacy and stable managed projections without leaking media identifiers', () => {
+    const managed = {
+      url: 'https://media.example/api/v1/media/public/media-1/detail',
+      alt: 'تصویر مدیریت‌شده',
+      width: 1600,
+      height: 1200,
+    };
+    const legacy = { url: 'https://legacy.example/product.jpg', alt: 'تصویر قدیمی' };
+    const result = mapProduct({
+      id: 'product-1', name: 'محصول', slug: 'product', summary: null,
+      description: null, category: null, images: [legacy, managed],
+      specifications: [], featured: false, metaTitle: null,
+      metaDescription: null, publishedAt,
+    });
+
+    expect(result.images).toEqual([legacy, managed]);
+    expect(result).not.toHaveProperty('mediaReferences');
+    expect(JSON.stringify(result)).not.toContain('mediaAssetId');
+  });
+
   it('drops an unsafe service CTA target', () => {
     expect(
       mapService({

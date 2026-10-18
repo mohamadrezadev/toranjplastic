@@ -48,6 +48,15 @@ describe("productInputFromForm", () => {
     const input = productInputFromForm(form({ name: "محصول", slug: "prod", featured: "on" }));
     expect(input.featured).toBe(true);
   });
+
+  it("maps managed gallery rows and optimistic version without forwarding the derived URL", () => {
+    const input = productInputFromForm(form({
+      name: "محصول", slug: "prod", expectedVersion: "3",
+      image1MediaAssetId: "media-1", image1Url: "https://media.example/derived.webp", image1Alt: "تصویر",
+    }));
+    expect(input.images).toEqual([{ mediaAssetId: "media-1", alt: "تصویر" }]);
+    expect(input.expectedVersion).toBe(3);
+  });
 });
 
 describe("injectionServiceInputFromForm", () => {
@@ -88,6 +97,24 @@ describe("articleInputFromForm", () => {
   it("maps no featured image fields to null", () => {
     const input = articleInputFromForm(form({ title: "مقاله", slug: "art", body: "متن" }));
     expect(input.featuredImage).toBeNull();
+  });
+
+  it("maps managed featured selection and optimistic version", () => {
+    const input = articleInputFromForm(form({
+      title: "مقاله", slug: "art", body: "متن", expectedVersion: "5",
+      featuredImageMediaAssetId: "media-2", featuredImageUrl: "https://media.example/derived.webp", featuredImageAlt: "شاخص",
+    }));
+    expect(input.featuredImage).toEqual({ mediaAssetId: "media-2", alt: "شاخص" });
+    expect(input.expectedVersion).toBe(5);
+  });
+
+  it("maps explicit featured-image clearing to null even when old values are posted", () => {
+    const input = articleInputFromForm(form({
+      title: "مقاله", slug: "art", body: "متن", expectedVersion: "5",
+      featuredImageMediaAssetId: "media-2", featuredImageAlt: "شاخص", featuredImageClear: "on",
+    }));
+    expect(input.featuredImage).toBeNull();
+    expect(input.expectedVersion).toBe(5);
   });
 });
 

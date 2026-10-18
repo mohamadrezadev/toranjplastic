@@ -1,7 +1,7 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable } from '@nestjs/common';
 import { ContentStatus } from '../../generated/prisma/enums.js';
 import type {
-  AdminImageDto,
+  AdminManagedImageDto,
   AdminSpecificationDto,
 } from '../dto/admin-image.dto.js';
 import { isSafeContentImageUrl } from '../dto/admin-image.dto.js';
@@ -25,7 +25,8 @@ import {
 } from './repository.js';
 import type { AdminProductListQuery, ProductWriteInput } from './types.js';
 
-function imageValue(image: AdminImageDto) {
+function imageValue(image: AdminManagedImageDto) {
+  if (!image.url) throw new BadRequestException({ code: 'INVALID_IMAGE_SOURCE' });
   return {
     url: image.url,
     alt: image.alt,
@@ -38,8 +39,8 @@ function specificationValues(items: AdminSpecificationDto[] | undefined) {
   return items?.map((item) => ({ label: item.label, value: item.value }));
 }
 
-function assertSafeImages(images: AdminImageDto[] | undefined): void {
-  if (images?.some((image) => !isSafeContentImageUrl(image.url))) {
+function assertSafeImages(images: AdminManagedImageDto[] | undefined): void {
+  if (images?.some((image) => image.url && !isSafeContentImageUrl(image.url))) {
     throw new BadRequestException(
       'آدرس تصویر باید یک مسیر داخلی یا نشانی http/https معتبر باشد.',
     );
@@ -64,21 +65,28 @@ export class AdminProductService {
 
   create(dto: CreateProductDto, actorId: string) {
     assertSafeImages(dto.images);
-    const input: ProductWriteInput = {
+    const baseInput: ProductWriteInput = {
       name: dto.name.trim(),
       slug: dto.slug,
       summary: dto.summary?.trim() || null,
       description: dto.description?.trim() || null,
       categoryId: dto.categoryId ?? null,
-      images: dto.images?.map(imageValue) ?? [],
       specifications: specificationValues(dto.specifications) ?? [],
       featured: dto.featured ?? false,
       displayOrder: dto.displayOrder,
       metaTitle: dto.metaTitle?.trim() || null,
       metaDescription: dto.metaDescription?.trim() || null,
     };
-    return this.unitOfWork.run(async ({ products, audit }) => {
+    return this.unitOfWork.run(async ({ products, audit, media }) => {
+      const hasManaged = dto.images?.some((image) => image.mediaAssetId) ?? false;
+      const prepared = hasManaged ? await media.prepareProduct(dto.images ?? []) : null;
+      const input: ProductWriteInput = {
+        ...baseInput,
+        images: prepared?.projection ?? dto.images?.map(imageValue) ?? [],
+        ...(hasManaged ? { contentVersion: 1 } : {}),
+      };
       const product = await withConflictHandling(() => products.create(input));
+      if (prepared) await media.replaceProductReferences(product.id, prepared.references);
       await recordContentAudit(audit, 'PRODUCT_CREATED', actorId, product);
       return product;
     });
@@ -98,7 +106,7 @@ export class AdminProductService {
       ...(dto.categoryId === undefined ? {} : { categoryId: dto.categoryId }),
       ...(dto.images === undefined
         ? {}
-        : { images: dto.images.map(imageValue) }),
+        : {}),
       ...(dto.specifications === undefined
         ? {}
         : { specifications: specificationValues(dto.specifications) }),
@@ -113,18 +121,36 @@ export class AdminProductService {
         ? {}
         : { metaDescription: dto.metaDescription.trim() || null }),
     };
-    return this.unitOfWork.run(async ({ products, audit }) => {
-      const product = requireFound(
-        await withConflictHandling(() => products.update(id, input)),
-      );
+    return this.unitOfWork.run(async ({ products, audit, media }) => {
+      let prepared;
+      let expectedVersion: number | undefined;
+      if (dto.images !== undefined) {
+        const changesManagedMedia = dto.images.some((image) => image.mediaAssetId) ||
+          await media.productHasReferences(id);
+        if (changesManagedMedia && dto.expectedVersion === undefined) {
+          throw new BadRequestException({ code: 'EXPECTED_VERSION_REQUIRED' });
+        }
+        prepared = changesManagedMedia ? await media.prepareProduct(dto.images) : null;
+        input.images = prepared?.projection ?? dto.images.map(imageValue);
+        expectedVersion = changesManagedMedia ? dto.expectedVersion : undefined;
+      }
+      const updated = await withConflictHandling(() => expectedVersion === undefined
+        ? products.update(id, input)
+        : products.update(id, input, expectedVersion));
+      if (!updated && expectedVersion !== undefined && await products.get(id)) {
+        throw new ConflictException({ code: 'CONTENT_VERSION_CONFLICT' });
+      }
+      const product = requireFound(updated);
+      if (prepared) await media.replaceProductReferences(id, prepared.references);
       await recordContentAudit(audit, 'PRODUCT_UPDATED', actorId, product);
       return product;
     });
   }
 
   publish(id: string, actorId: string) {
-    return this.unitOfWork.run(({ products, audit }) =>
-      transitionStatus({
+    return this.unitOfWork.run(async ({ products, audit, media }) => {
+      await media.assertProductPublishable(id);
+      return transitionStatus({
         id,
         actorId,
         audit,
@@ -133,8 +159,8 @@ export class AdminProductService {
         publishedAt: new Date(),
         get: products.get.bind(products),
         setStatus: products.setStatus.bind(products),
-      }),
-    );
+      });
+    });
   }
 
   archive(id: string, actorId: string) {

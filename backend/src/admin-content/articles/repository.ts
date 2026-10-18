@@ -9,6 +9,7 @@ export interface AdminArticleRepository {
   update(
     id: string,
     input: Partial<ArticleWriteInput>,
+    expectedVersion?: number,
   ): Promise<AdminArticle | null>;
   setStatus(
     id: string,

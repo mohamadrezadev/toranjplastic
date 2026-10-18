@@ -22,6 +22,7 @@ const product = {
   updatedAt: '2026-10-11T00:00:00.000Z',
   metaTitle: null,
   metaDescription: null,
+  contentVersion: 0,
 };
 
 function fixture(overrides: Partial<AdminProductRepository> = {}) {
@@ -39,9 +40,22 @@ function fixture(overrides: Partial<AdminProductRepository> = {}) {
   const audit = {
     securityAuditEvent: { create: auditCreate },
   } as AuditEventWriter;
+  const media = {
+    prepareProduct: vi.fn(async () => ({
+      projection: [{ url: 'https://media.example/api/v1/media/public/media-1/detail', alt: 'محصول', width: 800, height: 600 }],
+      references: [{ mediaAssetId: 'media-1', alt: 'محصول', position: 0 }],
+    })),
+    replaceProductReferences: vi.fn(async () => undefined),
+    productHasReferences: vi.fn(async () => false),
+    assertProductPublishable: vi.fn(async () => undefined),
+  };
   const unitOfWork = {
     run: vi.fn(async (work: (context: unknown) => Promise<unknown>) =>
-      work({ products: repository, audit }),
+      work({
+        products: repository,
+        audit,
+        media,
+      }),
     ),
   } as unknown as AdminContentUnitOfWork;
   return {
@@ -50,6 +64,7 @@ function fixture(overrides: Partial<AdminProductRepository> = {}) {
     create,
     update,
     auditCreate,
+    media,
   };
 }
 
@@ -108,6 +123,41 @@ describe('AdminProductService', () => {
     });
   });
 
+  it('creates managed Product projection, version and references atomically', async () => {
+    const { service, create, media } = fixture();
+
+    await service.create({
+      name: 'محصول',
+      slug: 'product',
+      images: [{ mediaAssetId: 'media-1', alt: 'محصول' }],
+    }, 'admin-1');
+
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({
+      contentVersion: 1,
+      images: [expect.objectContaining({
+        url: 'https://media.example/api/v1/media/public/media-1/detail',
+      })],
+    }));
+    expect(media.replaceProductReferences).toHaveBeenCalledWith(product.id, [
+      { mediaAssetId: 'media-1', alt: 'محصول', position: 0 },
+    ]);
+  });
+
+  it('requires and enforces expectedVersion for managed Product updates', async () => {
+    const missingVersion = fixture();
+    await expect(missingVersion.service.update(product.id, {
+      images: [{ mediaAssetId: 'media-1', alt: 'محصول' }],
+    }, 'admin-1')).rejects.toMatchObject({ response: { code: 'EXPECTED_VERSION_REQUIRED' } });
+
+    const stale = fixture({ update: vi.fn(async () => null) });
+    await expect(stale.service.update(product.id, {
+      expectedVersion: 4,
+      images: [{ mediaAssetId: 'media-1', alt: 'محصول' }],
+    }, 'admin-1')).rejects.toMatchObject({ response: { code: 'CONTENT_VERSION_CONFLICT' } });
+    expect(stale.media.replaceProductReferences).not.toHaveBeenCalled();
+    expect(stale.auditCreate).not.toHaveBeenCalled();
+  });
+
   it('publishes and audits a draft product through one unit-of-work callback', async () => {
     const published = { ...product, status: ContentStatus.PUBLISHED };
     const setStatus = vi.fn(async () => published);
@@ -129,6 +179,20 @@ describe('AdminProductService', () => {
         }),
       }),
     });
+  });
+
+  it('does not change lifecycle or audit when the publication media gate fails', async () => {
+    const setStatus = vi.fn();
+    const { service, media, auditCreate } = fixture({ setStatus });
+    media.assertProductPublishable.mockRejectedValueOnce(
+      Object.assign(new Error('not ready'), { response: { code: 'MEDIA_NOT_READY' } }),
+    );
+
+    await expect(service.publish(product.id, 'admin-1')).rejects.toMatchObject({
+      response: { code: 'MEDIA_NOT_READY' },
+    });
+    expect(setStatus).not.toHaveBeenCalled();
+    expect(auditCreate).not.toHaveBeenCalled();
   });
 
   it('audits an idempotent archive without rewriting status', async () => {

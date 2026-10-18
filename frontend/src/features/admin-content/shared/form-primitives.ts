@@ -10,6 +10,17 @@ export function optionalText(form: FormData, name: string): string | null {
   return value === '' ? null : value;
 }
 
+export function optionalInteger(form: FormData, name: string): number | undefined {
+  const value = text(form, name);
+  if (value === '') return undefined;
+  const parsed = Number(value);
+  return Number.isInteger(parsed) ? parsed : undefined;
+}
+
+export type ContentImageInput =
+  | PublicImage
+  | { mediaAssetId: string; alt: string };
+
 export function singleImage(form: FormData, prefix: string): PublicImage | null {
   const url = text(form, `${prefix}Url`);
   const alt = text(form, `${prefix}Alt`);
@@ -23,6 +34,27 @@ export function imageRows(form: FormData): PublicImage[] {
     if (image) images.push(image);
   }
   return images;
+}
+
+export function managedImageRows(form: FormData): ContentImageInput[] {
+  const images: ContentImageInput[] = [];
+  for (let index = 1; index <= 6; index += 1) {
+    const prefix = `image${index}`;
+    if (form.get(`${prefix}Remove`) === 'on') continue;
+    const mediaAssetId = text(form, `${prefix}MediaAssetId`);
+    const alt = text(form, `${prefix}Alt`);
+    const image = mediaAssetId ? { mediaAssetId, alt } : singleImage(form, prefix);
+    if (image) images.push(image);
+  }
+  return images;
+}
+
+export function managedSingleImage(form: FormData, prefix: string): ContentImageInput | null {
+  if (form.get(`${prefix}Clear`) === 'on') return null;
+  const mediaAssetId = text(form, `${prefix}MediaAssetId`);
+  return mediaAssetId
+    ? { mediaAssetId, alt: text(form, `${prefix}Alt`) }
+    : singleImage(form, prefix);
 }
 
 export function specificationRows(form: FormData): PublicSpecification[] {

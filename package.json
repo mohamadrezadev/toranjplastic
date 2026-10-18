@@ -9,9 +9,12 @@
     "pnpm": ">=9.15.0"
   },
   "scripts": {
-    "dev": "pnpm --parallel --filter frontend --filter backend dev",
-    "dev:frontend": "pnpm --filter frontend dev",
-    "dev:backend": "pnpm --filter backend dev",
+    "dev": "node scripts/run-with-root-env.mjs dev:services",
+    "dev:services": "pnpm --parallel --filter frontend --filter backend dev",
+    "dev:frontend": "node scripts/run-with-root-env.mjs dev:frontend:service",
+    "dev:frontend:service": "pnpm --filter frontend dev",
+    "dev:backend": "node scripts/run-with-root-env.mjs dev:backend:service",
+    "dev:backend:service": "pnpm --filter backend dev",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
@@ -23,8 +26,13 @@
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "check:architecture": "pnpm --filter frontend check:architecture && pnpm --filter frontend test:architecture",
     "db:generate": "pnpm --filter backend db:generate",
-    "db:migrate": "pnpm --filter backend db:migrate",
-    "db:migrate:deploy": "pnpm --filter backend db:migrate:deploy",
-    "db:studio": "pnpm --filter backend db:studio"
+    "db:migrate": "node scripts/run-with-root-env.mjs db:migrate:service",
+    "db:migrate:service": "pnpm --filter backend db:migrate",
+    "db:migrate:deploy": "node scripts/run-with-root-env.mjs db:migrate:deploy:service",
+    "db:migrate:deploy:service": "pnpm --filter backend db:migrate:deploy",
+    "db:studio": "node scripts/run-with-root-env.mjs db:studio:service",
+    "db:studio:service": "pnpm --filter backend db:studio",
+    "admin:bootstrap": "node scripts/run-with-root-env.mjs admin:bootstrap:service",
+    "admin:bootstrap:service": "pnpm --filter backend admin:bootstrap"
   }
 }

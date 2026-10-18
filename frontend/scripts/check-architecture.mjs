@@ -6,6 +6,7 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 export const frontendRoot = resolve(scriptDir, '..');
 export const sourceRoot = join(frontendRoot, 'src');
 export const featureRoot = join(sourceRoot, 'features', 'admin-content');
+export const adminMediaRoot = join(sourceRoot, 'features', 'admin-media');
 
 const sourceExtensions = ['.ts', '.tsx', '.js', '.jsx', '.mjs'];
 const importPattern = /(?:import|export)\s+(?:[\s\S]*?\s+from\s*)?["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g;
@@ -63,6 +64,13 @@ export function inspectSources(sources) {
       const resolvedTarget = resolveSourceFile(target);
       if (relative(sourceRoot, resolvedTarget).split(sep).includes('backend')) {
         violations.push(`frontend imports backend source: ${relative(frontendRoot, importer)} -> ${specifier}`);
+        continue;
+      }
+      const mediaEntry = resolveSourceFile(join(adminMediaRoot, 'index'));
+      if (!importer.startsWith(`${adminMediaRoot}${sep}`) &&
+          resolvedTarget.startsWith(`${adminMediaRoot}${sep}`) &&
+          resolvedTarget !== mediaEntry) {
+        violations.push(`admin-media feature deep import: ${relative(frontendRoot, importer)} -> ${specifier}`);
         continue;
       }
       const toFeature = featureFor(resolvedTarget);

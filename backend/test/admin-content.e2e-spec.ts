@@ -94,6 +94,7 @@ const draftProduct: AdminProduct = {
   updatedAt: '2026-10-11T00:00:00.000Z',
   metaTitle: null,
   metaDescription: null,
+  contentVersion: 0,
 };
 
 const draftInjectionService: AdminInjectionService = {
@@ -150,6 +151,7 @@ const draftArticle: AdminArticle = {
   updatedAt: '2026-10-11T00:00:00.000Z',
   metaTitle: null,
   metaDescription: null,
+  contentVersion: 0,
 };
 
 const draftManagedPage: AdminManagedPage = {
@@ -278,6 +280,16 @@ function fakeAdminRepositories() {
           id === draftManagedPage.id ? { ...draftManagedPage, status } : null,
       ),
     } satisfies AdminManagedPageRepository,
+    media: {
+      prepareProduct: vi.fn(),
+      replaceProductReferences: vi.fn(),
+      productHasReferences: vi.fn(async () => false),
+      prepareArticle: vi.fn(),
+      replaceArticleReference: vi.fn(),
+      articleHasReference: vi.fn(async () => false),
+      assertProductPublishable: vi.fn(),
+      assertArticlePublishable: vi.fn(),
+    },
   };
   return {
     repositories,

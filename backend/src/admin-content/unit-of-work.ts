@@ -5,6 +5,7 @@ import type { AdminInjectionServiceRepository } from './injection-services/repos
 import type { AdminManagedPageRepository } from './managed-pages/repository.js';
 import type { AdminMaterialRepository } from './materials/repository.js';
 import type { AdminProductRepository } from './products/repository.js';
+import type { ContentMediaTransaction } from './content-media.transaction.js';
 
 export const ADMIN_CONTENT_UNIT_OF_WORK = Symbol('ADMIN_CONTENT_UNIT_OF_WORK');
 
@@ -16,6 +17,7 @@ export interface AdminContentTransaction {
   articles: AdminArticleRepository;
   managedPages: AdminManagedPageRepository;
   audit: AuditEventWriter;
+  media: ContentMediaTransaction;
 }
 
 export interface AdminContentUnitOfWork {

@@ -8,6 +8,7 @@ const labels: Record<string, string> = {
   inquiries: "استعلام‌ها", categories: "دسته‌بندی‌ها", products: "محصولات",
   services: "خدمات", materials: "مواد اولیه", articles: "مقالات", pages: "صفحات ثابت",
   new: "ایجاد جدید", staff: "کاربران سازمانی",
+  media: "رسانه‌ها",
 };
 
 export function AdminBreadcrumbs() {

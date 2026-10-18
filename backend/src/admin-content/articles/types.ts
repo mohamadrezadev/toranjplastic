@@ -1,6 +1,7 @@
 import type { ContentImage } from '../../content-shared/stored-content.js';
 import type { AdminLifecycle, AdminSeo } from '../shared/types.js';
 export interface AdminArticle extends AdminLifecycle, AdminSeo {
+  contentVersion: number;
   title: string;
   slug: string;
   summary: string | null;
@@ -16,4 +17,5 @@ export interface ArticleWriteInput {
   displayOrder?: number;
   metaTitle?: string | null;
   metaDescription?: string | null;
+  contentVersion?: number;
 }

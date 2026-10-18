@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { normalizeImage } from '../../content-shared/stored-content.js';
 import { PrismaService } from '../../database/prisma.service.js';
-import type { ContentStatus, Prisma } from '../../generated/prisma/client.js';
+import { Prisma, type ContentStatus } from '../../generated/prisma/client.js';
 import {
   handleMissing,
   pagination,
@@ -26,6 +26,7 @@ const select = {
   metaDescription: true,
   createdAt: true,
   updatedAt: true,
+  contentVersion: true,
 } satisfies Prisma.ArticleSelect;
 type Row = Prisma.ArticleGetPayload<{ select: typeof select }>;
 function map(row: Row): AdminArticle {
@@ -43,6 +44,7 @@ function map(row: Row): AdminArticle {
     updatedAt: row.updatedAt.toISOString(),
     metaTitle: row.metaTitle,
     metaDescription: row.metaDescription,
+    contentVersion: row.contentVersion,
   };
 }
 
@@ -83,36 +85,37 @@ export class PrismaAdminArticleRepository implements AdminArticleRepository {
         metaTitle: input.metaTitle ?? null,
         metaDescription: input.metaDescription ?? null,
         status: 'DRAFT',
+        contentVersion: input.contentVersion ?? 0,
       },
       select,
     });
     return map(row);
   }
-  async update(id: string, input: Partial<ArticleWriteInput>) {
+  async update(id: string, input: Partial<ArticleWriteInput>, expectedVersion?: number) {
+    const data: Prisma.ArticleUncheckedUpdateInput = {
+      ...(input.title === undefined ? {} : { title: input.title }),
+      ...(input.slug === undefined ? {} : { slug: input.slug }),
+      ...(input.summary === undefined ? {} : { summary: input.summary }),
+      ...(input.body === undefined ? {} : { body: input.body }),
+      ...(input.featuredImage === undefined ? {} : {
+        featuredImage: input.featuredImage === null ? Prisma.DbNull : input.featuredImage as unknown as Prisma.InputJsonValue,
+      }),
+      ...(input.displayOrder === undefined ? {} : { displayOrder: input.displayOrder }),
+      ...(input.metaTitle === undefined ? {} : { metaTitle: input.metaTitle }),
+      ...(input.metaDescription === undefined ? {} : { metaDescription: input.metaDescription }),
+      ...(expectedVersion === undefined ? {} : { contentVersion: { increment: 1 } }),
+    };
+    if (expectedVersion !== undefined) {
+      const result = await this.prisma.article.updateMany({
+        where: { id, contentVersion: expectedVersion },
+        data,
+      });
+      return result.count === 0 ? null : this.get(id);
+    }
     const row = await handleMissing(
       this.prisma.article.update({
         where: { id },
-        data: {
-          ...(input.title === undefined ? {} : { title: input.title }),
-          ...(input.slug === undefined ? {} : { slug: input.slug }),
-          ...(input.summary === undefined ? {} : { summary: input.summary }),
-          ...(input.body === undefined ? {} : { body: input.body }),
-          ...(input.featuredImage === undefined
-            ? {}
-            : {
-                featuredImage:
-                  input.featuredImage as Prisma.InputJsonValue | null,
-              }),
-          ...(input.displayOrder === undefined
-            ? {}
-            : { displayOrder: input.displayOrder }),
-          ...(input.metaTitle === undefined
-            ? {}
-            : { metaTitle: input.metaTitle }),
-          ...(input.metaDescription === undefined
-            ? {}
-            : { metaDescription: input.metaDescription }),
-        } as Prisma.ArticleUncheckedUpdateInput,
+        data,
         select,
       }),
     );

@@ -8,6 +8,7 @@ import type {
   AdminSeo,
 } from '../shared/types.js';
 export interface AdminProduct extends AdminLifecycle, AdminSeo {
+  contentVersion: number;
   name: string;
   slug: string;
   summary: string | null;
@@ -29,6 +30,7 @@ export interface ProductWriteInput {
   displayOrder?: number;
   metaTitle?: string | null;
   metaDescription?: string | null;
+  contentVersion?: number;
 }
 export interface AdminProductListQuery extends AdminListQuery {
   featured?: boolean;

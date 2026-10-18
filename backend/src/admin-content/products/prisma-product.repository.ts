@@ -36,6 +36,7 @@ const select = {
   metaDescription: true,
   createdAt: true,
   updatedAt: true,
+  contentVersion: true,
 } satisfies Prisma.ProductSelect;
 type Row = Prisma.ProductGetPayload<{ select: typeof select }>;
 function map(row: Row): AdminProduct {
@@ -56,6 +57,7 @@ function map(row: Row): AdminProduct {
     updatedAt: row.updatedAt.toISOString(),
     metaTitle: row.metaTitle,
     metaDescription: row.metaDescription,
+    contentVersion: row.contentVersion,
   };
 }
 
@@ -102,45 +104,38 @@ export class PrismaAdminProductRepository implements AdminProductRepository {
         metaTitle: input.metaTitle ?? null,
         metaDescription: input.metaDescription ?? null,
         status: 'DRAFT',
+        contentVersion: input.contentVersion ?? 0,
       },
       select,
     });
     return map(row);
   }
-  async update(id: string, input: Partial<ProductWriteInput>) {
+  async update(id: string, input: Partial<ProductWriteInput>, expectedVersion?: number) {
+    const data: Prisma.ProductUncheckedUpdateInput = {
+      ...(input.name === undefined ? {} : { name: input.name }),
+      ...(input.slug === undefined ? {} : { slug: input.slug }),
+      ...(input.summary === undefined ? {} : { summary: input.summary }),
+      ...(input.description === undefined ? {} : { description: input.description }),
+      ...(input.categoryId === undefined ? {} : { categoryId: input.categoryId }),
+      ...(input.images === undefined ? {} : { images: input.images as unknown as Prisma.InputJsonValue }),
+      ...(input.specifications === undefined ? {} : { specifications: input.specifications as unknown as Prisma.InputJsonValue }),
+      ...(input.featured === undefined ? {} : { featured: input.featured }),
+      ...(input.displayOrder === undefined ? {} : { displayOrder: input.displayOrder }),
+      ...(input.metaTitle === undefined ? {} : { metaTitle: input.metaTitle }),
+      ...(input.metaDescription === undefined ? {} : { metaDescription: input.metaDescription }),
+      ...(expectedVersion === undefined ? {} : { contentVersion: { increment: 1 } }),
+    };
+    if (expectedVersion !== undefined) {
+      const result = await this.prisma.product.updateMany({
+        where: { id, contentVersion: expectedVersion },
+        data,
+      });
+      return result.count === 0 ? null : this.get(id);
+    }
     const row = await handleMissing(
       this.prisma.product.update({
         where: { id },
-        data: {
-          ...(input.name === undefined ? {} : { name: input.name }),
-          ...(input.slug === undefined ? {} : { slug: input.slug }),
-          ...(input.summary === undefined ? {} : { summary: input.summary }),
-          ...(input.description === undefined
-            ? {}
-            : { description: input.description }),
-          ...(input.categoryId === undefined
-            ? {}
-            : { categoryId: input.categoryId }),
-          ...(input.images === undefined
-            ? {}
-            : { images: input.images as unknown as Prisma.InputJsonValue }),
-          ...(input.specifications === undefined
-            ? {}
-            : {
-                specifications:
-                  input.specifications as unknown as Prisma.InputJsonValue,
-              }),
-          ...(input.featured === undefined ? {} : { featured: input.featured }),
-          ...(input.displayOrder === undefined
-            ? {}
-            : { displayOrder: input.displayOrder }),
-          ...(input.metaTitle === undefined
-            ? {}
-            : { metaTitle: input.metaTitle }),
-          ...(input.metaDescription === undefined
-            ? {}
-            : { metaDescription: input.metaDescription }),
-        } as Prisma.ProductUncheckedUpdateInput,
+        data,
         select,
       }),
     );

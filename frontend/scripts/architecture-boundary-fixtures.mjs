@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { featureRoot, inspectSources } from './check-architecture.mjs';
+import { adminMediaRoot, featureRoot, inspectSources, sourceRoot } from './check-architecture.mjs';
 
 const product = `${featureRoot}/product/index.ts`;
 const category = `${featureRoot}/category/index.ts`;
@@ -24,5 +24,14 @@ describe('admin content architecture boundary checker', () => {
       [category]: 'export { listProducts } from "@/features/admin-content/product";',
     });
     assert.match(violations[0], /feature cycle/);
+  });
+
+  it('allows only the public admin-media entrypoint outside that feature', () => {
+    const route = `${sourceRoot}/app/admin/media/page.tsx`;
+    assert.deepEqual(inspectSources({ [route]: 'import { listMedia } from "@/features/admin-media";' }), []);
+    assert.match(inspectSources({
+      [route]: 'import { listMedia } from "@/features/admin-media/api";',
+      [`${adminMediaRoot}/index.ts`]: '',
+    })[0], /admin-media feature deep import/);
   });
 });

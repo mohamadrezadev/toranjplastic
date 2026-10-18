@@ -38,6 +38,7 @@ const material = {
 
 const article = {
   id: "a1", title: "مقاله", slug: "art", summary: null, body: "متن", featuredImage: null, displayOrder: 0,
+  contentVersion: 0,
   status: "DRAFT", publishedAt: null, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z",
   metaTitle: null, metaDescription: null,
 };

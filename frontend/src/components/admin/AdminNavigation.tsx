@@ -10,6 +10,7 @@ const destinations: ReadonlyArray<{ href: string; label: string; marker: string;
   { href: "/admin/inquiries", label: "استعلام‌ها", marker: "≋", capability: "INQUIRY_OPERATIONS" },
   { href: "/admin/categories", label: "دسته‌بندی", marker: "#", capability: "CONTENT_MANAGEMENT" },
   { href: "/admin/products", label: "محصولات", marker: "P", capability: "CONTENT_MANAGEMENT" },
+  { href: "/admin/media", label: "رسانه‌ها", marker: "◫", capability: "CONTENT_MANAGEMENT" },
   { href: "/admin/services", label: "خدمات", marker: "S", capability: "CONTENT_MANAGEMENT" },
   { href: "/admin/materials", label: "مواد اولیه", marker: "M", capability: "CONTENT_MANAGEMENT" },
   { href: "/admin/articles", label: "مقالات", marker: "A", capability: "CONTENT_MANAGEMENT" },

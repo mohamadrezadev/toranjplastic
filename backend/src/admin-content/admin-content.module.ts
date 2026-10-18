@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../database/database.module.js';
 import { IdentityModule } from '../identity/identity.module.js';
+import { MediaModule } from '../media/media.module.js';
 import { PrismaAdminContentUnitOfWork } from './prisma-admin-content.unit-of-work.js';
 import { ADMIN_CONTENT_UNIT_OF_WORK } from './unit-of-work.js';
 import { AdminCategoryController } from './categories/category.controller.js';
@@ -29,7 +30,7 @@ import { PrismaAdminManagedPageRepository } from './managed-pages/prisma-managed
 import { ADMIN_MANAGED_PAGE_REPOSITORY } from './managed-pages/repository.js';
 
 @Module({
-  imports: [DatabaseModule, IdentityModule],
+  imports: [DatabaseModule, IdentityModule, MediaModule],
   controllers: [
     AdminCategoryController,
     AdminProductController,
