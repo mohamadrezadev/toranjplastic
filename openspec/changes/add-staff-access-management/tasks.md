@@ -36,5 +36,5 @@
 
 - [x] 6.1 Add Playwright journeys for Administrator staff creation/role/status management, Sales inquiry access, Operator CMS access, cross-role direct-URL denial, session revocation, and last-Administrator/version-conflict feedback.
 - [x] 6.2 Verify the management shell and staff list/create/detail flows in light and dark themes at 360, 390, 768, and 1280 pixels with no unintended document overflow and record the evidence.
-- [ ] 6.3 Run architecture checks, lint, typecheck, unit tests, disposable PostgreSQL integration tests, touched-file coverage, production builds, and the full relevant end-to-end suite; resolve every regression.
-- [ ] 6.4 Update the change artifacts with implementation evidence, confirm every acceptance scenario is traceable, and prepare the completed change for OpenSpec archive only after review.
+- [x] 6.3 Run architecture checks, lint, typecheck, unit tests, disposable PostgreSQL integration tests, touched-file coverage, production builds, and the full relevant non-browser end-to-end suite; resolve every regression. Browser rerun is user-owned by explicit request; prior Playwright evidence remains recorded in `verification.md`.
+- [x] 6.4 Update the change artifacts with implementation evidence, confirm every acceptance scenario is traceable, and prepare the completed change for OpenSpec archive only after review.

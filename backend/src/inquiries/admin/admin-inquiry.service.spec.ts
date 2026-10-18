@@ -55,6 +55,48 @@ describe('AdminInquiryService', () => {
     await expect(service.assign('i1', 'customer', 0, 'a1')).rejects.toBeInstanceOf(ConflictException);
   });
 
+  it('returns an unchanged assignment and maps missing mutation targets', async () => {
+    const assigned = inquiry({
+      assigneeSummary: { id: 'sales-1', displayName: 'فروش', mobile: '+989121111111' },
+    });
+    vi.mocked(repository.getAdmin).mockResolvedValue(assigned);
+    await expect(service.assign('i1', 'sales-1', 0, 'a1')).resolves.toEqual(assigned);
+    expect(repository.adminAssign).not.toHaveBeenCalled();
+
+    vi.mocked(repository.adminAddNote).mockResolvedValue({ kind: 'not_found' });
+    await expect(service.addNote('missing', 'یادداشت', 'a1')).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('normalizes list filters and delegates summary and eligible assignees', async () => {
+    vi.mocked(repository.adminList).mockResolvedValue({
+      items: [], page: 2, pageSize: 10, total: 0, pageCount: 0,
+    });
+    vi.mocked(repository.adminSummary).mockResolvedValue({
+      total: 2, unassigned: 1, submitted: 1, underReview: 1,
+    });
+    vi.mocked(repository.adminAssignees).mockResolvedValue([]);
+
+    await service.list({
+      page: 2,
+      pageSize: 10,
+      from: '2026-10-01T00:00:00.000Z',
+      to: '2026-11-01T00:00:00.000Z',
+      q: '  09121111111  ',
+    });
+    await expect(service.summary()).resolves.toMatchObject({ total: 2 });
+    await expect(service.assignees()).resolves.toEqual([]);
+
+    expect(repository.adminList).toHaveBeenCalledWith(
+      expect.objectContaining({
+        page: 2,
+        pageSize: 10,
+        from: new Date('2026-10-01T00:00:00.000Z'),
+        to: new Date('2026-11-01T00:00:00.000Z'),
+        q: '09121111111',
+      }),
+    );
+  });
+
   it('trims notes and does not require or change inquiry version', async () => {
     vi.mocked(repository.adminAddNote).mockResolvedValue({ kind: 'ok', inquiry: inquiry() });
     await service.addNote('i1', '  یادداشت داخلی  ', 'a1');
@@ -69,6 +111,21 @@ describe('AdminInquiryService', () => {
   it('requires an under-review current version for an information request message', async () => {
     vi.mocked(repository.getAdmin).mockResolvedValue(inquiry({ status: 'SUBMITTED' }));
     await expect(service.addMessage('i1', 'اطلاعات بیشتری ارسال کنید', 'a1', true, 0)).rejects.toMatchObject({ response: expect.objectContaining({ code: 'INQUIRY_MESSAGE_NOT_ALLOWED' }) });
+    expect(repository.adminAddMessage).not.toHaveBeenCalled();
+  });
+
+  it('rejects empty and terminal-state customer-visible messages', async () => {
+    await expect(
+      service.addMessage('i1', '   ', 'a1', false),
+    ).rejects.toMatchObject({ status: 400 });
+    vi.mocked(repository.getAdmin).mockResolvedValue(
+      inquiry({ status: 'COMPLETED' }),
+    );
+    await expect(
+      service.addMessage('i1', 'پیام', 'a1', false),
+    ).rejects.toMatchObject({
+      response: expect.objectContaining({ code: 'INQUIRY_MESSAGE_NOT_ALLOWED' }),
+    });
     expect(repository.adminAddMessage).not.toHaveBeenCalled();
   });
 
