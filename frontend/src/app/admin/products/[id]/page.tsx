@@ -29,7 +29,7 @@ export default async function EditProductPage({ params, searchParams }: { params
     throw caught;
   }
   const [categoryPage, mediaPage] = await Promise.all([
-    listCategories({ pageSize: 100 }),
+    listCategories({ pageSize: 50 }),
     listMedia({ pageSize: 50, status: 'READY' }),
   ]);
 

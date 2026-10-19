@@ -56,7 +56,12 @@ export async function getMedia(id: string) {
 }
 
 export async function uploadMedia(form: FormData): Promise<AdminMediaAsset> {
-  const response = await fetch(`${backend}/admin/media`, { method: 'POST', cache: 'no-store', headers: await headers(true), body: form });
+  const payload = new FormData();
+  const file = form.get('file');
+  const defaultAlt = form.get('defaultAlt');
+  if (file !== null && typeof file !== 'string') payload.set('file', file);
+  if (typeof defaultAlt === 'string') payload.set('defaultAlt', defaultAlt);
+  const response = await fetch(`${backend}/admin/media`, { method: 'POST', cache: 'no-store', headers: await headers(true), body: payload });
   return parse(response, isAdminMediaAsset);
 }
 

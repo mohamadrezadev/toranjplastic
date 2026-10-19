@@ -24,4 +24,11 @@
 .danger:hover { background: color-mix(in srgb, var(--color-status-danger) 88%, black); }
 .button:disabled { cursor: not-allowed; opacity: 0.52; }
 .contentHidden { visibility: hidden; }
-.loadingLabel { position: absolute; inset: 0; display: grid; place-items: center; padding-inline: var(--control-padding-inline); }
+.loadingLabel { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: var(--space-2); padding-inline: var(--control-padding-inline); }
+.loadingLabel::before { content: ""; width: .9rem; height: .9rem; flex: 0 0 auto; border: .125rem solid currentColor; border-inline-start-color: transparent; border-radius: 50%; animation: buttonSpin var(--motion-normal) linear infinite; }
+
+@keyframes buttonSpin { to { transform: rotate(1turn); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingLabel::before { animation-duration: 1.5s; }
+}

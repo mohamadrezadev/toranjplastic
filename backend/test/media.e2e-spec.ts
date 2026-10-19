@@ -26,6 +26,7 @@ describe('media HTTP boundaries (e2e)', () => {
     list: ReturnType<typeof vi.fn>;
     get: ReturnType<typeof vi.fn>;
     updateDefaultAlt: ReturnType<typeof vi.fn>;
+    upload: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
     privateVariant: ReturnType<typeof vi.fn>;
     publicVariant: ReturnType<typeof vi.fn>;
@@ -37,6 +38,13 @@ describe('media HTTP boundaries (e2e)', () => {
       list: vi.fn(async () => ({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0 })),
       get: vi.fn(async () => ({ id: 'media-1', status: 'READY' })),
       updateDefaultAlt: vi.fn(async (_id: string, defaultAlt: string) => ({ id: 'media-1', defaultAlt })),
+      upload: vi.fn(async (stream: Readable, defaultAlt: Promise<string>) => {
+        // Production processing consumes the stream while Busboy continues to
+        // parse the following defaultAlt field. Drain it here to preserve that
+        // streaming/backpressure contract in the HTTP boundary test.
+        stream.resume();
+        return { id: 'media-1', status: 'READY', defaultAlt: await defaultAlt };
+      }),
       delete: vi.fn(async () => undefined),
       privateVariant: vi.fn(async () => ({ stream: Readable.from(Buffer.from('private')), etag: 'private-etag' })),
       publicVariant: vi.fn(async (id: string) => {
@@ -93,6 +101,36 @@ describe('media HTTP boundaries (e2e)', () => {
         .send({ defaultAlt: 'تصویر' }),
       'OPERATOR',
     ).expect(200);
+  });
+
+  it('rejects excess multipart fields without terminating the backend', async () => {
+    await withRole(
+      request(app.getHttpServer()).post('/api/v1/admin/media')
+        .set('x-csrf-token', csrfToken)
+        .attach('file', Buffer.from('image'), { filename: 'image.webp', contentType: 'image/webp' })
+        .field('defaultAlt', 'تصویر')
+        .field('$ACTION_ID_internal', 'unexpected'),
+      'ADMIN',
+    ).expect(400);
+
+    await withRole(request(app.getHttpServer()).get('/api/v1/admin/media'), 'ADMIN').expect(200);
+  });
+
+  it('accepts the exact file and default-alt multipart contract', async () => {
+    const response = await withRole(
+      request(app.getHttpServer()).post('/api/v1/admin/media')
+        .set('x-csrf-token', csrfToken)
+        .attach('file', Buffer.from('image'), { filename: 'image.webp', contentType: 'image/webp' })
+        .field('defaultAlt', 'تصویر محصول'),
+      'ADMIN',
+    ).expect(201);
+
+    expect(response.body).toMatchObject({
+      id: 'media-1',
+      status: 'READY',
+      defaultAlt: 'تصویر محصول',
+    });
+    expect(media.upload).toHaveBeenCalledOnce();
   });
 
   it.each(['draft', 'archived', 'future', 'category-blocked', 'unknown'])

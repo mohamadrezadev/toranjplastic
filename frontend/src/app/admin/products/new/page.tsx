@@ -18,7 +18,7 @@ const errorMessages: Record<string, string> = {
 export default async function NewProductPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams;
   const [categoryPage, mediaPage] = await Promise.all([
-    listCategories({ pageSize: 100 }),
+    listCategories({ pageSize: 50 }),
     listMedia({ pageSize: 50, status: 'READY' }),
   ]);
 

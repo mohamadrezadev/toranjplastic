@@ -8,7 +8,10 @@ const password = process.env.BOOTSTRAP_ADMIN_PASSWORD;
 
 if (!mobile || !displayName || !password) throw new Error('Bootstrap environment is incomplete.');
 
-const app = await NestFactory.createApplicationContext(AppModule, { logger: false });
+const app = await NestFactory.createApplicationContext(AppModule, {
+  abortOnError: false,
+  logger: ['error'],
+});
 try {
   const result = await app.get(IdentityService).bootstrapAdmin(mobile, displayName, password);
   process.stdout.write(`Initial administrator created: ${result.id}\n`);

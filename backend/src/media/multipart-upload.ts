@@ -17,6 +17,10 @@ export function parseMediaUpload(request: Request, maxUploadBytes: number): Prom
       resolveAlt = altResolve;
       rejectAlt = altReject;
     });
+    // Busboy can reject this promise before the controller has received and
+    // attached its consumer. Keep that early rejection handled while still
+    // returning the original promise so the upload operation observes it.
+    void defaultAlt.catch(() => undefined);
     let alt: string | undefined;
     const fail = (error: Error) => {
       rejectAlt(error);
@@ -30,7 +34,10 @@ export function parseMediaUpload(request: Request, maxUploadBytes: number): Prom
     try {
       parser = Busboy({
         headers: request.headers,
-        limits: { files: 1, fields: 1, parts: 2, fileSize: maxUploadBytes },
+        // Busboy emits `partsLimit` when the configured count is reached,
+        // not only when it is exceeded. The valid payload has exactly two
+        // parts (file + defaultAlt), so three is the first invalid count.
+        limits: { files: 1, fields: 1, parts: 3, fileSize: maxUploadBytes },
       });
     } catch {
       fail(new Error('MEDIA_INVALID_MULTIPART'));

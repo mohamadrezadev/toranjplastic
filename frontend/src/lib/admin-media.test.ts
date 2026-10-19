@@ -38,9 +38,10 @@ describe('admin media server client', () => {
     const form = new FormData();
     form.set('defaultAlt', 'تصویر');
     form.set('file', new Blob(['image'], { type: 'image/webp' }), 'image.webp');
+    form.set('$ACTION_ID_internal', 'must-not-be-forwarded');
     await uploadMedia(form);
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit & { headers: Record<string, string> }];
-    expect(init.body).toBe(form);
+    expect(Array.from((init.body as FormData).keys()).sort()).toEqual(['defaultAlt', 'file']);
     expect(init.headers['x-csrf-token']).toBe('csrf-token');
     expect(init.headers['content-type']).toBeUndefined();
   });

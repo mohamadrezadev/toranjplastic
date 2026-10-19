@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { AdminSubmitButton } from '@/components/admin/AdminSubmitButton';
 import { Button, Input, Select } from '@/components/ui';
 import { deleteMediaAction, listMedia, uploadMediaAction, type MediaAssetStatus } from '@/features/admin-media';
 import styles from '../Admin.module.css';
@@ -45,7 +46,9 @@ export default async function AdminMediaPage({ searchParams }: {
               <legend>بارگذاری تصویر</legend>
               <Input label="فایل JPEG، PNG یا WebP" name="file" type="file" accept="image/jpeg,image/png,image/webp" required />
               <Input label="متن جایگزین پیش‌فرض" name="defaultAlt" required maxLength={300} />
-              <div className={styles.formActions}><Button type="submit">بارگذاری</Button></div>
+              <div className={styles.formActions}>
+                <AdminSubmitButton pendingText="در حال بارگذاری و پردازش…">بارگذاری</AdminSubmitButton>
+              </div>
             </fieldset>
           </form>
 

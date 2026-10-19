@@ -105,6 +105,19 @@ describe("loginAction and logoutAction", () => {
     );
   });
 
+  it("does not let a next path route an account into the wrong portal", async () => {
+    loginAccountMock
+      .mockResolvedValueOnce(new Response(JSON.stringify({ role: "ADMIN" }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ role: "CUSTOMER" }), { status: 200 }));
+
+    await expect(loginAction(loginForm("/account"))).rejects.toThrow(
+      "REDIRECT:/admin",
+    );
+    await expect(loginAction(loginForm("/admin/staff"))).rejects.toThrow(
+      "REDIRECT:/account",
+    );
+  });
+
   it("logs out before redirecting to login", async () => {
     logoutAccountMock.mockResolvedValue(true);
     await expect(logoutAction()).rejects.toThrow("REDIRECT:/auth/login");

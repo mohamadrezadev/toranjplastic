@@ -14,6 +14,8 @@ describe("UI primitives", () => {
 
     rerender(<Button onClick={onClick} isLoading loadingText="در حال ثبت">ثبت درخواست</Button>);
     expect(screen.getByRole("button", { name: "در حال ثبت" })).toBeDisabled();
+    expect(screen.getByRole("button")).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByRole("status")).toHaveTextContent("در حال ثبت");
     await user.click(screen.getByRole("button"));
     expect(onClick).toHaveBeenCalledTimes(1);
   });

@@ -32,7 +32,7 @@ export function Button({
       <span className={isLoading ? styles.contentHidden : undefined} aria-hidden={isLoading || undefined}>
         {children}
       </span>
-      {isLoading ? <span className={styles.loadingLabel}>{loadingText}</span> : null}
+      {isLoading ? <span className={styles.loadingLabel} role="status" aria-live="polite">{loadingText}</span> : null}
     </button>
   );
 }

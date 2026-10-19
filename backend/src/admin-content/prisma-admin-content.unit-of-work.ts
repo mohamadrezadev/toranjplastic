@@ -18,6 +18,7 @@ import { PrismaContentMediaTransaction } from './content-media.transaction.js';
 @Injectable()
 export class PrismaAdminContentUnitOfWork implements AdminContentUnitOfWork {
   constructor(
+    @Inject(PrismaService)
     private readonly prisma: PrismaService,
     @Inject(MEDIA_CONFIG)
     private readonly mediaConfig: Pick<AppEnvironment['media'], 'publicOrigin'>,
