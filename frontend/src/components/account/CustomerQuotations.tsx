@@ -2,13 +2,10 @@ import {
   customerQuotationPdfUrl,
   type CustomerQuotation,
 } from "@/lib/customer-quotations";
+import { formatQuotationDate } from "@/lib/quotation-date";
 import styles from "./CustomerQuotations.module.css";
 const money = (value: string) =>
   `${new Intl.NumberFormat("fa-IR").format(BigInt(value))} ریال`;
-const date = (value: string) =>
-  new Intl.DateTimeFormat("fa-IR", { dateStyle: "medium" }).format(
-    new Date(value),
-  );
 export function CustomerQuotations({
   inquiryId,
   quotations,
@@ -47,7 +44,7 @@ export function CustomerQuotations({
                   {quotation.status === "SENT"
                     ? "نسخه جاری"
                     : "نسخه جایگزین‌شده"}{" "}
-                  · اعتبار تا {date(quotation.validUntil)}
+                  · اعتبار تا {formatQuotationDate(quotation.validUntil)}
                 </p>
                 <div className={styles.items}>
                   {quotation.items.map((item) => (

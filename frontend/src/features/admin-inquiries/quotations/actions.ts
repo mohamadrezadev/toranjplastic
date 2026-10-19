@@ -1,5 +1,6 @@
 "use server";
 import { redirect } from "next/navigation";
+import { quotationTehranLocalToIso } from "@/lib/quotation-date";
 import {
   createQuotationDraft,
   QuotationApiError,
@@ -52,7 +53,7 @@ function input(form: FormData): QuotationDraftInput {
     taxRials: tax.toString(),
     additionalCostRials: additional.toString(),
     totalRials: (subtotal - discount + tax + additional).toString(),
-    validUntil: value(form, "validUntil"),
+    validUntil: quotationTehranLocalToIso(value(form, "validUntil")),
     deliveryTerms: value(form, "deliveryTerms"),
     paymentTerms: value(form, "paymentTerms"),
     notes: value(form, "notes") || undefined,
@@ -66,14 +67,16 @@ export async function saveQuotationDraftAction(
   form: FormData,
 ) {
   try {
-    quotationId
-      ? await updateQuotationDraft(
-          inquiryId,
-          quotationId,
-          input(form),
-          Number(value(form, "expectedVersion")),
-        )
-      : await createQuotationDraft(inquiryId, input(form));
+    if (quotationId) {
+      await updateQuotationDraft(
+        inquiryId,
+        quotationId,
+        input(form),
+        Number(value(form, "expectedVersion")),
+      );
+    } else {
+      await createQuotationDraft(inquiryId, input(form));
+    }
   } catch (error) {
     redirect(failure(inquiryId, error));
   }

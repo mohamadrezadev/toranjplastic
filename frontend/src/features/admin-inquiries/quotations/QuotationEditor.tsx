@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
+import { quotationIsoToTehranLocal } from "@/lib/quotation-date";
 import type { Quotation, QuotationItem } from "./types";
 import styles from "./Quotation.module.css";
 type FormAction = (formData: FormData) => void | Promise<void>;
@@ -224,9 +225,16 @@ export function QuotationEditor({
           <input
             type="datetime-local"
             name="validUntil"
-            defaultValue={draft?.validUntil.slice(0, 16) ?? ""}
+            defaultValue={
+              draft ? quotationIsoToTehranLocal(draft.validUntil) : ""
+            }
+            aria-describedby="quotation-valid-until-hint"
+            dir="ltr"
             required
           />
+          <span id="quotation-valid-until-hint" className={styles.fieldHint}>
+            تاریخ و ساعت براساس منطقه زمانی ایران ثبت می‌شود.
+          </span>
         </label>
         <label>
           شرایط تحویل

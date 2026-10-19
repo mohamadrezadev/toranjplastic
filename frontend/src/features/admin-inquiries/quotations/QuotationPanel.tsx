@@ -1,4 +1,5 @@
 import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
+import { formatQuotationDate } from "@/lib/quotation-date";
 import {
   reviseQuotationAction,
   saveQuotationDraftAction,
@@ -8,10 +9,6 @@ import { adminQuotationPdfUrl } from "./api";
 import { QuotationEditor } from "./QuotationEditor";
 import type { Quotation } from "./types";
 import styles from "./Quotation.module.css";
-const date = (value: string) =>
-  new Intl.DateTimeFormat("fa-IR", { dateStyle: "medium" }).format(
-    new Date(value),
-  );
 const money = (value: string) =>
   `${new Intl.NumberFormat("fa-IR").format(BigInt(value))} ریال`;
 export function QuotationPanel({
@@ -55,7 +52,7 @@ export function QuotationPanel({
               </div>
               <div>
                 <b dir="ltr">{money(quotation.totalRials)}</b>
-                <small>اعتبار تا {date(quotation.validUntil)}</small>
+                <small>اعتبار تا {formatQuotationDate(quotation.validUntil)}</small>
               </div>
               <a
                 href={adminQuotationPdfUrl(inquiryId, quotation.id)}
