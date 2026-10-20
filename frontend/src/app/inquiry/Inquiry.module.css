@@ -29,7 +29,7 @@
 .stepList li[data-state="current"] { color: var(--color-brand-primary); font-weight: var(--font-weight-bold); }
 .stepList li[data-state="complete"] { color: var(--color-brand-action); }
 .stepDot { width: 1.65rem; height: 1.65rem; flex: 0 0 auto; display: grid; place-items: center; border: 1px solid var(--color-border-default); border-radius: 50%; background: var(--color-surface-raised); font-family: var(--font-family-latin); font-size: .68rem; }
-.stepList li[data-state="current"] .stepDot { color: #fff; border-color: var(--color-brand-action); background: var(--color-brand-action); box-shadow: 0 0 0 .25rem var(--color-brand-action-soft); }
+.stepList li[data-state="current"] .stepDot { color: var(--color-on-action); border-color: var(--color-brand-action); background: var(--color-brand-action); box-shadow: 0 0 0 .25rem var(--color-brand-action-soft); }
 .stepList li[data-state="complete"] .stepDot { border-color: color-mix(in srgb, var(--color-brand-action) 38%, var(--color-border-default)); background: var(--color-brand-action-soft); }
 .stepLabel { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .progressTrack { height: .25rem; overflow: hidden; border-radius: 999px; background: var(--color-surface-subtle); }

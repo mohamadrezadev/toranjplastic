@@ -19,7 +19,9 @@ describe("design-system boundaries", () => {
     for (const token of ["--control-min-height", "--focus-ring", "--motion-normal", "--shadow-md", "--content-gutter"]) {
       expect(tokens).toContain(token);
     }
-    expect(tokens).toContain('--font-family-fa: "Estedad Variable"');
+    expect(tokens).toContain('--font-family-fa: "Vazirmatn Variable"');
+    expect(tokens).toContain("--color-on-action:");
+    expect(tokens).toContain("--color-on-danger:");
     expect(tokens).toContain("--color-brand-action:");
     expect(tokens).toContain("--color-status-warning:");
     expect(tokens).toContain("--color-brand-industrial:");
@@ -28,7 +30,7 @@ describe("design-system boundaries", () => {
     expect(rootLayout).toContain("themeBootstrapScript");
     expect(rootLayout).toContain('strategy="beforeInteractive"');
     expect(rootLayout).toContain("suppressHydrationWarning");
-    expect(rootLayout).toContain('import "@fontsource-variable/estedad"');
+    expect(rootLayout).toContain('import "@fontsource-variable/vazirmatn"');
     expect(rootLayout).not.toMatch(/fonts\.googleapis|next\/font\/google/);
     expect(globals).toContain("prefers-reduced-motion");
     expect(globals).toContain("unicode-bidi: isolate");

@@ -8,10 +8,11 @@
 .campaignAction:hover { box-shadow: inset 0 0 0 3px rgb(255 255 255 / 65%); }
 .campaignAction:focus-visible { outline: .28rem solid var(--color-brand-action); outline-offset: .22rem; }
 .productAction { width: 16.1%; inset-inline-start: 6%; }
+.campaignFrame .productAction { color: var(--color-on-action); }
 .inquiryAction { width: 13.2%; inset-inline-start: 23.2%; }
-.eyebrow { display: inline-flex; align-items: center; gap: .75rem; color: #dbad95; font-size: .78rem; font-weight: 700; letter-spacing: .06em; }
-.closingAction { min-height: 3.4rem; padding-inline: 1.5rem; display: inline-flex; align-items: center; justify-content: center; gap: 2.5rem; color: #1c2c25; background: #ee9b73; border-radius: .35rem; font-weight: 700; transition: transform .2s, background-color .2s; }
-.closingAction:hover { transform: translateY(-2px); background: #ffc29e; }
+.eyebrow { display: inline-flex; align-items: center; gap: .75rem; color: var(--color-hero-muted); font-size: .78rem; font-weight: 700; letter-spacing: .06em; }
+.closingAction { min-height: 3.4rem; padding-inline: 1.5rem; display: inline-flex; align-items: center; justify-content: center; gap: 2.5rem; color: var(--color-on-action); background: var(--color-brand-action); border-radius: .35rem; font-weight: 700; transition: transform .2s, background-color .2s; }
+.closingAction:hover { transform: translateY(-2px); background: var(--color-brand-action-hover); }
 .intro { padding-block: clamp(4rem, 8vw, 7rem) 2.5rem; display: grid; grid-template-columns: 1.25fr .75fr; align-items: end; gap: 2rem; }
 .sectionNumber { color: var(--color-brand-action); font: 700 .78rem/1.5 var(--font-family-fa); }
 .intro h2 { max-width: 17ch; margin-block-start: 1rem; color: var(--color-brand-primary); font-size: clamp(2rem, 3.8vw, 3.7rem); line-height: 1.35; letter-spacing: -.045em; }

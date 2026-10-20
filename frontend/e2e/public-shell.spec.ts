@@ -23,8 +23,8 @@ test("public shell is responsive without horizontal overflow", async ({ page }, 
   await expect(page.getByRole("heading", { name: "محصولات و خدمات ترنج پلاستیک" })).toBeVisible();
   await expect(page.locator('a[href="/account"]').first()).toHaveAttribute("href", "/account");
   const bodyFont = await page.locator("body").evaluate((element) => getComputedStyle(element).fontFamily);
-  expect(bodyFont).toContain("Estedad Variable");
-  expect(await page.evaluate(() => document.fonts.check('16px "Estedad Variable"'))).toBe(true);
+  expect(bodyFont).toContain("Vazirmatn Variable");
+  expect(await page.evaluate(() => document.fonts.check('16px "Vazirmatn Variable"'))).toBe(true);
   await page.screenshot({ path: testInfo.outputPath("public-home.png"), fullPage: true });
 
   await page.goto("/products");

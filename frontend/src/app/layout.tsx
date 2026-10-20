@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import "@fontsource-variable/estedad";
+import "@fontsource-variable/vazirmatn";
 import "@fontsource/poppins/700.css";
 import "@fontsource/poppins/800.css";
 import { themeBootstrapScript } from "@/design-system/theme";

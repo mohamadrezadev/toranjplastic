@@ -13,5 +13,5 @@
 .empty { min-height: 18rem; padding: clamp(2rem, 5vw, 4rem); display: grid; align-content: center; justify-items: start; gap: 1rem; background: var(--color-surface-subtle); border: 1px solid var(--color-border-default); border-radius: .4rem; }
 .empty h2 { color: var(--color-brand-primary); font-size: clamp(1.6rem, 3vw, 2.4rem); letter-spacing: -.04em; }
 .empty p { max-width: 42rem; color: var(--color-text-secondary); }
-.action { min-height: var(--control-min-height); margin-block-start: .5rem; padding-inline: var(--control-padding-inline); display: inline-flex; align-items: center; color: #fff8f0; background: var(--color-brand-action); border-radius: var(--radius-sm); font-weight: var(--font-weight-bold); }
+.action { min-height: var(--control-min-height); margin-block-start: .5rem; padding-inline: var(--control-padding-inline); display: inline-flex; align-items: center; color: var(--color-on-action); background: var(--color-brand-action); border-radius: var(--radius-sm); font-weight: var(--font-weight-bold); }
 @keyframes spin { to { transform: rotate(360deg); } }

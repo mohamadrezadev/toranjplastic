@@ -10,11 +10,11 @@
 .actions { display: flex; align-items: center; gap: .5rem; }
 .action { min-height: var(--control-min-height); padding-inline: 1rem; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--color-border-default); border-radius: var(--radius-sm); font-size: .88rem; font-weight: 700; white-space: nowrap; }
 .action:hover { border-color: var(--color-border-strong); background: var(--color-surface-raised); }
-.actionPrimary { color: #fff8f0; background: var(--color-brand-action); border-color: var(--color-brand-action); }
-.actionPrimary:hover { color: #fff8f0; background: var(--color-brand-action-hover); border-color: var(--color-brand-action-hover); }
+.actionPrimary { color: var(--color-on-action); background: var(--color-brand-action); border-color: var(--color-brand-action); }
+.actionPrimary:hover { color: var(--color-on-action); background: var(--color-brand-action-hover); border-color: var(--color-brand-action-hover); }
 .mobileRoot { display: none; margin-inline-start: auto; }
 .menuTrigger, .closeButton { width: var(--control-min-height); height: var(--control-min-height); display: grid; place-items: center; color: var(--color-brand-primary); background: var(--color-surface-card); border: 1px solid var(--color-border-default); border-radius: var(--radius-sm); cursor: pointer; }
-.backdrop { position: fixed; inset: 0; z-index: 30; background: rgb(8 23 16 / 67%); }
+.backdrop { position: fixed; inset: 0; z-index: 30; background: rgb(5 13 15 / 67%); }
 .drawer { width: min(23rem, calc(100vw - 1rem)); height: 100dvh; padding: var(--space-6); position: fixed; inset-block: 0; inset-inline-end: 0; z-index: 31; overflow-y: auto; color: var(--color-text-primary); background: var(--color-surface-card); box-shadow: var(--shadow-md); }
 .drawerHeader { padding-block-end: var(--space-4); display: flex; align-items: center; justify-content: space-between; border-block-end: 1px solid var(--color-border-default); color: var(--color-brand-primary); font-size: 1.3rem; }
 .drawerNav { margin-block: var(--space-6); }
@@ -27,7 +27,7 @@
 .footerBrand { color: var(--color-hero-ink); font-size: clamp(1.6rem, 3vw, 2.3rem); font-weight: 700; letter-spacing: -.04em; }
 .footerNote { max-width: 36rem; margin-block-start: 1rem; color: var(--color-hero-muted); font-size: .88rem; }
 .footerLinks { display: grid; grid-template-columns: repeat(2, auto); align-content: start; gap: .6rem 2.5rem; color: var(--color-hero-ink); font-size: .9rem; }
-.footerLinks a:hover { color: #ffb27a; }
+.footerLinks a:hover { color: var(--color-hero-link-hover); }
 .breadcrumb { padding-block: 1.3rem; }
 .breadcrumb ol { display: flex; flex-wrap: wrap; gap: var(--space-2); list-style: none; color: var(--color-text-secondary); font-size: var(--font-size-sm); }
 .breadcrumb li + li::before { content: "/"; margin-inline-end: var(--space-2); color: var(--color-border-strong); }

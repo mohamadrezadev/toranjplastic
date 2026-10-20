@@ -3,6 +3,7 @@ import { applyTheme, isTheme, readStoredTheme, resolveTheme, storeTheme, themeCo
 
 describe("theme preference foundation", () => {
   it("accepts only supported themes and resolves explicit choice before the system", () => {
+    expect(themeColors).toEqual({ light: "#f3f1ec", dark: "#0f1a1c" });
     expect(isTheme("light")).toBe(true);
     expect(isTheme("dark")).toBe(true);
     expect(isTheme("system")).toBe(false);

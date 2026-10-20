@@ -20,7 +20,7 @@
 .navCard h2 { font-size: 1.1rem; color: var(--color-brand-primary); }
 .navCard p { margin-block-start: .4rem; color: var(--color-text-secondary); font-size: .88rem; }
 .primaryNavCard { min-height: 11rem; border-color: color-mix(in srgb, var(--color-brand-action) 32%, var(--color-border-default)); background: linear-gradient(135deg, var(--color-surface-card), var(--color-brand-action-soft)); }
-.cardMarker { width: 2.4rem; height: 2.4rem; margin-block-end: 1rem; display: grid; place-items: center; border-radius: .7rem; color: #fff; background: var(--color-brand-action); font-family: var(--font-family-latin); font-weight: 800; }
+.cardMarker { width: 2.4rem; height: 2.4rem; margin-block-end: 1rem; display: grid; place-items: center; border-radius: .7rem; color: var(--color-on-action); background: var(--color-brand-action); font-family: var(--font-family-latin); font-weight: 800; }
 
 .toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; }
 .toolbar form { display: flex; align-items: end; gap: .75rem; }
@@ -56,7 +56,7 @@
 
 .backLink { color: var(--color-brand-action); font-weight: 600; text-decoration: underline; text-underline-offset: .2em; }
 
-.linkButton { display: inline-flex; align-items: center; padding: .6rem 1.1rem; border-radius: var(--radius-md); color: #fff; font-size: .9rem; font-weight: 700; background: var(--color-brand-action); }
+.linkButton { display: inline-flex; align-items: center; padding: .6rem 1.1rem; border-radius: var(--radius-md); color: var(--color-on-action); font-size: .9rem; font-weight: 700; background: var(--color-brand-action); }
 .linkButton:hover { background: var(--color-brand-action-hover); }
 
 @media (max-width: 40rem) {

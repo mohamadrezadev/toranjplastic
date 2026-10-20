@@ -1,1 +1,18 @@
-.panel{background:var(--surface,#fff);border:1px solid var(--border,#d8dee8);border-radius:1rem;padding:clamp(1rem,3vw,1.5rem);display:grid;gap:1rem}.heading p{margin:0;color:var(--accent,#8b5e1a);font-size:.85rem}.heading h2{margin:.2rem 0}.list{display:grid;gap:.8rem}.card{border:1px solid var(--border,#d8dee8);border-radius:.75rem;overflow:hidden}.card summary{cursor:pointer;padding:1rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}.body{border-top:1px solid var(--border,#d8dee8);padding:1rem;display:grid;gap:.8rem}.status,.empty{margin:0;padding:.75rem;background:var(--surface-muted,#f4f6f8);border-radius:.6rem}.items{display:grid;gap:.5rem}.items>div,.body dl>div{display:flex;justify-content:space-between;gap:1rem;padding:.55rem 0;border-bottom:1px solid var(--border,#e2e6ec)}.body dl{margin:0}.body dt,.body dd{margin:0}.final{font-weight:800}.download{justify-self:start;border-radius:.55rem;padding:.65rem .9rem;background:#17384a;color:#fff;text-decoration:none}@media(max-width:520px){.card summary,.items>div,.body dl>div{display:grid}.download{width:100%;box-sizing:border-box;text-align:center}}
+.panel { padding: clamp(1rem, 3vw, 1.5rem); display: grid; gap: 1rem; border: 1px solid var(--border, #d8dee8); border-radius: 1rem; background: var(--surface, #fff); }
+.heading p { margin: 0; color: var(--accent, #8b5e1a); font-size: .85rem; }
+.heading h2 { margin: .2rem 0; }
+.list { display: grid; gap: .8rem; }
+.card { overflow: hidden; border: 1px solid var(--border, #d8dee8); border-radius: .75rem; }
+.card summary { padding: 1rem; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; cursor: pointer; }
+.body { padding: 1rem; display: grid; gap: .8rem; border-top: 1px solid var(--border, #d8dee8); }
+.status, .empty { margin: 0; padding: .75rem; border-radius: .6rem; background: var(--surface-muted, #f4f6f8); }
+.items { display: grid; gap: .5rem; }
+.items > div, .body dl > div { padding: .55rem 0; display: flex; justify-content: space-between; gap: 1rem; border-bottom: 1px solid var(--border, #e2e6ec); }
+.body dl, .body dt, .body dd { margin: 0; }
+.final { font-weight: 800; }
+.download { padding: .65rem .9rem; justify-self: start; color: var(--color-on-action); background: var(--color-brand-action); border-radius: .55rem; text-decoration: none; }
+
+@media (max-width: 520px) {
+  .card summary, .items > div, .body dl > div { display: grid; }
+  .download { width: 100%; box-sizing: border-box; text-align: center; }
+}
