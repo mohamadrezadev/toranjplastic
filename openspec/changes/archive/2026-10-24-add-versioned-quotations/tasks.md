@@ -14,12 +14,12 @@
 
 ## 3. Admin and customer UI
 
-- [ ] 3.1 Add admin quotation feature types/contracts/actions and a mobile-first draft editor with line items, totals, terms, revision and send confirmation.
-- [ ] 3.2 Add customer quotation cards, sent-version detail and private PDF download to owned inquiry detail.
-- [ ] 3.3 Cover Persian RTL loading/empty/error/validation/conflict/success/disabled/focus states at 360, 390, 768 and 1280 widths.
-- [ ] 3.4 Add component/E2E tests ensuring no automatic/public price or ecommerce controls are introduced.
+- [x] 3.1 Add admin quotation feature types/contracts/actions and a mobile-first draft editor with line items, totals, terms, revision and send confirmation.
+- [x] 3.2 Add customer quotation cards, sent-version detail and private PDF download to owned inquiry detail.
+- [x] 3.3 Cover Persian RTL loading/empty/error/validation/conflict/success/disabled/focus states at 360, 390, 768 and 1280 widths.
+- [x] 3.4 Add component/E2E tests ensuring no automatic/public price or ecommerce controls are introduced.
 
 ## 4. Verification
 
-- [ ] 4.1 Run Prisma validation/generation, architecture check, lint, typecheck, unit/integration/e2e tests and production builds.
-- [ ] 4.2 Record PDF visual smoke evidence, migration/rollback evidence and private cache/log review.
+- [x] 4.1 Run Prisma validation/generation, architecture check, lint, typecheck, unit/integration/e2e tests and production builds.
+- [x] 4.2 Record PDF visual smoke evidence, migration/rollback evidence and private cache/log review.
