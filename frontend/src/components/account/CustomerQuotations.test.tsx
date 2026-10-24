@@ -53,4 +53,92 @@ describe("CustomerQuotations", () => {
       screen.getByText(/به معنی قیمت، موجودی یا زمان تحویل قطعی نیست/),
     ).toBeInTheDocument();
   });
+
+  it("renders accept and reject actions when quotation is SENT and inquiry is QUOTED", () => {
+    const accept = () => {};
+    const reject = () => {};
+    render(
+      <CustomerQuotations
+        inquiryId="i1"
+        inquiryVersion={1}
+        inquiryStatus="QUOTED"
+        quotations={[quotation]}
+        acceptAction={accept}
+        rejectAction={reject}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "تأیید و پذیرش پیشنهاد قیمت" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("رد این پیشنهاد و درخواست اصلاح"),
+    ).toBeInTheDocument();
+  });
+
+  it("renders accepted notice when quotation is ACCEPTED", () => {
+    const acceptedQuotation = {
+      ...quotation,
+      status: "ACCEPTED" as const,
+      respondedAt: "2026-10-18T00:00:00.000Z",
+    };
+    render(
+      <CustomerQuotations
+        inquiryId="i1"
+        inquiryVersion={2}
+        inquiryStatus="ACCEPTED"
+        quotations={[acceptedQuotation]}
+      />,
+    );
+    expect(
+      screen.getByText(/این پیشنهاد قیمت در تاریخ .* توسط شما پذیرفته شد/),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "تأیید و پذیرش پیشنهاد قیمت" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders rejected notice and reason when quotation is REJECTED", () => {
+    const rejectedQuotation = {
+      ...quotation,
+      status: "REJECTED" as const,
+      respondedAt: "2026-10-18T00:00:00.000Z",
+      rejectionReason: "قیمت مد نظر کمتر بود",
+    };
+    render(
+      <CustomerQuotations
+        inquiryId="i1"
+        inquiryVersion={2}
+        inquiryStatus="UNDER_REVIEW"
+        quotations={[rejectedQuotation]}
+      />,
+    );
+    expect(
+      screen.getByText(/این پیشنهاد قیمت در تاریخ .* توسط شما رد شد/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("علت: قیمت مد نظر کمتر بود"),
+    ).toBeInTheDocument();
+  });
+
+  it("renders expired notice when validUntil is in the past", () => {
+    const expiredQuotation = {
+      ...quotation,
+      validUntil: "2020-01-01T00:00:00.000Z",
+    };
+    render(
+      <CustomerQuotations
+        inquiryId="i1"
+        inquiryVersion={1}
+        inquiryStatus="QUOTED"
+        quotations={[expiredQuotation]}
+        now={Date.parse("2026-10-18T00:00:00.000Z")}
+      />,
+    );
+    expect(
+      screen.getByText("مهلت اعتبار این پیشنهاد قیمت به پایان رسیده است."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "تأیید و پذیرش پیشنهاد قیمت" }),
+    ).not.toBeInTheDocument();
+  });
 });

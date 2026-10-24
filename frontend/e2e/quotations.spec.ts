@@ -112,7 +112,7 @@ test("customer sees only the private sent snapshot and PDF", async ({
       page.getByRole("heading", { name: "پیشنهادهای قیمت" }),
     ).toBeVisible();
     await expect(page.getByText("TRJ-Q-0001")).toBeVisible();
-    await expect(page.getByText("۲۶٬۹۰۰٬۰۰۰ ریال")).toBeVisible();
+    await expect(page.locator("summary").getByText("۲۶٬۹۰۰٬۰۰۰ ریال")).toBeVisible();
     await expect(page.getByText(/پنجاه درصد پیش‌پرداخت/)).toBeVisible();
     await expect(
       page.getByText(/سبد خرید|پرداخت آنلاین|موجودی زنده/),
@@ -138,4 +138,26 @@ test("customer sees only the private sent snapshot and PDF", async ({
   expect(response.headers()["content-type"]).toBe("application/pdf");
   expect(response.headers()["cache-control"]).toContain("no-store");
   expect((await response.body()).subarray(0, 4).toString()).toBe("%PDF");
+});
+
+test("customer can accept quotation and sees confirmation and status update", async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+  await signIn(page, "customer-fixture-session");
+  await page.context().addCookies([
+    {
+      name: "quotation_mode",
+      value: "quoted",
+      domain: "127.0.0.1",
+      path: "/",
+      sameSite: "Lax",
+    },
+  ]);
+  await page.goto("/account/inquiries/inquiry-1");
+  const acceptButton = page.getByRole("button", { name: "تأیید و پذیرش پیشنهاد قیمت" });
+  await expect(acceptButton).toBeVisible();
+  await acceptButton.click();
+  await expect(page).toHaveURL(/success=accepted/);
+  await expect(page.getByRole("status")).toContainText("پیشنهاد قیمت با موفقیت پذیرفته شد");
 });

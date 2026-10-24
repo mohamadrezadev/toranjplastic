@@ -15,7 +15,7 @@ export interface InquiryMessage {
 }
 
 export interface CustomerInquiry {
-  id: string; type: InquiryType; status: InquiryStatus; catalogItemName: string | null;
+  id: string; type: InquiryType; status: InquiryStatus; version?: number; catalogItemName: string | null;
   description: string | null; approximateQuantity: string | null; quantityUnit: string | null;
   deliveryCity: string | null; requestedTiming: string | null; partDescription: string | null;
   moldStatus: string | null; materialName: string | null; color: string | null;

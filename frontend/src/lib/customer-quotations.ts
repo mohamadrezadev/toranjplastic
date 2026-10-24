@@ -14,7 +14,7 @@ export interface CustomerQuotation {
   inquiryId: string;
   quotationNumber: string;
   version: number;
-  status: "SENT" | "SUPERSEDED";
+  status: "SENT" | "SUPERSEDED" | "ACCEPTED" | "REJECTED";
   items: CustomerQuotationItem[];
   subtotalRials: string;
   discountRials: string;
@@ -26,6 +26,9 @@ export interface CustomerQuotation {
   paymentTerms: string;
   notes: string | null;
   sentAt: string;
+  respondedAt?: string | null;
+  rejectionReason?: string | null;
+  isExpired?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -49,7 +52,7 @@ const quotation = (value: unknown): value is CustomerQuotation =>
   typeof value.inquiryId === "string" &&
   typeof value.quotationNumber === "string" &&
   typeof value.version === "number" &&
-  (value.status === "SENT" || value.status === "SUPERSEDED") &&
+  ["SENT", "SUPERSEDED", "ACCEPTED", "REJECTED"].includes(String(value.status)) &&
   !("editVersion" in value) &&
   Array.isArray(value.items) &&
   value.items.every(item) &&
@@ -66,7 +69,21 @@ const quotation = (value: unknown): value is CustomerQuotation =>
     "createdAt",
     "updatedAt",
   ].every((key) => typeof value[key] === "string") &&
-  (value.notes === null || typeof value.notes === "string");
+  (value.notes === null || typeof value.notes === "string") &&
+  (value.respondedAt === undefined || value.respondedAt === null || typeof value.respondedAt === "string") &&
+  (value.rejectionReason === undefined || value.rejectionReason === null || typeof value.rejectionReason === "string");
+
+export class CustomerQuotationApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly code?: string,
+  ) {
+    super(message);
+    this.name = "CustomerQuotationApiError";
+  }
+}
+
 export async function listCustomerQuotations(
   inquiryId: string,
 ): Promise<CustomerQuotation[]> {
@@ -76,7 +93,81 @@ export async function listCustomerQuotations(
   );
   if (!response.ok) return [];
   const body: unknown = await response.json();
-  return Array.isArray(body) && body.every(quotation) ? body : [];
+  if (!Array.isArray(body) || !body.every(quotation)) return [];
+  const now = Date.now();
+  return body.map((item) => ({
+    ...item,
+    isExpired: new Date(item.validUntil).getTime() <= now,
+  }));
+}
+
+export async function acceptCustomerQuotation(
+  inquiryId: string,
+  quotationId: string,
+  quotationVersion: number,
+  inquiryExpectedVersion: number,
+): Promise<CustomerQuotation> {
+  const response = await fetch(
+    `${backend}/inquiries/${encodeURIComponent(inquiryId)}/quotations/${encodeURIComponent(quotationId)}/accept`,
+    {
+      method: "POST",
+      headers: {
+        ...(await protectedHeaders(true)),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ quotationVersion, inquiryExpectedVersion }),
+      cache: "no-store",
+    },
+  );
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null);
+    throw new CustomerQuotationApiError(
+      errorBody?.message ?? "خطا در پذیرش پیشنهاد قیمت.",
+      response.status,
+      errorBody?.code,
+    );
+  }
+  const body: unknown = await response.json();
+  if (!quotation(body)) throw new CustomerQuotationApiError("پاسخ نامعتبر از سرور.", 502);
+  return {
+    ...body,
+    isExpired: new Date(body.validUntil).getTime() <= Date.now(),
+  };
+}
+
+export async function rejectCustomerQuotation(
+  inquiryId: string,
+  quotationId: string,
+  quotationVersion: number,
+  inquiryExpectedVersion: number,
+  reason?: string,
+): Promise<CustomerQuotation> {
+  const response = await fetch(
+    `${backend}/inquiries/${encodeURIComponent(inquiryId)}/quotations/${encodeURIComponent(quotationId)}/reject`,
+    {
+      method: "POST",
+      headers: {
+        ...(await protectedHeaders(true)),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ quotationVersion, inquiryExpectedVersion, reason }),
+      cache: "no-store",
+    },
+  );
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null);
+    throw new CustomerQuotationApiError(
+      errorBody?.message ?? "خطا در رد پیشنهاد قیمت.",
+      response.status,
+      errorBody?.code,
+    );
+  }
+  const body: unknown = await response.json();
+  if (!quotation(body)) throw new CustomerQuotationApiError("پاسخ نامعتبر از سرور.", 502);
+  return {
+    ...body,
+    isExpired: new Date(body.validUntil).getTime() <= Date.now(),
+  };
 }
 export const customerQuotationPdfUrl = (
   inquiryId: string,

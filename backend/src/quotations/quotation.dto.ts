@@ -63,3 +63,14 @@ export class InquiryQuotationRouteDto {
 export class QuotationRouteDto extends InquiryQuotationRouteDto {
   @IsString() @MinLength(1) @MaxLength(64) quotationId: string;
 }
+
+export class AcceptQuotationDto {
+  @IsInt() @Min(1) quotationVersion: number;
+  @IsInt() @Min(0) inquiryExpectedVersion: number;
+}
+
+export class RejectQuotationDto {
+  @IsInt() @Min(1) quotationVersion: number;
+  @IsInt() @Min(0) inquiryExpectedVersion: number;
+  @IsOptional() @IsString() @MaxLength(2000) reason?: string;
+}

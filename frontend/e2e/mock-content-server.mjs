@@ -120,6 +120,7 @@ const collection = (items) => ({
   },
 });
 const lifecycle = {
+  contentVersion: 0,
   displayOrder: 0,
   status: "DRAFT",
   publishedAt: null,
@@ -291,17 +292,23 @@ const adminDraftQuotation = {
   editVersion: 0,
   status: "DRAFT",
   sentAt: null,
+  respondedAt: null,
+  rejectionReason: null,
 };
 const adminSentQuotation = {
   ...quotationSnapshot,
   editVersion: 1,
   status: "SENT",
   sentAt: publishedAt,
+  respondedAt: null,
+  rejectionReason: null,
 };
 const customerSentQuotation = {
   ...quotationSnapshot,
   status: "SENT",
   sentAt: publishedAt,
+  respondedAt: null,
+  rejectionReason: null,
 };
 
 const routes = new Map([
@@ -442,21 +449,67 @@ createServer((request, response) => {
     url.pathname === "/api/v1/inquiries/inquiry-1" &&
     request.method === "GET"
   ) {
+    const quotationMode = cookieValue(request, "quotation_mode");
+    let currentInquiry = inquiry;
+    if (quotationMode === "sent" || quotationMode === "quoted") {
+      currentInquiry = { ...inquiry, status: "QUOTED", version: 1 };
+    } else if (quotationMode === "accepted") {
+      currentInquiry = { ...inquiry, status: "ACCEPTED", version: 2 };
+    } else if (quotationMode === "rejected") {
+      currentInquiry = { ...inquiry, status: "UNDER_REVIEW", version: 2 };
+    }
     response.writeHead(200, {
       "Content-Type": "application/json; charset=utf-8",
       "Cache-Control": "no-store",
     });
-    return response.end(JSON.stringify(inquiry));
+    return response.end(JSON.stringify(currentInquiry));
   }
   if (
     url.pathname === "/api/v1/inquiries/inquiry-1/quotations" &&
     request.method === "GET"
   ) {
+    const mode = cookieValue(request, "quotation_mode");
+    let current = customerSentQuotation;
+    if (mode === "accepted") {
+      current = { ...customerSentQuotation, status: "ACCEPTED", respondedAt: publishedAt };
+    } else if (mode === "rejected") {
+      current = { ...customerSentQuotation, status: "REJECTED", respondedAt: publishedAt, rejectionReason: "قیمت بالا است" };
+    }
     response.writeHead(200, {
       "Content-Type": "application/json; charset=utf-8",
       "Cache-Control": "no-store, private",
     });
-    return response.end(JSON.stringify([customerSentQuotation]));
+    return response.end(JSON.stringify([current]));
+  }
+  if (
+    url.pathname === "/api/v1/inquiries/inquiry-1/quotations/quotation-1/accept" &&
+    request.method === "POST"
+  ) {
+    const csrfCookie = cookieValue(request, "toranj_csrf") === "fixture-csrf";
+    if (!csrfCookie || request.headers["x-csrf-token"] !== "fixture-csrf") {
+      response.writeHead(403, { "Content-Type": "application/json; charset=utf-8" });
+      return response.end(JSON.stringify({ code: "CSRF_FORBIDDEN", message: "توکن CSRF نامعتبر است." }));
+    }
+    response.writeHead(200, {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store, private",
+    });
+    return response.end(JSON.stringify({ ...customerSentQuotation, status: "ACCEPTED", respondedAt: publishedAt }));
+  }
+  if (
+    url.pathname === "/api/v1/inquiries/inquiry-1/quotations/quotation-1/reject" &&
+    request.method === "POST"
+  ) {
+    const csrfCookie = cookieValue(request, "toranj_csrf") === "fixture-csrf";
+    if (!csrfCookie || request.headers["x-csrf-token"] !== "fixture-csrf") {
+      response.writeHead(403, { "Content-Type": "application/json; charset=utf-8" });
+      return response.end(JSON.stringify({ code: "CSRF_FORBIDDEN", message: "توکن CSRF نامعتبر است." }));
+    }
+    response.writeHead(200, {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store, private",
+    });
+    return response.end(JSON.stringify({ ...customerSentQuotation, status: "REJECTED", respondedAt: publishedAt, rejectionReason: "قیمت بالا است" }));
   }
   if (
     url.pathname === "/api/v1/inquiries/inquiry-1/quotations/quotation-1/pdf" &&

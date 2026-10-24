@@ -1,4 +1,9 @@
-export type QuotationStatusDto = 'DRAFT' | 'SENT' | 'SUPERSEDED';
+export type QuotationStatusDto =
+  | 'DRAFT'
+  | 'SENT'
+  | 'SUPERSEDED'
+  | 'ACCEPTED'
+  | 'REJECTED';
 
 export interface QuotationItemDto {
   id: string;
@@ -28,6 +33,8 @@ export interface QuotationDto {
   paymentTerms: string;
   notes: string | null;
   sentAt: string | null;
+  respondedAt: string | null;
+  rejectionReason: string | null;
   createdAt: string;
   updatedAt: string;
 }

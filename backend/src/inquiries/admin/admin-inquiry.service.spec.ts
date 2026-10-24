@@ -22,6 +22,8 @@ describe('admin inquiry transition policy', () => {
     expect(allowedInquiryTransitions('PRODUCT', 'SUBMITTED')).toEqual(['UNDER_REVIEW', 'REJECTED']);
     expect(allowedInquiryTransitions('PRODUCT', 'UNDER_REVIEW')).toEqual(['REJECTED']);
     expect(allowedInquiryTransitions('GENERAL_CONTACT', 'UNDER_REVIEW')).toEqual(['COMPLETED', 'REJECTED']);
+    expect(allowedInquiryTransitions('PRODUCT', 'ACCEPTED')).toEqual(['IN_PROGRESS']);
+    expect(allowedInquiryTransitions('PRODUCT', 'IN_PROGRESS')).toEqual(['COMPLETED']);
     expect(allowedInquiryTransitions('PRODUCT', 'REJECTED')).toEqual([]);
   });
 });

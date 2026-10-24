@@ -4,7 +4,11 @@ import { CustomerSubmitButton } from "@/components/account/CustomerSubmitButton"
 import { CustomerQuotations } from "@/components/account/CustomerQuotations";
 import { getInquiry, InquiryApiError } from "@/lib/inquiries";
 import { listCustomerQuotations } from "@/lib/customer-quotations";
-import { addCustomerInquiryMessageAction } from "./actions";
+import {
+  acceptCustomerQuotationAction,
+  addCustomerInquiryMessageAction,
+  rejectCustomerQuotationAction,
+} from "./actions";
 import styles from "../../Portal.module.css";
 
 const labels: Record<string, string> = {
@@ -37,7 +41,12 @@ export default async function InquiryDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ created?: string; success?: string; error?: string }>;
+  searchParams: Promise<{
+    created?: string;
+    success?: string;
+    error?: string;
+    conflict?: string;
+  }>;
 }) {
   const { id } = await params;
   let item;
@@ -75,7 +84,32 @@ export default async function InquiryDetailPage({
           پیام شما برای کارشناس ثبت شد.
         </p>
       ) : null}
-      {state.error ? (
+      {state.success === "accepted" ? (
+        <p role="status" className={styles.success}>
+          پیشنهاد قیمت با موفقیت پذیرفته شد و سفارش در مرحله انجام قرار گرفت.
+        </p>
+      ) : null}
+      {state.success === "rejected" ? (
+        <p role="status" className={styles.success}>
+          پیشنهاد قیمت رد شد و درخواست برای بررسی و اصلاح به کارشناس بازگردانده شد.
+        </p>
+      ) : null}
+      {state.conflict === "quotation" ? (
+        <p role="alert" className={styles.error}>
+          نسخه پیشنهاد قیمت یا وضعیت درخواست تغییر کرده یا منقضی شده است. صفحه را تازه‌سازی کنید و آخرین وضعیت را بررسی فرمایید.
+        </p>
+      ) : null}
+      {state.error === "accept" ? (
+        <p role="alert" className={styles.error}>
+          پذیرش پیشنهاد قیمت انجام نشد. صفحه را تازه‌سازی و دوباره تلاش کنید.
+        </p>
+      ) : null}
+      {state.error === "reject" ? (
+        <p role="alert" className={styles.error}>
+          رد پیشنهاد قیمت انجام نشد. صفحه را تازه‌سازی و دوباره تلاش کنید.
+        </p>
+      ) : null}
+      {state.error && state.error !== "accept" && state.error !== "reject" ? (
         <p role="alert" className={styles.error}>
           ارسال پیام انجام نشد. صفحه را تازه‌سازی و دوباره تلاش کنید.
         </p>
@@ -119,7 +153,14 @@ export default async function InquiryDetailPage({
         )}
       </section>
 
-      <CustomerQuotations inquiryId={item.id} quotations={quotations} />
+      <CustomerQuotations
+        inquiryId={item.id}
+        inquiryVersion={item.version ?? 0}
+        inquiryStatus={item.status}
+        quotations={quotations}
+        acceptAction={acceptCustomerQuotationAction}
+        rejectAction={rejectCustomerQuotationAction}
+      />
 
       <section className={styles.panel} aria-labelledby="conversation-title">
         <h2 className={styles.sectionTitle} id="conversation-title">

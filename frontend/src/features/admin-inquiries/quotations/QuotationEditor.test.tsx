@@ -22,6 +22,8 @@ const draft: Quotation = {
   paymentTerms: "پرداخت توافقی",
   notes: null,
   sentAt: null,
+  respondedAt: null,
+  rejectionReason: null,
   createdAt: "2026-10-19T08:00:00.000Z",
   updatedAt: "2026-10-19T08:00:00.000Z",
 };

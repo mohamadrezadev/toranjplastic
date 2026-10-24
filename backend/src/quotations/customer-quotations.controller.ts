@@ -1,18 +1,22 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
+  Post,
   Req,
   Res,
   StreamableFile,
   UseGuards,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { AuthGuard } from '../identity/auth.guard.js';
+import { AuthGuard, CsrfGuard } from '../identity/auth.guard.js';
 import type { AuthenticatedRequest } from '../identity/identity.types.js';
 import {
+  AcceptQuotationDto,
   InquiryQuotationRouteDto,
   QuotationRouteDto,
+  RejectQuotationDto,
 } from './quotation.dto.js';
 import { QuotationPdfService } from './quotation-pdf.service.js';
 import { QuotationsService } from './quotations.service.js';
@@ -45,6 +49,39 @@ export class CustomerQuotationsController {
       this.ownerId(request),
       inquiryId,
       quotationId,
+    );
+  }
+
+  @Post(':quotationId/accept')
+  @UseGuards(CsrfGuard)
+  accept(
+    @Param() { inquiryId, quotationId }: QuotationRouteDto,
+    @Body() dto: AcceptQuotationDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.quotations.customerAccept(
+      inquiryId,
+      quotationId,
+      dto.quotationVersion,
+      dto.inquiryExpectedVersion,
+      this.ownerId(request),
+    );
+  }
+
+  @Post(':quotationId/reject')
+  @UseGuards(CsrfGuard)
+  reject(
+    @Param() { inquiryId, quotationId }: QuotationRouteDto,
+    @Body() dto: RejectQuotationDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.quotations.customerReject(
+      inquiryId,
+      quotationId,
+      dto.quotationVersion,
+      dto.inquiryExpectedVersion,
+      dto.reason,
+      this.ownerId(request),
     );
   }
 

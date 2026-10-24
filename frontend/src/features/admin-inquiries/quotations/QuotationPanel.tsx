@@ -11,6 +11,21 @@ import type { Quotation } from "./types";
 import styles from "./Quotation.module.css";
 const money = (value: string) =>
   `${new Intl.NumberFormat("fa-IR").format(BigInt(value))} ریال`;
+
+const statusLabel = (status: Quotation["status"]) => {
+  switch (status) {
+    case "SENT":
+      return "جاری";
+    case "ACCEPTED":
+      return "پذیرفته‌شده توسط مشتری";
+    case "REJECTED":
+      return "ردشده توسط مشتری";
+    case "SUPERSEDED":
+    default:
+      return "جایگزین‌شده";
+  }
+};
+
 export function QuotationPanel({
   inquiryId,
   inquiryVersion,
@@ -22,6 +37,9 @@ export function QuotationPanel({
 }) {
   const draft = quotations.find((item) => item.status === "DRAFT");
   const currentSent = quotations.find((item) => item.status === "SENT");
+  const latestActionable = quotations.find(
+    (item) => item.status === "SENT" || item.status === "REJECTED",
+  );
   const visible = quotations.filter((item) => item.status !== "DRAFT");
   const save = saveQuotationDraftAction.bind(
     null,
@@ -47,8 +65,14 @@ export function QuotationPanel({
                 <strong>{quotation.quotationNumber}</strong>
                 <span>
                   نسخه {quotation.version.toLocaleString("fa-IR")} ·{" "}
-                  {quotation.status === "SENT" ? "جاری" : "جایگزین‌شده"}
+                  {statusLabel(quotation.status)}
                 </span>
+                {quotation.respondedAt ? (
+                  <small style={{ display: "block", marginTop: "0.25rem", color: "var(--color-ink-muted)" }}>
+                    پاسخ در {formatQuotationDate(quotation.respondedAt)}
+                    {quotation.rejectionReason ? ` (علت: ${quotation.rejectionReason})` : ""}
+                  </small>
+                ) : null}
               </div>
               <div>
                 <b dir="ltr">{money(quotation.totalRials)}</b>
@@ -97,18 +121,18 @@ export function QuotationPanel({
             </AdminSubmitButton>
           </form>
         </>
-      ) : currentSent ? (
+      ) : latestActionable ? (
         <form
-          action={reviseQuotationAction.bind(null, inquiryId, currentSent.id)}
+          action={reviseQuotationAction.bind(null, inquiryId, latestActionable.id)}
           className={styles.revisionBox}
         >
           <input
             type="hidden"
             name="expectedVersion"
-            value={currentSent.editVersion}
+            value={latestActionable.editVersion}
           />
           <p>
-            برای اصلاح سند ارسال‌شده، نسخه جدیدی از snapshot فعلی ساخته می‌شود.
+            برای اصلاح سند {latestActionable.status === "REJECTED" ? "ردشده" : "ارسال‌شده"}، نسخه جدیدی از snapshot فعلی ساخته می‌شود.
           </p>
           <AdminSubmitButton pendingText="در حال ساخت…">
             ایجاد نسخه اصلاحی

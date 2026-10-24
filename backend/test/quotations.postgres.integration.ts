@@ -107,7 +107,9 @@ describe('quotation PostgreSQL concurrency, ownership, and atomicity', () => {
     await prisma.securityAuditEvent.deleteMany({
       where: { userId: { in: [customerId, foreignCustomerId, salesId] } },
     });
-    await prisma.inquiry.deleteMany({ where: { id: inquiryId } });
+    await prisma.inquiry.deleteMany({
+      where: { ownerId: { in: [customerId, foreignCustomerId] } },
+    });
     await prisma.user.deleteMany({
       where: { id: { in: [customerId, foreignCustomerId, salesId] } },
     });
@@ -249,5 +251,154 @@ describe('quotation PostgreSQL concurrency, ownership, and atomicity', () => {
       [2, 'SENT'],
       [1, 'SUPERSEDED'],
     ]);
+  });
+
+  it('rejects foreign customer response, stale versions, and expired quotes', async () => {
+    await expect(
+      service.customerAccept(inquiryId, revisionId, 2, 2, foreignCustomerId),
+    ).rejects.toMatchObject({ status: 404 });
+
+    await expect(
+      service.customerAccept(inquiryId, revisionId, 1, 2, customerId),
+    ).rejects.toMatchObject({
+      response: expect.objectContaining({ code: 'QUOTATION_VERSION_CONFLICT' }),
+    });
+
+    await expect(
+      service.customerAccept(inquiryId, revisionId, 2, 0, customerId),
+    ).rejects.toMatchObject({
+      response: expect.objectContaining({ code: 'INQUIRY_VERSION_CONFLICT' }),
+    });
+
+    await expect(
+      service.customerAccept(inquiryId, firstQuotationId, 1, 2, customerId),
+    ).rejects.toMatchObject({
+      response: expect.objectContaining({ code: 'QUOTATION_NOT_ELIGIBLE' }),
+    });
+
+    await prisma.quotation.update({
+      where: { id: revisionId },
+      data: { validUntil: new Date(Date.now() - 1000) },
+    });
+    await expect(
+      service.customerAccept(inquiryId, revisionId, 2, 2, customerId),
+    ).rejects.toMatchObject({
+      response: expect.objectContaining({ code: 'QUOTATION_EXPIRED' }),
+    });
+    // restore validity
+    await prisma.quotation.update({
+      where: { id: revisionId },
+      data: { validUntil: new Date(Date.now() + 86_400_000) },
+    });
+  });
+
+  it('atomically accepts quotation, transitions inquiry to ACCEPTED, and supports idempotent replay', async () => {
+    const accepted = await service.customerAccept(
+      inquiryId,
+      revisionId,
+      2,
+      2,
+      customerId,
+    );
+    expect(accepted.status).toBe('ACCEPTED');
+    expect(accepted.respondedAt).toBeDefined();
+
+    const inq = await prisma.inquiry.findUniqueOrThrow({
+      where: { id: inquiryId },
+      select: { status: true, version: true },
+    });
+    expect(inq).toEqual({ status: 'ACCEPTED', version: 3 });
+
+    const historyCount = await prisma.inquiryStatusHistory.count({
+      where: { inquiryId, fromStatus: 'QUOTED', toStatus: 'ACCEPTED' },
+    });
+    expect(historyCount).toBe(1);
+
+    const auditCount = await prisma.securityAuditEvent.count({
+      where: {
+        action: 'QUOTATION_ACCEPTED',
+        metadata: { path: ['quotationId'], equals: revisionId },
+      },
+    });
+    expect(auditCount).toBe(1);
+
+    // Idempotent same-result replay returns same result without duplicate history/audit
+    const replayed = await service.customerAccept(
+      inquiryId,
+      revisionId,
+      2,
+      3,
+      customerId,
+    );
+    expect(replayed.status).toBe('ACCEPTED');
+    expect(
+      await prisma.inquiryStatusHistory.count({
+        where: { inquiryId, fromStatus: 'QUOTED', toStatus: 'ACCEPTED' },
+      }),
+    ).toBe(1);
+
+    // Opposite-result rejection throws conflict
+    await expect(
+      service.customerReject(inquiryId, revisionId, 2, 3, 'علت', customerId),
+    ).rejects.toMatchObject({
+      response: expect.objectContaining({ code: 'QUOTATION_ALREADY_ANSWERED' }),
+    });
+  });
+
+  it('rejects an offer with reason, returns inquiry to UNDER_REVIEW, and allows revision', async () => {
+    const rejectInq = await prisma.inquiry.create({
+      data: {
+        ownerId: customerId,
+        type: 'PRODUCT',
+        status: 'SUBMITTED',
+      },
+    });
+    const draftRow = await service.createDraft(rejectInq.id, draft('-reject'), salesId);
+    await service.send(rejectInq.id, draftRow.id, 0, 0, salesId);
+
+    const rejected = await service.customerReject(
+      rejectInq.id,
+      draftRow.id,
+      1,
+      1,
+      'قیمت بالا است',
+      customerId,
+    );
+    expect(rejected.status).toBe('REJECTED');
+    expect(rejected.rejectionReason).toBe('قیمت بالا است');
+
+    const inq = await prisma.inquiry.findUniqueOrThrow({
+      where: { id: rejectInq.id },
+      select: { status: true, version: true },
+    });
+    expect(inq).toEqual({ status: 'UNDER_REVIEW', version: 2 });
+
+    const historyCount = await prisma.inquiryStatusHistory.count({
+      where: { inquiryId: rejectInq.id, fromStatus: 'QUOTED', toStatus: 'UNDER_REVIEW' },
+    });
+    expect(historyCount).toBe(1);
+
+    // Replay returns same result
+    const replayed = await service.customerReject(
+      rejectInq.id,
+      draftRow.id,
+      1,
+      2,
+      'قیمت بالا است',
+      customerId,
+    );
+    expect(replayed.status).toBe('REJECTED');
+
+    // Opposite accept throws conflict
+    await expect(
+      service.customerAccept(rejectInq.id, draftRow.id, 1, 2, customerId),
+    ).rejects.toMatchObject({
+      response: expect.objectContaining({ code: 'QUOTATION_ALREADY_ANSWERED' }),
+    });
+
+    // Staff can create revision from the REJECTED offer!
+    const newDraft = await service.revise(rejectInq.id, draftRow.id, 2, salesId);
+    expect(newDraft.status).toBe('DRAFT');
+    expect(newDraft.version).toBe(2);
   });
 });

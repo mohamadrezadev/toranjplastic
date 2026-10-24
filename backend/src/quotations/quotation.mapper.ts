@@ -18,6 +18,8 @@ export const quotationSelect = {
   paymentTerms: true,
   notes: true,
   sentAt: true,
+  respondedAt: true,
+  rejectionReason: true,
   createdAt: true,
   updatedAt: true,
   items: {
@@ -61,6 +63,8 @@ export function mapQuotation(row: QuotationRow): QuotationDto {
     paymentTerms: row.paymentTerms,
     notes: row.notes,
     sentAt: row.sentAt?.toISOString() ?? null,
+    respondedAt: row.respondedAt?.toISOString() ?? null,
+    rejectionReason: row.rejectionReason,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };

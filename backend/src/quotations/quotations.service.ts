@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { recordAuditEvent } from '../audit/audit.js';
 import { PrismaService } from '../database/prisma.service.js';
-import type { Prisma } from '../generated/prisma/client.js';
 import { calculateQuotation } from './quotation.calculation.js';
 import type { QuotationDraftInputDto } from './quotation.dto.js';
 import {
@@ -243,7 +242,7 @@ export class QuotationsService {
             where: {
               id: quotationId,
               inquiryId,
-              status: 'SENT',
+              status: { in: ['SENT', 'REJECTED'] },
               editVersion: expectedVersion,
             },
             select: quotationSelect,
@@ -437,7 +436,7 @@ export class QuotationsService {
       .findMany({
         where: {
           inquiryId,
-          status: { in: ['SENT', 'SUPERSEDED'] },
+          status: { in: ['SENT', 'SUPERSEDED', 'ACCEPTED', 'REJECTED'] },
           inquiry: { ownerId },
         },
         orderBy: { version: 'desc' },
@@ -451,13 +450,254 @@ export class QuotationsService {
       where: {
         id: quotationId,
         inquiryId,
-        status: { in: ['SENT', 'SUPERSEDED'] },
+        status: { in: ['SENT', 'SUPERSEDED', 'ACCEPTED', 'REJECTED'] },
         inquiry: { ownerId },
       },
       select: quotationSelect,
     });
     if (!row) throw notFound();
     return mapCustomerQuotation(row);
+  }
+
+  async customerAccept(
+    inquiryId: string,
+    quotationId: string,
+    quotationVersion: number,
+    inquiryExpectedVersion: number,
+    customerId: string,
+  ) {
+    return this.prisma.$transaction(
+      async (transaction) => {
+        await transaction.$executeRawUnsafe(
+          'SELECT pg_advisory_xact_lock(hashtext($1))',
+          `quotation:${inquiryId}`,
+        );
+
+        const inquiry = await transaction.inquiry.findFirst({
+          where: { id: inquiryId, ownerId: customerId },
+          select: { id: true, status: true, version: true },
+        });
+        if (!inquiry) throw notFound();
+
+        const quotation = await transaction.quotation.findFirst({
+          where: { id: quotationId, inquiryId },
+          select: quotationSelect,
+        });
+        if (!quotation) throw notFound();
+
+        if (quotation.version !== quotationVersion) {
+          throw conflict(
+            'QUOTATION_VERSION_CONFLICT',
+            'نسخه پیشنهاد قیمت تغییر کرده است.',
+          );
+        }
+
+        if (quotation.status === 'ACCEPTED') {
+          return mapCustomerQuotation(quotation);
+        }
+
+        if (quotation.status === 'REJECTED') {
+          throw conflict(
+            'QUOTATION_ALREADY_ANSWERED',
+            'این پیشنهاد قیمت قبلاً پاسخ داده شده است.',
+          );
+        }
+
+        if (quotation.status !== 'SENT') {
+          throw conflict(
+            'QUOTATION_NOT_ELIGIBLE',
+            'این نسخه پیشنهاد قیمت قابل پاسخ نیست.',
+          );
+        }
+
+        if (inquiry.status !== 'QUOTED') {
+          throw conflict(
+            'INQUIRY_NOT_QUOTED',
+            'وضعیت درخواست برای پاسخ به پیشنهاد قیمت مناسب نیست.',
+          );
+        }
+
+        if (inquiry.version !== inquiryExpectedVersion) {
+          throw conflict(
+            'INQUIRY_VERSION_CONFLICT',
+            'درخواست توسط شخص دیگری تغییر کرده است.',
+          );
+        }
+
+        if (quotation.validUntil.getTime() <= Date.now()) {
+          throw conflict(
+            'QUOTATION_EXPIRED',
+            'مهلت اعتبار این پیشنهاد قیمت به پایان رسیده است.',
+          );
+        }
+
+        const now = new Date();
+
+        await transaction.quotation.update({
+          where: { id: quotationId },
+          data: {
+            status: 'ACCEPTED',
+            respondedById: customerId,
+            respondedAt: now,
+            editVersion: { increment: 1 },
+          },
+        });
+
+        await transaction.inquiry.update({
+          where: { id: inquiryId },
+          data: {
+            status: 'ACCEPTED',
+            version: { increment: 1 },
+          },
+        });
+
+        await transaction.inquiryStatusHistory.create({
+          data: {
+            inquiryId,
+            fromStatus: 'QUOTED',
+            toStatus: 'ACCEPTED',
+            actorId: customerId,
+          },
+        });
+
+        await recordAuditEvent(transaction, 'QUOTATION_ACCEPTED', customerId, {
+          inquiryId,
+          quotationId,
+          quotationVersion: quotation.version,
+          fromInquiryVersion: inquiryExpectedVersion,
+          toInquiryVersion: inquiryExpectedVersion + 1,
+        });
+
+        const updated = await transaction.quotation.findUniqueOrThrow({
+          where: { id: quotationId },
+          select: quotationSelect,
+        });
+        return mapCustomerQuotation(updated);
+      },
+      { isolationLevel: 'Serializable' },
+    );
+  }
+
+  async customerReject(
+    inquiryId: string,
+    quotationId: string,
+    quotationVersion: number,
+    inquiryExpectedVersion: number,
+    reason: string | undefined,
+    customerId: string,
+  ) {
+    return this.prisma.$transaction(
+      async (transaction) => {
+        await transaction.$executeRawUnsafe(
+          'SELECT pg_advisory_xact_lock(hashtext($1))',
+          `quotation:${inquiryId}`,
+        );
+
+        const inquiry = await transaction.inquiry.findFirst({
+          where: { id: inquiryId, ownerId: customerId },
+          select: { id: true, status: true, version: true },
+        });
+        if (!inquiry) throw notFound();
+
+        const quotation = await transaction.quotation.findFirst({
+          where: { id: quotationId, inquiryId },
+          select: quotationSelect,
+        });
+        if (!quotation) throw notFound();
+
+        if (quotation.version !== quotationVersion) {
+          throw conflict(
+            'QUOTATION_VERSION_CONFLICT',
+            'نسخه پیشنهاد قیمت تغییر کرده است.',
+          );
+        }
+
+        if (quotation.status === 'REJECTED') {
+          return mapCustomerQuotation(quotation);
+        }
+
+        if (quotation.status === 'ACCEPTED') {
+          throw conflict(
+            'QUOTATION_ALREADY_ANSWERED',
+            'این پیشنهاد قیمت قبلاً پاسخ داده شده است.',
+          );
+        }
+
+        if (quotation.status !== 'SENT') {
+          throw conflict(
+            'QUOTATION_NOT_ELIGIBLE',
+            'این نسخه پیشنهاد قیمت قابل پاسخ نیست.',
+          );
+        }
+
+        if (inquiry.status !== 'QUOTED') {
+          throw conflict(
+            'INQUIRY_NOT_QUOTED',
+            'وضعیت درخواست برای پاسخ به پیشنهاد قیمت مناسب نیست.',
+          );
+        }
+
+        if (inquiry.version !== inquiryExpectedVersion) {
+          throw conflict(
+            'INQUIRY_VERSION_CONFLICT',
+            'درخواست توسط شخص دیگری تغییر کرده است.',
+          );
+        }
+
+        if (quotation.validUntil.getTime() <= Date.now()) {
+          throw conflict(
+            'QUOTATION_EXPIRED',
+            'مهلت اعتبار این پیشنهاد قیمت به پایان رسیده است.',
+          );
+        }
+
+        const now = new Date();
+        const trimmedReason = reason?.trim() ? reason.trim().slice(0, 2000) : null;
+
+        await transaction.quotation.update({
+          where: { id: quotationId },
+          data: {
+            status: 'REJECTED',
+            respondedById: customerId,
+            respondedAt: now,
+            rejectionReason: trimmedReason,
+            editVersion: { increment: 1 },
+          },
+        });
+
+        await transaction.inquiry.update({
+          where: { id: inquiryId },
+          data: {
+            status: 'UNDER_REVIEW',
+            version: { increment: 1 },
+          },
+        });
+
+        await transaction.inquiryStatusHistory.create({
+          data: {
+            inquiryId,
+            fromStatus: 'QUOTED',
+            toStatus: 'UNDER_REVIEW',
+            actorId: customerId,
+          },
+        });
+
+        await recordAuditEvent(transaction, 'QUOTATION_REJECTED', customerId, {
+          inquiryId,
+          quotationId,
+          quotationVersion: quotation.version,
+          fromInquiryVersion: inquiryExpectedVersion,
+          toInquiryVersion: inquiryExpectedVersion + 1,
+        });
+
+        const updated = await transaction.quotation.findUniqueOrThrow({
+          where: { id: quotationId },
+          select: quotationSelect,
+        });
+        return mapCustomerQuotation(updated);
+      },
+      { isolationLevel: 'Serializable' },
+    );
   }
 
   async pdfRowForStaff(
@@ -468,7 +708,7 @@ export class QuotationsService {
       where: {
         id: quotationId,
         inquiryId,
-        status: { in: ['SENT', 'SUPERSEDED'] },
+        status: { in: ['SENT', 'SUPERSEDED', 'ACCEPTED', 'REJECTED'] },
       },
       select: quotationSelect,
     });
@@ -485,7 +725,7 @@ export class QuotationsService {
       where: {
         id: quotationId,
         inquiryId,
-        status: { in: ['SENT', 'SUPERSEDED'] },
+        status: { in: ['SENT', 'SUPERSEDED', 'ACCEPTED', 'REJECTED'] },
         inquiry: { ownerId },
       },
       select: quotationSelect,

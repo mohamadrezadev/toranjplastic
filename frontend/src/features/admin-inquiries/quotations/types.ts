@@ -13,7 +13,7 @@ export interface Quotation {
   quotationNumber: string;
   version: number;
   editVersion: number;
-  status: "DRAFT" | "SENT" | "SUPERSEDED";
+  status: "DRAFT" | "SENT" | "SUPERSEDED" | "ACCEPTED" | "REJECTED";
   items: QuotationItem[];
   subtotalRials: string;
   discountRials: string;
@@ -25,6 +25,8 @@ export interface Quotation {
   paymentTerms: string;
   notes: string | null;
   sentAt: string | null;
+  respondedAt: string | null;
+  rejectionReason: string | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -20,6 +20,8 @@ const row: QuotationRow = {
   paymentTerms: 'پرداخت طبق توافق',
   notes: 'نمونه فارسی',
   sentAt: now,
+  respondedAt: null,
+  rejectionReason: null,
   createdAt: now,
   updatedAt: now,
   items: [

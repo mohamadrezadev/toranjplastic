@@ -17,7 +17,7 @@ export const isQuotation = (value: unknown): value is Quotation =>
   string(value.quotationNumber) &&
   typeof value.version === "number" &&
   typeof value.editVersion === "number" &&
-  ["DRAFT", "SENT", "SUPERSEDED"].includes(String(value.status)) &&
+  ["DRAFT", "SENT", "SUPERSEDED", "ACCEPTED", "REJECTED"].includes(String(value.status)) &&
   Array.isArray(value.items) &&
   value.items.every(item) &&
   [
@@ -33,6 +33,8 @@ export const isQuotation = (value: unknown): value is Quotation =>
     "updatedAt",
   ].every((key) => string(value[key])) &&
   nullableString(value.notes) &&
-  nullableString(value.sentAt);
+  nullableString(value.sentAt) &&
+  nullableString(value.respondedAt) &&
+  nullableString(value.rejectionReason);
 export const isQuotations = (value: unknown): value is Quotation[] =>
   Array.isArray(value) && value.every(isQuotation);

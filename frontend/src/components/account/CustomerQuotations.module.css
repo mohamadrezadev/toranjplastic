@@ -12,6 +12,19 @@
 .final { font-weight: 800; }
 .download { padding: .65rem .9rem; justify-self: start; color: var(--color-on-action); background: var(--color-brand-action); border-radius: .55rem; text-decoration: none; }
 
+.responseSection { display: grid; gap: 0.75rem; margin-top: 0.5rem; padding-top: 0.75rem; border-top: 1px dashed var(--border, #d8dee8); }
+.acceptBox { display: grid; gap: 0.5rem; padding: 0.75rem; background: var(--surface-muted, #f4f6f8); border-radius: 0.6rem; border: 1px solid var(--border, #e2e6ec); }
+.acceptNotice { margin: 0; font-size: 0.9rem; line-height: 1.5; color: var(--color-ink, #1a202c); }
+.rejectDetails { border: 1px solid var(--border, #e2e6ec); border-radius: 0.6rem; overflow: hidden; }
+.rejectSummary { padding: 0.65rem 0.85rem; cursor: pointer; font-size: 0.9rem; color: var(--color-ink-muted, #64748b); background: var(--surface-muted, #f4f6f8); }
+.rejectForm { padding: 0.75rem; display: grid; gap: 0.5rem; }
+.label { font-size: 0.85rem; font-weight: 600; }
+.textarea { width: 100%; min-height: 4rem; padding: 0.5rem; border: 1px solid var(--border, #cbd5e1); border-radius: 0.5rem; font-family: inherit; font-size: 0.9rem; box-sizing: border-box; background: var(--surface, #fff); color: var(--color-ink, #000); }
+.acceptedNotice { margin: 0; padding: 0.75rem; border-radius: 0.6rem; background: #e6f4ea; color: #137333; font-weight: 600; font-size: 0.9rem; }
+.rejectedNotice { margin: 0; padding: 0.75rem; border-radius: 0.6rem; background: #fce8e6; color: #c5221f; font-size: 0.9rem; }
+.rejectedNotice p { margin: 0.25rem 0 0; font-weight: normal; }
+.expiredNotice { margin: 0; padding: 0.75rem; border-radius: 0.6rem; background: var(--surface-muted, #f4f6f8); color: var(--color-ink-muted, #70757a); font-size: 0.9rem; }
+
 @media (max-width: 520px) {
   .card summary, .items > div, .body dl > div { display: grid; }
   .download { width: 100%; box-sizing: border-box; text-align: center; }

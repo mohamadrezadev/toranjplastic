@@ -65,6 +65,8 @@ enum QuotationStatus {
   DRAFT
   SENT
   SUPERSEDED
+  ACCEPTED
+  REJECTED
 }
 
 enum MediaAssetStatus {
@@ -105,6 +107,7 @@ model User {
   inquiryAssignmentActions InquiryAssignmentHistory[] @relation("InquiryAssignmentActor")
   createdQuotations        Quotation[]                @relation("QuotationCreator")
   sentQuotations           Quotation[]                @relation("QuotationSender")
+  respondedQuotations      Quotation[]                @relation("QuotationResponder")
   createdMediaAssets       MediaAsset[]               @relation("MediaAssetCreator")
 
   @@index([role, status])
@@ -388,6 +391,10 @@ model Quotation {
   sentById            String?
   sentBy              User?           @relation("QuotationSender", fields: [sentById], references: [id], onDelete: Restrict)
   sentAt              DateTime?
+  respondedById       String?
+  respondedBy         User?           @relation("QuotationResponder", fields: [respondedById], references: [id], onDelete: Restrict)
+  respondedAt         DateTime?
+  rejectionReason     String?         @db.Text
   supersededAt        DateTime?
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
@@ -398,6 +405,7 @@ model Quotation {
   @@index([inquiryId, status, version])
   @@index([createdById, createdAt])
   @@index([sentById, sentAt])
+  @@index([respondedById, respondedAt])
 }
 
 model QuotationItem {

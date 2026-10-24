@@ -51,6 +51,8 @@ const row: QuotationRow = {
   paymentTerms: 'نقدی',
   notes: null,
   sentAt: now,
+  respondedAt: null,
+  rejectionReason: null,
   createdAt: now,
   updatedAt: now,
   items: [
@@ -93,6 +95,8 @@ describe('quotation API authorization and privacy', () => {
     send: vi.fn(),
     customerList: vi.fn(),
     customerGet: vi.fn(),
+    customerAccept: vi.fn(),
+    customerReject: vi.fn(),
     pdfRowForStaff: vi.fn(),
     pdfRowForCustomer: vi.fn(),
   };
@@ -247,5 +251,67 @@ describe('quotation API authorization and privacy', () => {
       'get',
       '/api/v1/inquiries/i1/quotations/draft/pdf',
     ).expect(404);
+  });
+
+  it('requires CSRF for customer accept and delegates validated versions', async () => {
+    sessionAccount = account('CUSTOMER');
+    quotations.customerAccept.mockResolvedValueOnce({ ...dto, status: 'ACCEPTED' });
+
+    await authenticated('post', '/api/v1/inquiries/i1/quotations/q1/accept')
+      .send({ quotationVersion: 1, inquiryExpectedVersion: 0 })
+      .expect(401);
+
+    await authenticated('post', '/api/v1/inquiries/i1/quotations/q1/accept')
+      .set('x-csrf-token', 'csrf')
+      .send({ quotationVersion: 0, inquiryExpectedVersion: 0 })
+      .expect(400);
+
+    const response = await authenticated(
+      'post',
+      '/api/v1/inquiries/i1/quotations/q1/accept',
+    )
+      .set('x-csrf-token', 'csrf')
+      .send({ quotationVersion: 1, inquiryExpectedVersion: 0 })
+      .expect(201);
+
+    expect(response.body.status).toBe('ACCEPTED');
+    expect(quotations.customerAccept).toHaveBeenCalledWith(
+      'i1',
+      'q1',
+      1,
+      0,
+      'customer-1',
+    );
+  });
+
+  it('requires CSRF for customer reject and forwards trimmed reason', async () => {
+    sessionAccount = account('CUSTOMER');
+    quotations.customerReject.mockResolvedValueOnce({
+      ...dto,
+      status: 'REJECTED',
+      rejectionReason: 'قیمت بالا است',
+    });
+
+    await authenticated('post', '/api/v1/inquiries/i1/quotations/q1/reject')
+      .send({ quotationVersion: 1, inquiryExpectedVersion: 0, reason: 'قیمت بالا است' })
+      .expect(401);
+
+    const response = await authenticated(
+      'post',
+      '/api/v1/inquiries/i1/quotations/q1/reject',
+    )
+      .set('x-csrf-token', 'csrf')
+      .send({ quotationVersion: 1, inquiryExpectedVersion: 0, reason: '  قیمت بالا است  ' })
+      .expect(201);
+
+    expect(response.body.status).toBe('REJECTED');
+    expect(quotations.customerReject).toHaveBeenCalledWith(
+      'i1',
+      'q1',
+      1,
+      0,
+      '  قیمت بالا است  ',
+      'customer-1',
+    );
   });
 });
