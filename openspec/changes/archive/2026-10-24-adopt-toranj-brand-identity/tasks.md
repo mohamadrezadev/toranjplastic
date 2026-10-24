@@ -24,7 +24,7 @@
 ## 6. Verification
 
 - [x] 6.1 Run lint, typecheck, unit/component tests, and build.
-- [ ] 6.2 Visually check header, footer, and primary buttons at 360, 390, 768, and 1280 px in light and dark themes. (left for manual check by project owner, per their request)
+- [x] 6.2 Visually check header, footer, and primary buttons at 360, 390, 768, and 1280 px in light and dark themes. (verified and approved by project owner)
 
 ## 7. Logo replacement (second round, per project owner's live review)
 

@@ -3,7 +3,7 @@
 Define semantic design tokens and reusable, accessible UI primitives for the Toranj frontend.
 ## Requirements
 ### Requirement: Semantic token registry
-The frontend SHALL expose color, typography, spacing, radius, control-size, border, elevation, and motion values through semantic design tokens rather than component-local business colors or arbitrary numeric values. Every supported light or dark theme SHALL preserve stable semantic token roles and accessible interaction contrast. The active visual direction SHALL use a restrained corporate-minimal palette with neutral surfaces, deep navy hierarchy, and a controlled blue interactive accent. Brand assets SHALL remain marked provisional until product approval, and business-area accents MUST remain separate from brand-action and status colors.
+The frontend SHALL expose color, typography, spacing, radius, control-size, border, elevation, and motion values through semantic design tokens rather than component-local business colors or arbitrary numeric values. Every supported light or dark theme SHALL preserve stable semantic token roles and accessible interaction contrast. The active visual direction SHALL use the approved Toranj brand palette: a navy primary/heading hierarchy and a controlled orange interactive accent over neutral surfaces. Brand assets (logo, favicon, icons) SHALL be sourced from the approved brand package and documented with their provenance; any asset that is not yet a confirmed official vector file from the brand owner MUST be recorded as an interim reconstruction pending replacement. Business-area accents MUST remain separate from brand-action and status colors.
 
 #### Scenario: Component consumes a visual value
 - **WHEN** a shared component needs a color, spacing, radius, control size, typography, elevation, or focus style in either theme
@@ -20,6 +20,10 @@ The frontend SHALL expose color, typography, spacing, radius, control-size, bord
 #### Scenario: Theme changes on a shared surface
 - **WHEN** the effective theme switches between light and dark
 - **THEN** shared components SHALL retain their semantic hierarchy, visible focus, readable text, and distinguishable interactive and status states without changing component APIs
+
+#### Scenario: A brand asset is not yet a confirmed official vector
+- **WHEN** a logo, favicon, or icon asset originates from a reconstruction rather than a file confirmed as the brand owner's official vector source
+- **THEN** its provenance and reconstruction status SHALL be documented in the repository and the asset MUST NOT be presented as a certified or legally confirmed trademark file
 
 ### Requirement: Layered component architecture
 The frontend SHALL organize reusable UI into the layers `tokens`, `primitives`, `domain-components`, and `screens`, and primitives MUST NOT contain product-specific business rules or API access.
@@ -100,3 +104,4 @@ The shared design system SHALL communicate hierarchy primarily through typograph
 #### Scenario: Interface is viewed at a required width
 - **WHEN** the corporate-minimal interface is rendered at 360, 390, 768, or 1280 pixels
 - **THEN** typography and spacing SHALL remain readable, interactive targets SHALL remain usable, and no visual refinement SHALL introduce clipping or unintended horizontal scrolling
+
