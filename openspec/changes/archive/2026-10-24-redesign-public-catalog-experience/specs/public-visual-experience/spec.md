@@ -15,6 +15,10 @@ The public header, footer, collection pages, detail pages, and feedback states S
 - **WHEN** a published product detail loads
 - **THEN** its verified media, title, category, featured state, summary, description, specifications, gallery, and inquiry action SHALL appear in a clear catalog hierarchy without price or inventory claims
 
+#### Scenario: Visitor activates an entry-page banner
+- **WHEN** the visitor activates a products, injection-services, materials, or contact campaign banner
+- **THEN** the browser SHALL navigate to the banner's declared in-page content target or approved inquiry destination
+
 ### Requirement: Responsive and accessible public pages
 Public pages and campaign media SHALL remain Persian RTL, keyboard operable, readable in light and dark themes, and free of unintended horizontal scrolling at widths 360, 390, 768, and 1280 pixels. Campaign media MUST remain bounded inside its landing composition, and card and detail content MUST wrap without overlap, distortion, or artificial viewport-height gaps.
 
@@ -25,3 +29,7 @@ Public pages and campaign media SHALL remain Persian RTL, keyboard operable, rea
 #### Scenario: Visitor navigates the catalog with a keyboard
 - **WHEN** focus reaches landing, card, pagination, or inquiry actions
 - **THEN** every action SHALL expose a visible focus treatment and an accessible Persian name
+
+#### Scenario: Keyboard focus reaches a campaign action
+- **WHEN** a visitor tabs to an interactive campaign banner or home action
+- **THEN** the action SHALL expose a visible focus treatment and an accessible Persian name

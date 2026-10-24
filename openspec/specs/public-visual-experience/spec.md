@@ -4,23 +4,47 @@
 TBD - created by archiving change redesign-public-and-auth-experience. Update Purpose after archive.
 ## Requirements
 ### Requirement: Useful public home page
-The home page SHALL present Toranj Plastic as a product, injection-service, and material inquiry platform, with clear links to the three public catalogs. It MUST NOT display engineering status, fabricated products, prices, inventory, contact details, certifications, capacity, or delivery promises.
+The home page SHALL present Toranj Plastic as a product, injection-service, and material inquiry platform, with the approved wide campaign artwork and clear, semantic, keyboard-operable links to products and inquiry. It MUST NOT display engineering status, fabricated products, prices, inventory, contact details, certifications, capacity, or delivery promises.
 
 #### Scenario: Visitor opens the home page
 - **WHEN** the home page loads
-- **THEN** the visitor SHALL see a clear introduction and operable paths to products, injection services, and materials without unapproved business claims
+- **THEN** the visitor SHALL see the approved Toranj Plastic campaign artwork and operable paths to products and inquiry without unapproved business claims
+
+#### Scenario: Banner text is rasterized
+- **WHEN** the supplied home artwork contains rendered headings or button labels
+- **THEN** the page SHALL retain a semantic heading and real focusable links so the artwork is not the only source of meaning or interaction
 
 ### Requirement: Consistent public visual language
-The public header, footer, collection pages, detail pages, and feedback states SHALL share a coherent, distinctive responsive visual hierarchy and preserve all API-sourced titles, summaries, images, and metadata without fabricating content.
+The public header, footer, collection pages, detail pages, and feedback states SHALL share a coherent, distinctive responsive visual hierarchy and preserve all API-sourced titles, summaries, images, and metadata without fabricating content. Public catalog landing pages SHALL compose semantic copy, operable actions, and bounded supporting media instead of presenting portrait campaign artwork as a standalone full-page poster. Collection cards and detail surfaces SHALL use predictable natural sizing and MUST NOT create large empty card regions for sparse results.
+
+#### Scenario: Public collection has one published item
+- **WHEN** a public catalog responds with one published item
+- **THEN** the page SHALL show a composed landing hero followed by one compact featured card that uses the available collection width without stretching the card body or leaving empty grid tracks
 
 #### Scenario: Public collection has no published items
 - **WHEN** a collection responds with no items
-- **THEN** the page SHALL use the shared visual language to present the existing honest empty state and MUST NOT substitute sample items
+- **THEN** the page SHALL preserve the composed landing hierarchy and use the shared visual language to present the existing honest empty state, and MUST NOT substitute sample items
+
+#### Scenario: Visitor opens a product detail
+- **WHEN** a published product detail loads
+- **THEN** its verified media, title, category, featured state, summary, description, specifications, gallery, and inquiry action SHALL appear in a clear catalog hierarchy without price or inventory claims
+
+#### Scenario: Visitor activates an entry-page banner
+- **WHEN** the visitor activates a products, injection-services, materials, or contact campaign banner
+- **THEN** the browser SHALL navigate to the banner's declared in-page content target or approved inquiry destination
 
 ### Requirement: Responsive and accessible public pages
-Public pages SHALL remain Persian RTL, keyboard operable, readable in light and dark themes, and free of unintended horizontal scrolling at widths 360, 390, 768, and 1280 pixels.
+Public pages and campaign media SHALL remain Persian RTL, keyboard operable, readable in light and dark themes, and free of unintended horizontal scrolling at widths 360, 390, 768, and 1280 pixels. Campaign media MUST remain bounded inside its landing composition, and card and detail content MUST wrap without overlap, distortion, or artificial viewport-height gaps.
 
 #### Scenario: Visitor uses a required viewport
-- **WHEN** the home or catalog is opened in either theme at a required width
-- **THEN** navigation, headings, cards, links, and feedback SHALL remain legible and usable without overlap or clipping
+- **WHEN** the product landing, list, or detail page is opened in either theme at a required width
+- **THEN** the landing content, media, cards, metadata, inquiry actions, specifications, and feedback SHALL remain legible and usable without overlap, clipping, distortion, repeated campaign dominance, excessive empty card height, unused sparse grid tracks, or horizontal page scrolling
+
+#### Scenario: Visitor navigates the catalog with a keyboard
+- **WHEN** focus reaches landing, card, pagination, or inquiry actions
+- **THEN** every action SHALL expose a visible focus treatment and an accessible Persian name
+
+#### Scenario: Keyboard focus reaches a campaign action
+- **WHEN** a visitor tabs to an interactive campaign banner or home action
+- **THEN** the action SHALL expose a visible focus treatment and an accessible Persian name
 
