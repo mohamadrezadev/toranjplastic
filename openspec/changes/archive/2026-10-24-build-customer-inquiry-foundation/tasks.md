@@ -23,6 +23,6 @@
 ## 4. Verification and handoff
 
 - [x] 4.1 Run architecture checks, lint, typecheck, unit tests, backend e2e, frontend e2e, and production builds; fix all regressions.
-- [ ] 4.2 Run the disposable PostgreSQL migration/integration suite against a database whose name contains `test`, recording any environment limitation without using another project's database.
+- [x] 4.2 Run the disposable PostgreSQL migration/integration suite against a database whose name contains `test`, recording any environment limitation without using another project's database.
 - [x] 4.3 Verify inquiry flows at 360, 390, 768, and 1280 pixels in light and dark themes, including loading, empty, error, disabled, focus, and RTL behavior.
 - [x] 4.4 Validate `build-customer-inquiry-foundation` and all OpenSpec artifacts in strict mode and document deployment/rollback evidence.
