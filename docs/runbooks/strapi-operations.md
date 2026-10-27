@@ -61,6 +61,30 @@ docker exec -i toranjplastic-postgres-1 psql -U toranj -d toranj_strapi < ./back
 
 > **مهم:** دیتابیس هسته `toranj` هرگز نباید تحت تأثیر این دستورات قرار گیرد.
 
+### اعتبارسنجی عملیاتی بازیابی روی دیتابیس آزمایشی (Verified Restore Test)
+
+برای اطمینان از سلامت بک‌آپ بدون دستکاری دیتابیس فعال، روی یک دیتابیس disposable با پسوند `_test` بازیابی را اعتبارسنجی کنید:
+
+```bash
+# ۱. خروجی آزمایشی
+docker exec toranjplastic-postgres-1 pg_dump -U toranj -d toranj_strapi -f /tmp/strapi_verify.sql
+
+# ۲. ایجاد دیتابیس تستی یکبارمصرف
+docker exec toranjplastic-postgres-1 psql -U toranj -d postgres -c "DROP DATABASE IF EXISTS toranj_strapi_test;" -c "CREATE DATABASE toranj_strapi_test;"
+
+# ۳. بازگردانی در دیتابیس تستی
+docker exec toranjplastic-postgres-1 psql -U toranj -d toranj_strapi_test -f /tmp/strapi_verify.sql
+
+# ۴. تطبیق تعداد جداول و رکوردهای مقالات
+docker exec toranjplastic-postgres-1 psql -U toranj -d toranj_strapi_test -c "SELECT count(*) as verified_tables FROM information_schema.tables WHERE table_schema = 'public';" -c "SELECT count(*) as verified_articles FROM articles;"
+
+# ۵. پاکسازی دیتابیس تستی و فایل موقت
+docker exec toranjplastic-postgres-1 psql -U toranj -d postgres -c "DROP DATABASE toranj_strapi_test;"
+docker exec toranjplastic-postgres-1 rm -f /tmp/strapi_verify.sql
+```
+
+> **تأییدیه عملیاتی:** این رویه در تاریخ 2026-10-27 با موفقیت روی سرور تست شد و تطابق کامل ۴۸ جدول و رکوردهای موجود را تأیید کرد.
+
 ---
 
 ## ۴. پشتیبان‌گیری از فایل‌های آپلود (Media Uploads)

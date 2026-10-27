@@ -47,6 +47,11 @@ function getStrapiBaseUrl(): string {
   return url.replace(/\/$/, "");
 }
 
+function getStrapiTimeoutMs(): number {
+  const parsed = Number(process.env.STRAPI_TIMEOUT_MS);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 5000;
+}
+
 function getStrapiMediaOrigin(): string {
   const mediaOrigin = process.env.STRAPI_MEDIA_ORIGIN ?? process.env.STRAPI_API_URL ?? "http://localhost:1337";
   return mediaOrigin.replace(/\/$/, "");
@@ -140,11 +145,14 @@ function mapArticle(raw: unknown, apiOrigin: string): StrapiArticle | null {
 async function fetchFromStrapi<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const baseUrl = getStrapiBaseUrl();
   const url = `${baseUrl}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+  const timeoutMs = getStrapiTimeoutMs();
+  const signal = options?.signal ?? AbortSignal.timeout(timeoutMs);
 
   let response: Response;
   try {
     response = await fetch(url, {
       ...options,
+      signal,
       headers: {
         ...getAuthHeaders(),
         ...(options?.headers || {}),

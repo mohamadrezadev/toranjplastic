@@ -27,18 +27,28 @@ export async function POST(request: NextRequest) {
   const model = typeof body.model === "string" ? body.model : "";
   const entry = body.entry && typeof body.entry === "object" ? (body.entry as Record<string, unknown>) : null;
 
+  const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
   if (entry) {
     const slug = typeof entry.slug === "string" ? entry.slug : "";
-    if (model === "article" && slug) {
-      paths.push(`/articles/${slug}`);
-    }
-    if (model === "category" && slug) {
-      paths.push(`/articles/category/${slug}`);
+    if (slug) {
+      if (!SLUG_REGEX.test(slug)) {
+        return NextResponse.json({ error: "Invalid slug format" }, { status: 400 });
+      }
+      if (model === "article") {
+        paths.push(`/articles/${slug}`);
+      }
+      if (model === "category") {
+        paths.push(`/articles/category/${slug}`);
+      }
     }
 
     const cat = entry.category && typeof entry.category === "object" ? (entry.category as Record<string, unknown>) : null;
     const catSlug = typeof cat?.slug === "string" ? cat.slug : "";
     if (catSlug) {
+      if (!SLUG_REGEX.test(catSlug)) {
+        return NextResponse.json({ error: "Invalid category slug format" }, { status: 400 });
+      }
       paths.push(`/articles/category/${catSlug}`);
     }
   }

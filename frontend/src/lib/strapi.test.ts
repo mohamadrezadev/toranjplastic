@@ -221,6 +221,21 @@ describe("strapi client", () => {
     expect(categoriesSitemap).toEqual([{ slug: "cat-1", updatedAt: "2026-10-27T00:00:00Z" }]);
   });
 
+  it("passes an AbortSignal timeout to fetch requests", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ data: [], meta: { pagination: { page: 1, pageSize: 12, pageCount: 0, total: 0 } } }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await listStrapiArticles();
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+      }),
+    );
+  });
+
   it("handles upstream network failures by raising upstream kind", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network error")));
     await expect(listStrapiArticles()).rejects.toMatchObject({ kind: "upstream" });

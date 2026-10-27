@@ -101,4 +101,59 @@ describe("revalidation webhook route", () => {
     expect(data.paths).toContain("/articles/category/tech-production");
     expect(revalidatePathMock).toHaveBeenCalledWith("/articles/category/tech-production");
   });
+
+  it("rejects request with 400 if article slug contains invalid characters or directory traversal", async () => {
+    const payload = {
+      event: "entry.publish",
+      model: "article",
+      entry: {
+        slug: "../traversal/danger",
+      },
+    };
+
+    const req = new NextRequest("http://localhost:3000/api/revalidate", {
+      method: "POST",
+      headers: {
+        "x-strapi-revalidate-secret": "test-revalidate-secret",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+
+    const data = await res.json();
+    expect(data.error).toBe("Invalid slug format");
+    expect(revalidatePathMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects request with 400 if category slug contains invalid characters", async () => {
+    const payload = {
+      event: "entry.update",
+      model: "article",
+      entry: {
+        slug: "valid-article-slug",
+        category: {
+          slug: "invalid category with spaces!",
+        },
+      },
+    };
+
+    const req = new NextRequest("http://localhost:3000/api/revalidate", {
+      method: "POST",
+      headers: {
+        "x-strapi-revalidate-secret": "test-revalidate-secret",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+
+    const data = await res.json();
+    expect(data.error).toBe("Invalid category slug format");
+    expect(revalidatePathMock).not.toHaveBeenCalled();
+  });
 });
