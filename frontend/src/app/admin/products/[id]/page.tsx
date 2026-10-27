@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui";
 import { AdminContentError, archiveProductAction, getProduct, publishProductAction, updateProductAction } from "@/features/admin-content/product";
@@ -14,6 +15,7 @@ export const instant = false;
 const errorMessages: Record<string, string> = {
   validation: "اطلاعات واردشده معتبر نیست. مقادیر را بررسی کنید.",
   conflict: "این اسلاگ قبلاً استفاده شده است.",
+  CONTENT_VERSION_CONFLICT: "تداخل نسخه: این محصول پیش از ذخیره شما توسط کاربر دیگری ویرایش شده است. برای مشاهده آخرین اطلاعات، صفحه را تازه‌سازی کنید.",
   failed: "عملیات با خطا مواجه شد. دوباره تلاش کنید.",
 };
 
@@ -45,7 +47,18 @@ export default async function EditProductPage({ params, searchParams }: { params
             <h1>ویرایش محصول</h1>
             <StatusBadge status={product.status} />
           </div>
-          {error ? <p className={styles.feedback} role="alert">{errorMessages[error] ?? errorMessages.failed}</p> : null}
+          {error ? (
+            <div className={styles.feedback} role="alert">
+              <p>{errorMessages[error] ?? errorMessages.failed}</p>
+              {error === 'CONTENT_VERSION_CONFLICT' ? (
+                <div style={{ marginTop: '0.5rem' }}>
+                  <Link href={`/admin/products/${id}`} className={styles.backLink}>
+                    تازه‌سازی و بارگذاری آخرین اطلاعات
+                  </Link>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className={styles.statusActions}>
             {product.status === "PUBLISHED" ? (

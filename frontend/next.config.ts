@@ -28,9 +28,33 @@ if (serverActionBodySizeLimit <= mediaMaxUploadBytes) {
   );
 }
 
+const publicMediaOrigin = process.env.MEDIA_PUBLIC_ORIGIN ?? "http://localhost:3001";
+let mediaProtocol: "http" | "https" = "http";
+let mediaHostname = "localhost";
+let mediaPort: string | undefined = "3001";
+
+try {
+  const parsed = new URL(publicMediaOrigin);
+  mediaProtocol = parsed.protocol.startsWith("https") ? "https" : "http";
+  mediaHostname = parsed.hostname;
+  mediaPort = parsed.port || undefined;
+} catch {
+  // fallback to defaults
+}
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: mediaProtocol,
+        hostname: mediaHostname,
+        ...(mediaPort ? { port: mediaPort } : {}),
+        pathname: "/api/v1/media/public/**",
+      },
+    ],
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: serverActionBodySizeLimit,

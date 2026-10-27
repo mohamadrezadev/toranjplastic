@@ -49,7 +49,18 @@ async function csrfToken() {
 }
 
 async function parseOrFail<T>(response: Response, parser: (value: unknown) => value is T): Promise<T> {
-  if (!response.ok) throw new AdminContentError(errorKindForStatus(response.status), response.status);
+  if (!response.ok) {
+    let code: string | undefined;
+    try {
+      const payload: unknown = await response.json();
+      if (payload && typeof payload === "object" && "code" in payload && typeof payload.code === "string") {
+        code = payload.code;
+      }
+    } catch {
+      // response might not be JSON
+    }
+    throw new AdminContentError(errorKindForStatus(response.status), response.status, code);
+  }
   let payload: unknown;
   try {
     payload = await response.json();

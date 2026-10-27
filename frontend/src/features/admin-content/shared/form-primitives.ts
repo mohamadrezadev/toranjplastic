@@ -68,5 +68,8 @@ export function specificationRows(form: FormData): PublicSpecification[] {
 }
 
 export function errorKind(error: unknown): string {
-  return error instanceof AdminContentError ? error.kind : 'failed';
+  if (error instanceof AdminContentError) {
+    return error.code ?? error.kind;
+  }
+  return 'failed';
 }

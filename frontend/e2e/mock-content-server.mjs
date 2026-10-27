@@ -401,6 +401,46 @@ routes.set("/api/v1/admin/content/pages/admin-page-1", {
   body: adminPage,
 });
 
+const adminMediaAsset = {
+  id: "admin-media-1",
+  status: "READY",
+  defaultAlt: "تصویر نمونه محصول",
+  sourceMimeType: "image/webp",
+  sourceWidth: 1200,
+  sourceHeight: 1200,
+  variants: [
+    { name: "thumb", width: 320, height: 320, bytes: 15000 },
+    { name: "card", width: 800, height: 800, bytes: 45000 },
+    { name: "detail", width: 1600, height: 1600, bytes: 95000 },
+  ],
+  referenceCount: 0,
+  createdAt: publishedAt,
+  updatedAt: publishedAt,
+};
+
+routes.set("/api/v1/admin/media", {
+  status: 200,
+  body: {
+    items: [adminMediaAsset],
+    page: 1,
+    pageSize: 50,
+    total: 1,
+    totalPages: 1,
+  },
+});
+routes.set("/api/v1/admin/media/admin-media-1", {
+  status: 200,
+  body: adminMediaAsset,
+});
+routes.set("/api/v1/admin/media/admin-media-1/preview", {
+  status: 200,
+  headers: {
+    "content-type": "image/webp",
+    "cache-control": "no-store",
+  },
+  body: Buffer.from([0x52, 0x49, 0x46, 0x46, 0x1a, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50, 0x56, 0x50, 0x38, 0x4c, 0x0d, 0x00, 0x00, 0x00, 0x2f, 0x00, 0x00, 0x00, 0x10, 0x07, 0x10, 0x11, 0x11, 0x88, 0x88, 0xfe, 0x07, 0x00]),
+});
+
 const adminRecords = {
   categories: adminCategory,
   products: adminProduct,

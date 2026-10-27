@@ -1,6 +1,6 @@
-import { Checkbox, Input, Textarea } from "@/components/ui";
+import { Input, Textarea } from "@/components/ui";
 import type { AdminArticle } from "@/features/admin-content/article";
-import { MediaPicker, mediaAssetIdFromPublicUrl, type AdminMediaAsset } from "@/features/admin-media";
+import { ArticleFeaturedImageEditor, type AdminMediaAsset } from "@/features/admin-media";
 import styles from "../Admin.module.css";
 
 export function ArticleFields({ article, mediaAssets = [] }: { article?: AdminArticle; mediaAssets?: AdminMediaAsset[] }) {
@@ -14,15 +14,7 @@ export function ArticleFields({ article, mediaAssets = [] }: { article?: AdminAr
       <Textarea label="خلاصه (اختیاری)" name="summary" defaultValue={article?.summary ?? ""} maxLength={500} rows={2} />
       <Textarea label="متن مقاله" name="body" defaultValue={article?.body} required rows={12} />
 
-      <fieldset className={styles.fieldset}>
-        <legend>تصویر شاخص (اختیاری)</legend>
-        <div className={styles.row}>
-          <MediaPicker name="featuredImageMediaAssetId" label="انتخاب از کتابخانه" assets={mediaAssets} defaultValue={mediaAssetIdFromPublicUrl(article?.featuredImage?.url)} />
-          <Input label="آدرس تصویر" name="featuredImageUrl" dir="ltr" defaultValue={article?.featuredImage?.url ?? ""} maxLength={2048} />
-          <Input label="متن جایگزین" name="featuredImageAlt" defaultValue={article?.featuredImage?.alt ?? ""} maxLength={240} />
-          {article?.featuredImage ? <Checkbox label="حذف تصویر شاخص" name="featuredImageClear" /> : null}
-        </div>
-      </fieldset>
+      <ArticleFeaturedImageEditor initialImage={article?.featuredImage} mediaAssets={mediaAssets} />
 
       <div className={styles.row}>
         <Input label="عنوان متا (اختیاری)" name="metaTitle" defaultValue={article?.metaTitle ?? ""} maxLength={160} />

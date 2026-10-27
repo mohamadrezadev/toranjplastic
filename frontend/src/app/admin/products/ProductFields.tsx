@@ -1,10 +1,9 @@
 import { Checkbox, Input, Select, Textarea } from "@/components/ui";
 import type { AdminCategory } from "@/features/admin-content/category";
 import type { AdminProduct } from "@/features/admin-content/product";
-import { MediaPicker, mediaAssetIdFromPublicUrl, type AdminMediaAsset } from "@/features/admin-media";
+import { ProductGalleryEditor, type AdminMediaAsset } from "@/features/admin-media";
 import styles from "../Admin.module.css";
 
-const IMAGE_ROWS = 6;
 const SPECIFICATION_ROWS = 10;
 
 export function ProductFields({ product, categories, mediaAssets = [] }: { product?: AdminProduct; categories: AdminCategory[]; mediaAssets?: AdminMediaAsset[] }) {
@@ -30,20 +29,7 @@ export function ProductFields({ product, categories, mediaAssets = [] }: { produ
         <Checkbox label="محصول ویژه" name="featured" defaultChecked={product?.featured ?? false} />
       </div>
 
-      <fieldset className={styles.fieldset}>
-        <legend>تصاویر (حداکثر {IMAGE_ROWS} مورد، ردیف‌های خالی نادیده گرفته می‌شوند)</legend>
-        {Array.from({ length: IMAGE_ROWS }, (_, index) => {
-          const image = images[index];
-          return (
-            <div className={styles.row} key={`image-${index}`}>
-              <MediaPicker name={`image${index + 1}MediaAssetId`} label={`رسانه ${index + 1}`} assets={mediaAssets} defaultValue={mediaAssetIdFromPublicUrl(image?.url)} />
-              <Input label={`آدرس تصویر ${index + 1}`} name={`image${index + 1}Url`} dir="ltr" defaultValue={image?.url ?? ""} maxLength={2048} />
-              <Input label={`متن جایگزین تصویر ${index + 1}`} name={`image${index + 1}Alt`} defaultValue={image?.alt ?? ""} maxLength={240} />
-              {image ? <Checkbox label={`حذف تصویر ${index + 1}`} name={`image${index + 1}Remove`} /> : null}
-            </div>
-          );
-        })}
-      </fieldset>
+      <ProductGalleryEditor initialImages={images} mediaAssets={mediaAssets} />
 
       <fieldset className={styles.fieldset}>
         <legend>مشخصات فنی (حداکثر {SPECIFICATION_ROWS} مورد، ردیف‌های خالی نادیده گرفته می‌شوند)</legend>

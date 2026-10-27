@@ -74,6 +74,13 @@ export async function updateMediaAlt(id: string, defaultAlt: string): Promise<Ad
   return parse(response, isAdminMediaAsset);
 }
 
+export async function fetchMediaPreview(id: string, variant = 'thumb'): Promise<Response> {
+  return fetch(`${backend}/admin/media/${encodeURIComponent(id)}/preview?variant=${encodeURIComponent(variant)}`, {
+    cache: 'no-store',
+    headers: await headers(),
+  });
+}
+
 export async function deleteMedia(id: string): Promise<void> {
   const response = await fetch(`${backend}/admin/media/${encodeURIComponent(id)}`, { method: 'DELETE', cache: 'no-store', headers: await headers(true) });
   if (!response.ok) await failure(response);
