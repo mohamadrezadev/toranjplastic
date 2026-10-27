@@ -20,10 +20,10 @@
 
 - [x] 4.1 Run frontend lint, typecheck, unit tests, architecture checks, and production build; record exact results and resolve regressions in scope.
 - [x] 4.2 Run the supplied palette contrast check and verify key normal-text/action/danger/focus combinations in Light and Dark meet the documented thresholds.
-- [ ] 4.3 Run Playwright or the repository's documented visual workflow at 360, 390, 768, and 1280 for public, auth, inquiry, account, and admin surfaces; verify RTL, overflow, typography, drawer, focus, loading, and disabled states.
-- [ ] 4.4 Verify theme preference persistence/system precedence and confirm no regression to noindex/no-store, authorization boundaries, inquiry semantics, API, backend, or database.
+- [x] 4.3 Run Playwright or the repository's documented visual workflow at 360, 390, 768, and 1280 for public, auth, inquiry, account, and admin surfaces; verify RTL, overflow, typography, drawer, focus, loading, and disabled states.
+- [x] 4.4 Verify theme preference persistence/system precedence and confirm no regression to noindex/no-store, authorization boundaries, inquiry semantics, API, backend, or database.
 
 ## 5. Handoff
 
 - [x] 5.1 Review the implementation diff against the checked v3 manifest, document completed/blocked verification and rollback, and keep `redesign-public-homepage` separate for owner-reviewed composition work.
-- [ ] 5.2 Archive `refresh-toranj-visual-system` only after all acceptance checks are evidenced and accepted.
+- [x] 5.2 Archive `refresh-toranj-visual-system` only after all acceptance checks are evidenced and accepted.

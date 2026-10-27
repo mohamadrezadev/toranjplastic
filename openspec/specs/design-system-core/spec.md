@@ -3,7 +3,7 @@
 Define semantic design tokens and reusable, accessible UI primitives for the Toranj frontend.
 ## Requirements
 ### Requirement: Semantic token registry
-The frontend SHALL expose color, typography, spacing, radius, control-size, border, elevation, and motion values through semantic design tokens rather than component-local business colors or arbitrary numeric values. Every supported light or dark theme SHALL preserve stable semantic token roles and accessible interaction contrast. The active visual direction SHALL use the approved Toranj brand palette: a navy primary/heading hierarchy and a controlled orange interactive accent over neutral surfaces. Brand assets (logo, favicon, icons) SHALL be sourced from the approved brand package and documented with their provenance; any asset that is not yet a confirmed official vector file from the brand owner MUST be recorded as an interim reconstruction pending replacement. Business-area accents MUST remain separate from brand-action and status colors.
+The frontend SHALL expose color, typography, spacing, radius, control-size, border, elevation, and motion values through semantic design tokens rather than component-local business colors or arbitrary numeric values. Every supported light or dark theme SHALL preserve stable semantic token roles and accessible interaction contrast. The approved visual direction SHALL use a petroleum-and-stone corporate-minimal palette with separate foreground and background roles for actions and danger states. Brand action MUST NOT default to orange, danger, warning, or a business-area accent. Shared components SHALL consume semantic tokens without hardcoded theme-specific brand colors. The product MUST NOT introduce cart, checkout, automatic pricing, or live inventory controls.
 
 #### Scenario: Component consumes a visual value
 - **WHEN** a shared component needs a color, spacing, radius, control size, typography, elevation, or focus style in either theme
@@ -17,9 +17,17 @@ The frontend SHALL expose color, typography, spacing, radius, control-size, bord
 - **WHEN** a shared public surface presents its primary valid action in light or dark theme
 - **THEN** it SHALL use the corporate interactive accent and MUST NOT reuse warning, danger, or section-identity colors as the global action meaning
 
+#### Scenario: Corporate primary action is displayed in Light theme
+- **WHEN** a shared surface presents its primary valid action in Light theme
+- **THEN** it SHALL use the petroleum action background and a readable light foreground through the dedicated on-action token, including hover, focus, loading, and disabled states
+
+#### Scenario: Corporate primary action is displayed in Dark theme
+- **WHEN** a shared surface presents its primary valid action in Dark theme
+- **THEN** it SHALL use the approved lighter petroleum action background and a readable dark foreground through the dedicated on-action token, including hover, focus, loading, and disabled states
+
 #### Scenario: Theme changes on a shared surface
-- **WHEN** the effective theme switches between light and dark
-- **THEN** shared components SHALL retain their semantic hierarchy, visible focus, readable text, and distinguishable interactive and status states without changing component APIs
+- **WHEN** the effective theme switches between light and dark on a public, auth, customer, inquiry, or admin surface
+- **THEN** shared components SHALL retain semantic hierarchy, visible focus, readable text, and distinguishable interactive and status states without changing component APIs or security behavior
 
 #### Scenario: A brand asset is not yet a confirmed official vector
 - **WHEN** a logo, favicon, or icon asset originates from a reconstruction rather than a file confirmed as the brand owner's official vector source
@@ -84,24 +92,32 @@ The design-system foundation MUST NOT introduce cart, checkout, online-payment, 
 - **THEN** the action SHALL lead to information or inquiry behavior and MUST NOT imply immediate purchase, confirmed inventory, or automatic price calculation
 
 ### Requirement: Delivered Persian typography
-The frontend SHALL bundle and load the selected Persian UI typeface as a version-controlled application dependency and SHALL reference that delivered family through the semantic typography tokens with safe local fallbacks. The application MUST NOT depend on an undeclared local font or runtime third-party font request for its intended Persian presentation.
+The frontend SHALL bundle and load `Vazirmatn Variable` as the primary Persian UI typeface from a versioned local application dependency and SHALL reference that delivered family through semantic typography tokens with safe local fallbacks. The logo's Latin wordmark MAY continue using its separately bundled Poppins family. The application MUST NOT depend on an undeclared local font or runtime third-party font request for its intended Persian presentation.
 
 #### Scenario: Public page renders Persian content
 - **WHEN** a browser loads the public application
 - **THEN** the computed body font family SHALL prefer the bundled Persian typeface and Persian headings, controls, and body text SHALL inherit it consistently
 
+#### Scenario: Persian route is displayed
+- **WHEN** a browser opens a Persian public, auth, customer, inquiry, or admin screen
+- **THEN** headings, body, inputs, and buttons SHALL prefer the bundled `Vazirmatn Variable` family and retain RTL reading order
+
 #### Scenario: Bundled font cannot be applied
-- **WHEN** the preferred font fails to load in a client environment
-- **THEN** the application SHALL fall back to the declared system stack without hiding content, breaking RTL order, or causing page-level horizontal overflow
+- **WHEN** the preferred font asset fails to load
+- **THEN** the application SHALL fall back to the declared system stack without hiding content, breaking RTL order, or causing page-level horizontal overflow at 360, 390, 768, or 1280 pixels
 
 ### Requirement: Corporate-minimal visual hierarchy
-The shared design system SHALL communicate hierarchy primarily through typography, spacing, alignment, borders, and restrained surface contrast. Shadows, saturated fills, large radii, and decorative shapes MUST be limited to cases where they clarify grouping, interaction, or state.
+The shared design system SHALL communicate hierarchy primarily through typography, spacing, alignment, borders, restrained surface contrast, and approved original product imagery. Shadows, saturated fills, large radii, decorative shapes, and raster-only call-to-action artwork MUST be limited to cases where they clarify grouping, interaction, or state. A surface requiring imagery MUST use approved repository or CMS assets, or a factual text-first fallback when no approved image exists; it MUST NOT fabricate a product, production facility, machine, capacity, or certified industrial capability.
 
 #### Scenario: Shared card or navigation surface is rendered
 - **WHEN** a card, header, footer, field, feedback surface, or provisional page uses the design system
-- **THEN** its presentation SHALL preserve a quiet corporate hierarchy without unnecessary decoration or component-local brand colors
+- **THEN** its presentation SHALL preserve a quiet petroleum-and-stone corporate hierarchy without unnecessary decoration or component-local brand colors
+
+#### Scenario: Product or service preview requires imagery
+- **WHEN** a public card or hero requires an image
+- **THEN** it SHALL use an approved `/catalog/*.webp` or CMS asset with meaningful alternative text, or a factual text-first fallback when such an asset is unavailable
 
 #### Scenario: Interface is viewed at a required width
-- **WHEN** the corporate-minimal interface is rendered at 360, 390, 768, or 1280 pixels
+- **WHEN** the corporate-minimal interface is rendered at 360, 390, 768, or 1280 pixels in Light or Dark theme
 - **THEN** typography and spacing SHALL remain readable, interactive targets SHALL remain usable, and no visual refinement SHALL introduce clipping or unintended horizontal scrolling
 

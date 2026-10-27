@@ -11,6 +11,10 @@ The frontend SHALL expose color, typography, spacing, radius, control-size, bord
 - **WHEN** a component appears inside the industrial or kitchen product area and also communicates success, warning, information, or error in either theme
 - **THEN** it SHALL use the business accent only for section identity and a separate status token plus text or icon for the status meaning
 
+#### Scenario: Corporate primary action is displayed
+- **WHEN** a shared public surface presents its primary valid action in light or dark theme
+- **THEN** it SHALL use the corporate interactive accent and MUST NOT reuse warning, danger, or section-identity colors as the global action meaning
+
 #### Scenario: Corporate primary action is displayed in Light theme
 - **WHEN** a shared surface presents its primary valid action in Light theme
 - **THEN** it SHALL use the petroleum action background and a readable light foreground through the dedicated on-action token, including hover, focus, loading, and disabled states
@@ -23,8 +27,16 @@ The frontend SHALL expose color, typography, spacing, radius, control-size, bord
 - **WHEN** the effective theme switches between light and dark on a public, auth, customer, inquiry, or admin surface
 - **THEN** shared components SHALL retain semantic hierarchy, visible focus, readable text, and distinguishable interactive and status states without changing component APIs or security behavior
 
+#### Scenario: A brand asset is not yet a confirmed official vector
+- **WHEN** a logo, favicon, or icon asset originates from a reconstruction rather than a file confirmed as the brand owner's official vector source
+- **THEN** its provenance and reconstruction status SHALL be documented in the repository and the asset MUST NOT be presented as a certified or legally confirmed trademark file
+
 ### Requirement: Delivered Persian typography
 The frontend SHALL bundle and load `Vazirmatn Variable` as the primary Persian UI typeface from a versioned local application dependency and SHALL reference that delivered family through semantic typography tokens with safe local fallbacks. The logo's Latin wordmark MAY continue using its separately bundled Poppins family. The application MUST NOT depend on an undeclared local font or runtime third-party font request for its intended Persian presentation.
+
+#### Scenario: Public page renders Persian content
+- **WHEN** a browser loads the public application
+- **THEN** the computed body font family SHALL prefer the bundled Persian typeface and Persian headings, controls, and body text SHALL inherit it consistently
 
 #### Scenario: Persian route is displayed
 - **WHEN** a browser opens a Persian public, auth, customer, inquiry, or admin screen
