@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { constants as fsConstants, createReadStream, createWriteStream } from 'node:fs';
-import { access, lstat, mkdir, realpath, rename, unlink } from 'node:fs/promises';
+import { access, lstat, mkdir, readdir, realpath, rename, unlink } from 'node:fs/promises';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { Transform, type Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
@@ -85,6 +85,75 @@ export class MountedDiskStorage implements MediaStorage {
     if (!details) return;
     if (!details.isFile() || details.isSymbolicLink()) throw new UnsafeMediaKeyError();
     await unlink(target);
+  }
+
+  async checkReadiness(minFreeBytes = 0): Promise<boolean> {
+    try {
+      await this.assertRoot();
+      if (minFreeBytes > 0) {
+        const { statfs } = await import('node:fs/promises');
+        const stats = await statfs(this.root);
+        const freeBytes = Number(stats.bavail) * Number(stats.bsize);
+        if (freeBytes < minFreeBytes) {
+          return false;
+        }
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async cleanTemporaryFiles(olderThan: Date, dryRun = false): Promise<string[]> {
+    await this.assertRoot();
+    const tempDir = resolve(this.root, TEMPORARY_DIRECTORY);
+    const entries = await readdir(tempDir).catch(() => []);
+    const pruned: string[] = [];
+    for (const entry of entries) {
+      if (!entry.endsWith('.part')) continue;
+      const fullPath = resolve(tempDir, entry);
+      const stats = await lstat(fullPath).catch(() => null);
+      if (stats && stats.isFile() && stats.mtime < olderThan) {
+        const key = `${TEMPORARY_DIRECTORY}/${entry}`;
+        pruned.push(key);
+        if (!dryRun) {
+          await unlink(fullPath).catch(() => undefined);
+        }
+      }
+    }
+    return pruned;
+  }
+
+  async listAllKeys(): Promise<string[]> {
+    await this.assertRoot();
+    const keys: string[] = [];
+    const scanDir = async (dir: string, relativePrefix: string) => {
+      const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
+      for (const entry of entries) {
+        const full = resolve(dir, entry.name);
+        const rel = relativePrefix ? `${relativePrefix}/${entry.name}` : entry.name;
+        if (entry.isDirectory()) {
+          if (entry.name !== TEMPORARY_DIRECTORY) {
+            await scanDir(full, rel);
+          }
+        } else if (entry.isFile()) {
+          keys.push(rel.split(sep).join('/'));
+        }
+      }
+    };
+    await scanDir(this.root, '');
+    return keys;
+  }
+
+  async getChecksum(key: string): Promise<string> {
+    await this.assertRoot();
+    const target = await this.resolveSafeKey(key);
+    const hash = createHash('sha256');
+    const stream = createReadStream(target);
+    for await (const chunk of stream) {
+      hash.update(chunk as Buffer);
+    }
+    return hash.digest('hex');
   }
 
   private async assertRoot() {

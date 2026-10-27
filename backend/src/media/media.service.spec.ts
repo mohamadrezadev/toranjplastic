@@ -62,6 +62,10 @@ function fixture(process: () => Promise<ProcessedMedia> = async () => processed)
     exists: async () => true,
     finalize: async () => undefined,
     delete: async (key) => { deleted.push(key); },
+    checkReadiness: async () => true,
+    cleanTemporaryFiles: async () => [],
+    listAllKeys: async () => [],
+    getChecksum: async () => 'hash',
   };
   const processor = { process } as unknown as MediaImageProcessor;
   return { repository, storage, deleted, service: new MediaService(repository, storage, processor) };

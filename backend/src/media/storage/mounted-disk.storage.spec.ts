@@ -121,4 +121,51 @@ describe('MountedDiskStorage', () => {
     expect(opened).toBeInstanceOf(createReadStream(join(root, 'objects', 'fixture.webp')).constructor);
     expect(await text(opened)).toBe('fixture');
   });
+
+  it('checks storage readiness and enforces free space threshold', async () => {
+    const root = await temporaryRoot();
+    const storage = new MountedDiskStorage(root);
+
+    // Valid root and reasonable threshold
+    expect(await storage.checkReadiness(1024)).toBe(true);
+
+    // Impossible threshold (1 Petabyte)
+    expect(await storage.checkReadiness(1024 * 1024 * 1024 * 1024 * 1000)).toBe(false);
+
+    // Missing root
+    const missingStorage = new MountedDiskStorage(join(root, 'non-existent-subpath'));
+    expect(await missingStorage.checkReadiness()).toBe(false);
+  });
+
+  it('prunes temporary part files older than target date and lists/checksums objects', async () => {
+    const root = await temporaryRoot();
+    const storage = new MountedDiskStorage(root);
+
+    // Create an object
+    const pending = await storage.put(Readable.from(['real-checksum-data']));
+    await storage.finalize(pending.key, 'objects/catalog/img.webp');
+
+    // Create a temporary part file directly
+    await mkdir(join(root, '.tmp'), { recursive: true });
+    const oldPart = join(root, '.tmp', 'old.part');
+    await writeFile(oldPart, 'stale-data');
+
+    // Prune in dry-run mode
+    const futureDate = new Date(Date.now() + 60_000);
+    const dryPruned = await storage.cleanTemporaryFiles(futureDate, true);
+    expect(dryPruned).toContain('.tmp/old.part');
+    expect(await text(createReadStream(oldPart))).toBe('stale-data');
+
+    // Prune in live mode
+    const livePruned = await storage.cleanTemporaryFiles(futureDate, false);
+    expect(livePruned).toContain('.tmp/old.part');
+
+    // List all keys
+    const allKeys = await storage.listAllKeys();
+    expect(allKeys).toContain('objects/catalog/img.webp');
+
+    // Get checksum
+    const checksum = await storage.getChecksum('objects/catalog/img.webp');
+    expect(checksum).toBe(pending.checksumSha256);
+  });
 });

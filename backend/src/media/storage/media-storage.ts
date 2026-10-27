@@ -14,4 +14,8 @@ export interface MediaStorage {
   exists(key: string): Promise<boolean>;
   finalize(temporaryKey: string, finalKey: string): Promise<void>;
   delete(key: string): Promise<void>;
+  checkReadiness(minFreeBytes?: number): Promise<boolean>;
+  cleanTemporaryFiles(olderThan: Date, dryRun?: boolean): Promise<string[]>;
+  listAllKeys(): Promise<string[]>;
+  getChecksum(key: string): Promise<string>;
 }

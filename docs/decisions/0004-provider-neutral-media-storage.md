@@ -1,7 +1,7 @@
 # ADR 0004: ذخیره‌سازی provider-neutral برای رسانه CMS
 
-- **وضعیت:** Proposed
-- **تاریخ:** 2026-10-18
+- **وضعیت:** Accepted
+- **تاریخ:** 2026-10-18 (Updated: 2026-10-27)
 - **Change:** `build-media-management`
 
 ## زمینه

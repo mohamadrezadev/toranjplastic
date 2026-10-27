@@ -7,6 +7,7 @@ import { PublicMediaController } from './public-media.controller.js';
 import { MEDIA_REPOSITORY } from './media.types.js';
 import { PrismaMediaRepository } from './prisma-media.repository.js';
 import { MediaService } from './media.service.js';
+import { MediaMaintenanceService } from './media-maintenance.service.js';
 import { MEDIA_CONFIG } from './media.tokens.js';
 import { MediaImageProcessor } from './processing/media-image.processor.js';
 import { MEDIA_STORAGE } from './storage/media-storage.js';
@@ -36,7 +37,8 @@ import { MountedDiskStorage } from './storage/mounted-disk.storage.js';
       useFactory: (storage: MountedDiskStorage, config: AppEnvironment['media']) => new MediaImageProcessor(storage, config),
     },
     MediaService,
+    MediaMaintenanceService,
   ],
-  exports: [MEDIA_CONFIG, MEDIA_STORAGE],
+  exports: [MEDIA_CONFIG, MEDIA_STORAGE, MediaMaintenanceService],
 })
 export class MediaModule {}

@@ -130,6 +130,52 @@ STRAPI_MEDIA_ORIGIN=https://cms.yourdomain.com
 - دسترسی به صفحه اصلی: `https://yourdomain.com`
 - دسترسی به مقالات: `https://yourdomain.com/articles`
 - بررسی هلث بک‌اند: `https://api.yourdomain.com/api/v1/health`
+- بررسی آمادگی سرویس (PostgreSQL و Media Storage): `https://api.yourdomain.com/api/v1/ready`
 - بررسی هلث Strapi: `https://cms.yourdomain.com/_health`
 - ورود به پنل ادمین وب‌سایت: `https://yourdomain.com/admin`
 - ورود به پنل مدیریت Strapi: `https://cms.yourdomain.com/admin`
+
+---
+
+## ۵. راهنمای پشتیبان‌گیری هماهنگ دیتابیس و رسانه‌ها (Coordinated DB & Media Backup)
+
+از آنجا که اطلاعات متادیتای رسانه‌ها در دیتابیس `toranj` و فایل‌های باینری تصاویر در دیسک مانت‌شده قرار دارند، بک‌آپ باید به صورت هماهنگ تهیه شود:
+
+### تهیه پشتیبان همگام:
+```bash
+# ۱. تاریخ و شناسه بک‌آپ
+BACKUP_ID=$(date +%Y%m%d_%H%M%S)
+
+# ۲. خروجی دیتابیس PostgreSQL اصلی
+docker exec toranjplastic-postgres-1 pg_dump -U toranj -d toranj > ./backups/toranj_db_${BACKUP_ID}.sql
+
+# ۳. خروجی آرشیو رسانه‌های بک‌اند
+tar -czvf ./backups/backend_media_${BACKUP_ID}.tar.gz -C /app/backend/media-uploads .
+
+# ۴. ذخیره این دو فایل در فضای امن پشتیبان خارجی
+```
+
+### بازیابی و بازگردانی هماهنگ (Coordinated Restore):
+```bash
+# ۱. بازیابی دیتابیس در PostgreSQL
+docker exec -i toranjplastic-postgres-1 psql -U toranj -d toranj < ./backups/toranj_db_${BACKUP_ID}.sql
+
+# ۲. استخراج فایل‌های رسانه به دایرکتوری مانت
+tar -xzvf ./backups/backend_media_${BACKUP_ID}.tar.gz -C /app/backend/media-uploads/
+
+# ۳. بررسی آمادگی سرویس پس از بازیابی
+curl -i https://api.yourdomain.com/api/v1/ready
+```
+
+---
+
+## ۶. رویه مهاجرت رسانه بین فضاهای ذخیره‌سازی (Media Storage Migration & Rollback)
+
+با استفاده از قابلیت توکار `MediaMaintenanceService`:
+1. **تولید مانیفست قابل‌حمل (Manifest Export):**
+   - خروجی مانیفست ساختاریافته شامل شناسه دارایی، کلید نسبی، ابعاد، حجم و هش SHA-256 تک‌تک گونه‌ها را ذخیره می‌کند.
+2. **کپی و اعتبارسنجی جابه‌جایی (Copy & Verify):**
+   - فایل‌ها از منبع به مقصد کپی شده و با هش مانیفست تطبیق داده می‌شوند. هرگونه مغایرت با خطا متوقف شده و فایل ناقص حذف می‌شود.
+3. **رول‌بک ایمن و غیرمخرب (Non-destructive Rollback):**
+   - فایل‌های مقصد اولیه در طول فرآیند به صورت Read-Only حفظ می‌شوند تا در صورت انصراف، بدون قطعی سرویس به دیسک اصلی بازگردد.
+

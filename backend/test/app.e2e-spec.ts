@@ -39,6 +39,24 @@ describe('AppController (e2e)', () => {
       });
   });
 
+  it('/api/v1/ready (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/api/v1/ready')
+      .expect(({ status, body }: { status: number; body: Record<string, unknown> }) => {
+        expect([200, 503]).toContain(status);
+        expect(body).toMatchObject({
+          service: 'toranj-backend',
+          version: expect.any(String),
+          timestamp: expect.any(String),
+          components: {
+            database: expect.stringMatching(/^(up|down)$/),
+            mediaStorage: expect.stringMatching(/^(up|down)$/),
+          },
+        });
+        expect(JSON.stringify(body)).not.toMatch(/path|secret|password|credential|token/i);
+      });
+  });
+
   afterEach(async () => {
     await app.close();
   });
