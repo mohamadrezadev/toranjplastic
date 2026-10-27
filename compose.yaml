@@ -17,6 +17,27 @@ services:
       timeout: 5s
       retries: 10
 
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-toranj}:${POSTGRES_PASSWORD:-change-me-locally}@postgres:5432/${POSTGRES_DB:-toranj}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-change-me-jwt-secret}
+      SESSION_SECRET: ${SESSION_SECRET:-change-me-session-secret}
+      MEDIA_STORAGE_ROOT: /app/backend/media-uploads
+      MEDIA_PUBLIC_ORIGIN: ${MEDIA_PUBLIC_ORIGIN:-http://localhost:3001}
+    ports:
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - backend_media:/app/backend/media-uploads
+
   cms:
     build:
       context: .
@@ -51,6 +72,27 @@ services:
       timeout: 5s
       retries: 5
 
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+      - cms
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api/v1}
+      BACKEND_API_URL: http://backend:3001/api/v1
+      STRAPI_API_URL: http://cms:1337
+      MEDIA_PUBLIC_ORIGIN: ${MEDIA_PUBLIC_ORIGIN:-http://localhost:3001}
+      STRAPI_MEDIA_ORIGIN: ${STRAPI_MEDIA_ORIGIN:-http://localhost:1337}
+      STRAPI_REVALIDATE_SECRET: ${STRAPI_REVALIDATE_SECRET:-dev-revalidate-secret}
+    ports:
+      - "127.0.0.1:3000:3000"
+
 volumes:
   toranj_postgres_data:
+  backend_media:
   strapi_uploads:

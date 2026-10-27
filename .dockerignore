@@ -1,0 +1,14 @@
+node_modules
+.pnpm-store
+.next
+dist
+coverage
+test-results
+playwright-report
+*.log
+.git
+.env
+.env.*
+!*.example
+cms/public/uploads/*
+!cms/public/uploads/.gitkeep
