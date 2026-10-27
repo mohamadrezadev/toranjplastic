@@ -100,6 +100,52 @@ const article = {
   publishedAt,
   ...seo,
 };
+const strapiArticles = [
+  {
+    documentId: "art-1",
+    id: 1,
+    title: "راهنمای انتخاب ماده",
+    slug: "material-selection",
+    summary: "خلاصه منتشرشده مقاله",
+    body: "بند اول مقاله.\n\nبند دوم مقاله.",
+    publishedAt,
+    featuredImage: null,
+    category: {
+      documentId: "cat-2",
+      id: 2,
+      name: "انتخاب مواد",
+      slug: "materials-selection-category",
+      description: "دسته‌بندی راهنما",
+    },
+    tags: [],
+    seo: {
+      metaTitle: "راهنمای انتخاب ماده",
+      metaDescription: "خلاصه مقاله",
+    },
+  },
+  {
+    documentId: "art-2",
+    id: 2,
+    title: "راهنمای انتخاب مواد اولیه در قالب‌گیری تزریق پلاستیک",
+    slug: "plastic-injection-material-selection-guide",
+    summary: "خلاصه مقاله راهنمای انتخاب مواد اولیه",
+    body: "انتخاب ماده اولیه پلیمری در فرایند تزریق پلاستیک صنعتی مستلزم بررسی پارامترهای مختلفی است.",
+    publishedAt,
+    featuredImage: null,
+    category: {
+      documentId: "cat-1",
+      id: 1,
+      name: "فناوری و تولید",
+      slug: "tech-production",
+      description: "دسته‌بندی فنی",
+    },
+    tags: [],
+    seo: {
+      metaTitle: "راهنمای انتخاب مواد اولیه در قالب‌گیری تزریق پلاستیک",
+      metaDescription: "خلاصه مقاله راهنمای انتخاب مواد اولیه",
+    },
+  },
+];
 const page = (slug, title) => ({
   id: `page-${slug}`,
   title,
@@ -452,6 +498,64 @@ const adminRecords = {
 
 createServer((request, response) => {
   const url = new URL(request.url ?? "/", `http://127.0.0.1:${port}`);
+  if (url.pathname === "/api/articles") {
+    const slugFilter = url.searchParams.get("filters[slug][$eq]");
+    const slugNotFilter = url.searchParams.get("filters[slug][$ne]");
+    const categoryFilter = url.searchParams.get("filters[category][slug][$eq]");
+    let matched = strapiArticles;
+    if (slugFilter) {
+      matched = matched.filter((a) => a.slug === slugFilter);
+    }
+    if (slugNotFilter) {
+      matched = matched.filter((a) => a.slug !== slugNotFilter);
+    }
+    if (categoryFilter) {
+      matched = matched.filter((a) => a.category?.slug === categoryFilter);
+    }
+    response.writeHead(200, {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+    });
+    return response.end(
+      JSON.stringify({
+        data: matched,
+        meta: {
+          pagination: {
+            page: 1,
+            pageSize: 12,
+            pageCount: 1,
+            total: matched.length,
+          },
+        },
+      }),
+    );
+  }
+  if (url.pathname === "/api/categories") {
+    response.writeHead(200, {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+    });
+    return response.end(
+      JSON.stringify({
+        data: [
+          {
+            documentId: "cat-1",
+            id: 1,
+            name: "فناوری و تولید",
+            slug: "tech-production",
+            description: "دسته‌بندی فنی",
+          },
+          {
+            documentId: "cat-2",
+            id: 2,
+            name: "انتخاب مواد",
+            slug: "materials-selection-category",
+            description: "دسته‌بندی راهنما",
+          },
+        ],
+      }),
+    );
+  }
   if (url.pathname === "/api/v1/auth/me") {
     const account = accountForRequest(request);
     if (!account) {

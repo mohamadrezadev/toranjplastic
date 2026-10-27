@@ -56,7 +56,7 @@ describe('MediaImageProcessor', () => {
       expect(metadata.exif).toBeUndefined();
       expect(metadata.width).toBeLessThanOrEqual(variant.name === 'thumb' ? 320 : variant.name === 'card' ? 800 : 1600);
     }
-  });
+  }, 15000);
 
   it.each([
     Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>'),

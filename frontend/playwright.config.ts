@@ -31,9 +31,12 @@ export default defineConfig({
       timeout: 30_000,
     },
     {
-      command: `pnpm build && pnpm start --port ${port}`,
+      command: `pnpm start --port ${port}`,
       url: `http://127.0.0.1:${port}`,
-      env: { BACKEND_API_URL: "http://127.0.0.1:3199/api/v1" },
+      env: {
+        BACKEND_API_URL: "http://127.0.0.1:3199/api/v1",
+        STRAPI_API_URL: "http://127.0.0.1:3199",
+      },
       reuseExistingServer: !process.env.CI,
       timeout: 180_000,
     },

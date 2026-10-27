@@ -11,15 +11,17 @@
 .campaignFrame .productAction { color: var(--color-on-action); }
 .inquiryAction { width: 13.2%; inset-inline-start: 23.2%; }
 .eyebrow { display: inline-flex; align-items: center; gap: .75rem; color: var(--color-hero-muted); font-size: .78rem; font-weight: 700; letter-spacing: .06em; }
-.closingAction { min-height: 3.4rem; padding-inline: 1.5rem; display: inline-flex; align-items: center; justify-content: center; gap: 2.5rem; color: var(--color-on-action); background: var(--color-brand-action); border-radius: .35rem; font-weight: 700; transition: transform .2s, background-color .2s; }
+.closingAction { min-height: 3.4rem; padding-inline: 1.5rem; display: inline-flex; align-items: center; justify-content: center; gap: 2.5rem; color: var(--color-on-action); background: var(--color-brand-action); border-radius: .35rem; font-weight: 700; transition: transform .2s, background-color .2s; text-decoration: none; }
 .closingAction:hover { transform: translateY(-2px); background: var(--color-brand-action-hover); }
+.closingAction:focus-visible { outline: .28rem solid var(--color-brand-action); outline-offset: .22rem; }
 .intro { padding-block: clamp(4rem, 8vw, 7rem) 2.5rem; display: grid; grid-template-columns: 1.25fr .75fr; align-items: end; gap: 2rem; }
-.sectionNumber { color: var(--color-brand-action); font: 700 .78rem/1.5 var(--font-family-fa); }
-.intro h2 { max-width: 17ch; margin-block-start: 1rem; color: var(--color-brand-primary); font-size: clamp(2rem, 3.8vw, 3.7rem); line-height: 1.35; letter-spacing: -.045em; }
+.sectionNumber { color: var(--color-brand-action); font: 700 .78rem/1.5 var(--font-family-fa); display: block; margin-block-end: .5rem; }
+.intro h2 { max-width: 17ch; margin-block-start: .25rem; color: var(--color-brand-primary); font-size: clamp(2rem, 3.8vw, 3.7rem); line-height: 1.35; letter-spacing: -.045em; }
 .intro p { max-width: 31rem; color: var(--color-text-secondary); }
 .areas { padding-block-end: clamp(4rem, 8vw, 7rem); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
-.area { min-width: 0; min-height: 28rem; padding: clamp(1.25rem, 2.5vw, 2rem); display: flex; flex-direction: column; border: 1px solid var(--color-border-default); border-radius: .35rem; background: var(--color-surface-card); transition: transform .22s, box-shadow .22s, border-color .22s; }
+.area { min-width: 0; min-height: 28rem; padding: clamp(1.25rem, 2.5vw, 2rem); display: flex; flex-direction: column; border: 1px solid var(--color-border-default); border-radius: .35rem; background: var(--color-surface-card); text-decoration: none; transition: transform .22s, box-shadow .22s, border-color .22s; }
 .area:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--color-border-strong); }
+.area:focus-visible { outline: .28rem solid var(--color-brand-action); outline-offset: .22rem; }
 .areaTop { display: flex; justify-content: space-between; align-items: center; gap: 1rem; color: var(--color-text-secondary); font-size: .8rem; }
 .areaArrow { width: 2rem; height: 2rem; display: grid; place-items: center; border: 1px solid var(--color-border-default); border-radius: 50%; color: var(--color-brand-primary); font-size: 1.2rem; }
 .areaGlyph { flex: 1; min-height: 9rem; position: relative; display: grid; place-items: center; overflow: hidden; border-radius: .3rem; }
@@ -31,10 +33,60 @@
 .areaBody strong { color: var(--color-brand-primary); font-size: clamp(1.5rem, 2.4vw, 2.1rem); line-height: 1.35; }
 .areaBody > span:nth-child(2) { min-height: 3.5rem; color: var(--color-text-secondary); font-size: .9rem; }
 .areaMore { margin-block-start: 1rem; padding-block-start: 1rem; display: flex; justify-content: space-between; border-block-start: 1px solid var(--color-border-default); color: var(--color-brand-action); font-size: .9rem; font-weight: 700; }
+
+/* Inquiry Fast-Track Section */
+.inquirySection { padding-block: clamp(3.5rem, 6vw, 5rem); background: var(--color-surface-subtle); border-block: 1px solid var(--color-border-default); }
+.inquiryInner { display: flex; flex-direction: column; gap: 2.5rem; }
+.inquiryHeader { max-width: 42rem; }
+.inquiryHeader h2 { color: var(--color-brand-primary); font-size: clamp(1.8rem, 3.2vw, 2.8rem); line-height: 1.35; margin-block: .25rem .5rem; }
+.inquiryHeader p { color: var(--color-text-secondary); font-size: 1rem; line-height: 1.6; }
+.inquirySteps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
+.stepCard { background: var(--color-surface-card); border: 1px solid var(--color-border-default); border-radius: .45rem; padding: clamp(1.25rem, 2vw, 1.75rem); display: flex; flex-direction: column; gap: .75rem; }
+.stepBadge { width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--color-brand-action); color: var(--color-on-action); display: grid; place-items: center; font-weight: 700; font-size: 1rem; }
+.stepTitle { color: var(--color-brand-primary); font-size: 1.15rem; }
+.stepDescription { color: var(--color-text-secondary); font-size: .92rem; line-height: 1.6; margin: 0; }
+.inquiryFooter { display: flex; justify-content: flex-start; }
+.inquiryMainAction { min-height: 3.25rem; padding-inline: 1.75rem; display: inline-flex; align-items: center; justify-content: center; gap: .75rem; color: var(--color-on-action); background: var(--color-brand-action); border-radius: .35rem; font-weight: 700; font-size: 1rem; text-decoration: none; transition: transform .2s, background-color .2s; }
+.inquiryMainAction:hover { transform: translateY(-2px); background: var(--color-brand-action-hover); }
+.inquiryMainAction:focus-visible { outline: .28rem solid var(--color-brand-action); outline-offset: .22rem; }
+
+/* Articles Section */
+.articlesSection { padding-block: clamp(3.5rem, 6vw, 5rem); }
+.articlesHeader { display: flex; justify-content: space-between; align-items: flex-end; margin-block-end: 2rem; gap: 1rem; }
+.articlesHeader h2 { color: var(--color-brand-primary); font-size: clamp(1.8rem, 3.2vw, 2.8rem); line-height: 1.35; margin-block-start: .25rem; }
+.allArticlesLink { display: inline-flex; align-items: center; gap: .5rem; color: var(--color-brand-action); font-weight: 700; font-size: .95rem; text-decoration: none; white-space: nowrap; transition: gap .2s; }
+.allArticlesLink:hover { gap: .75rem; }
+.allArticlesLink:focus-visible { outline: .2rem solid var(--color-brand-action); outline-offset: .15rem; }
+
+/* Closing Section */
 .closing { background: var(--color-surface-subtle); border-block-start: 1px solid var(--color-border-default); }
 .closingInner { padding-block: clamp(4rem, 7vw, 6rem); display: grid; grid-template-columns: .4fr 1.5fr auto; align-items: center; gap: 2rem; }
 .closing h2 { max-width: 24ch; color: var(--color-brand-primary); font-size: clamp(1.8rem, 3vw, 3rem); line-height: 1.4; }
 .closing p { max-width: 34rem; margin-block-start: .75rem; color: var(--color-text-secondary); }
 .closingAction { white-space: nowrap; }
-@media (max-width: 64rem) { .closingInner { grid-template-columns: 1fr 2fr; } .closingAction { grid-column: 2; justify-self: start; } }
-@media (max-width: 48rem) { .campaignFrame { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; } .campaignImage { grid-column: 1 / -1; } .campaignSummary { width: auto; height: auto; padding: 1rem 0 .35rem; position: static; grid-column: 1 / -1; overflow: visible; clip: auto; white-space: normal; border: 0; } .campaignSummary h1 { margin-block: .55rem .35rem; color: var(--color-brand-primary); font-size: clamp(1.75rem, 8vw, 2.6rem); line-height: 1.35; } .campaignSummary p { color: var(--color-text-secondary); } .campaignAction { width: 100%; min-width: 0; min-height: 3rem; height: auto; padding-inline: .75rem; position: static; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--color-brand-action); border-radius: .45rem; font-weight: 700; } .campaignAction span { width: auto; height: auto; position: static; overflow: visible; clip: auto; white-space: nowrap; } .productAction { color: #fff; background: var(--color-brand-action); } .inquiryAction { color: var(--color-brand-primary); background: var(--color-surface-card); } .intro { grid-template-columns: 1fr; gap: 1rem; } .areas { grid-template-columns: 1fr; } .area { min-height: 16rem; } .areaGlyph { min-height: 7rem; } .closingInner { grid-template-columns: 1fr; } .closingAction { grid-column: auto; } }
+
+@media (max-width: 64rem) {
+  .closingInner { grid-template-columns: 1fr 2fr; }
+  .closingAction { grid-column: 2; justify-self: start; }
+}
+
+@media (max-width: 48rem) {
+  .campaignFrame { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+  .campaignImage { grid-column: 1 / -1; }
+  .campaignSummary { width: auto; height: auto; padding: 1rem 0 .35rem; position: static; grid-column: 1 / -1; overflow: visible; clip: auto; white-space: normal; border: 0; }
+  .campaignSummary h1 { margin-block: .55rem .35rem; color: var(--color-brand-primary); font-size: clamp(1.75rem, 8vw, 2.6rem); line-height: 1.35; }
+  .campaignSummary p { color: var(--color-text-secondary); }
+  .campaignAction { width: 100%; min-width: 0; min-height: 3rem; height: auto; padding-inline: .75rem; position: static; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--color-brand-action); border-radius: .45rem; font-weight: 700; }
+  .campaignAction span { width: auto; height: auto; position: static; overflow: visible; clip: auto; white-space: nowrap; }
+  .productAction { color: #fff; background: var(--color-brand-action); }
+  .inquiryAction { color: var(--color-brand-primary); background: var(--color-surface-card); }
+  .intro { grid-template-columns: 1fr; gap: 1rem; }
+  .areas { grid-template-columns: 1fr; }
+  .area { min-height: 16rem; }
+  .areaGlyph { min-height: 7rem; }
+  .inquirySteps { grid-template-columns: 1fr; }
+  .inquiryMainAction { width: 100%; }
+  .articlesHeader { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .closingInner { grid-template-columns: 1fr; }
+  .closingAction { grid-column: auto; }
+}

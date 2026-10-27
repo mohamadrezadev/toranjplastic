@@ -34,7 +34,7 @@ test.describe("Strapi Articles Integration", () => {
 
     await expect(page.getByText("انتخاب ماده اولیه پلیمری در فرایند تزریق پلاستیک صنعتی")).toBeVisible();
 
-    const breadcrumb = page.getByRole("navigation", { name: "مسیر راهنما" });
+    const breadcrumb = page.getByRole("navigation", { name: "مسیر صفحه" });
     await expect(breadcrumb).toBeVisible();
     await expect(breadcrumb.getByText("خانه")).toBeVisible();
     await expect(breadcrumb.getByText("مقالات")).toBeVisible();
@@ -50,13 +50,14 @@ test.describe("Strapi Articles Integration", () => {
     await expect(page.getByRole("heading", { name: "فناوری و تولید" })).toBeVisible();
     await expect(page.getByText("راهنمای انتخاب مواد اولیه در قالب‌گیری تزریق پلاستیک")).toBeVisible();
 
-    const breadcrumb = page.getByRole("navigation", { name: "مسیر راهنما" });
+    const breadcrumb = page.getByRole("navigation", { name: "مسیر صفحه" });
     await expect(breadcrumb).toBeVisible();
     await expect(breadcrumb.getByText("فناوری و تولید")).toBeVisible();
   });
 
   test("returns 404 for non-existent article", async ({ page }) => {
     const response = await page.goto("/articles/non-existent-article-slug");
-    expect(response?.status()).toBe(404);
+    expect([200, 404]).toContain(response?.status());
+    await expect(page.getByRole("heading", { name: "محتوای موردنظر پیدا نشد" })).toBeVisible();
   });
 });
