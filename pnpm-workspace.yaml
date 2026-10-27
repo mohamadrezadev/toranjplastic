@@ -1,6 +1,7 @@
 packages:
   - frontend
   - backend
+  - cms
 
 onlyBuiltDependencies:
   - '@prisma/engines'

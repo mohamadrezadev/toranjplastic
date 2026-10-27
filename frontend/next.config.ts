@@ -42,6 +42,20 @@ try {
   // fallback to defaults
 }
 
+const strapiMediaOrigin = process.env.STRAPI_MEDIA_ORIGIN ?? process.env.STRAPI_API_URL ?? "http://localhost:1337";
+let strapiProtocol: "http" | "https" = "http";
+let strapiHostname = "localhost";
+let strapiPort: string | undefined = "1337";
+
+try {
+  const parsedStrapi = new URL(strapiMediaOrigin);
+  strapiProtocol = parsedStrapi.protocol.startsWith("https") ? "https" : "http";
+  strapiHostname = parsedStrapi.hostname;
+  strapiPort = parsedStrapi.port || undefined;
+} catch {
+  // fallback to defaults
+}
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
@@ -52,6 +66,12 @@ const nextConfig: NextConfig = {
         hostname: mediaHostname,
         ...(mediaPort ? { port: mediaPort } : {}),
         pathname: "/api/v1/media/public/**",
+      },
+      {
+        protocol: strapiProtocol,
+        hostname: strapiHostname,
+        ...(strapiPort ? { port: strapiPort } : {}),
+        pathname: "/uploads/**",
       },
     ],
   },

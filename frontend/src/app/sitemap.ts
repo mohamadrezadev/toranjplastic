@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
-import { listArticles, listProducts } from "@/lib/public-content";
+import { listProducts } from "@/lib/public-content";
+import { getAllStrapiArticlesForSitemap, getAllStrapiCategoriesForSitemap } from "@/lib/strapi";
 import { absoluteUrl } from "@/lib/site";
 
 const stableRoutes = ["/", "/products", "/injection-molding", "/materials", "/articles"] as const;
@@ -14,7 +15,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     for (let page = 1; ; page += 1) {
       const result = await listProducts(page);
-      entries.push(...result.items.map((item) => ({ url: absoluteUrl(`/products/${item.slug}`), lastModified: new Date(item.publishedAt), changeFrequency: "monthly" as const, priority: 0.7 })));
+      entries.push(
+        ...result.items.map((item) => ({
+          url: absoluteUrl(`/products/${item.slug}`),
+          lastModified: new Date(item.publishedAt),
+          changeFrequency: "monthly" as const,
+          priority: 0.7,
+        })),
+      );
       if (page >= result.pageInfo.totalPages) break;
     }
   } catch {
@@ -22,13 +30,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   try {
-    for (let page = 1; ; page += 1) {
-      const result = await listArticles(page);
-      entries.push(...result.items.map((item) => ({ url: absoluteUrl(`/articles/${item.slug}`), lastModified: new Date(item.publishedAt), changeFrequency: "monthly" as const, priority: 0.6 })));
-      if (page >= result.pageInfo.totalPages) break;
-    }
+    const strapiArticles = await getAllStrapiArticlesForSitemap();
+    entries.push(
+      ...strapiArticles.map((item) => ({
+        url: absoluteUrl(`/articles/${item.slug}`),
+        lastModified: new Date(item.updatedAt),
+        changeFrequency: "weekly" as const,
+        priority: 0.7,
+      })),
+    );
   } catch {
     // Do not guess detail URLs when published content cannot be read.
+  }
+
+  try {
+    const strapiCategories = await getAllStrapiCategoriesForSitemap();
+    entries.push(
+      ...strapiCategories.map((item) => ({
+        url: absoluteUrl(`/articles/category/${item.slug}`),
+        lastModified: new Date(item.updatedAt),
+        changeFrequency: "weekly" as const,
+        priority: 0.6,
+      })),
+    );
+  } catch {
+    // Do not guess category URLs when categories cannot be read.
   }
 
   return entries;

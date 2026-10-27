@@ -10,11 +10,47 @@ services:
       - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
     volumes:
       - toranj_postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-postgres-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
 
+  cms:
+    build:
+      context: .
+      dockerfile: cms/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 1337
+      APP_KEYS: ${STRAPI_APP_KEYS:-toranj_strapi_app_key_1,toranj_strapi_app_key_2}
+      API_TOKEN_SALT: ${STRAPI_API_TOKEN_SALT:-toranj_strapi_api_token_salt}
+      ADMIN_JWT_SECRET: ${STRAPI_ADMIN_JWT_SECRET:-toranj_strapi_admin_jwt_secret}
+      TRANSFER_TOKEN_SALT: ${STRAPI_TRANSFER_TOKEN_SALT:-toranj_strapi_transfer_token_salt}
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${STRAPI_DATABASE_NAME:-toranj_strapi}
+      DATABASE_USERNAME: ${POSTGRES_USER:-toranj}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-change-me-locally}
+      DATABASE_SSL: "false"
+      STRAPI_REVALIDATE_SECRET: ${STRAPI_REVALIDATE_SECRET:-dev-revalidate-secret}
+      FRONTEND_REVALIDATE_URL: ${FRONTEND_REVALIDATE_URL:-http://frontend:3000/api/revalidate}
+    ports:
+      - "127.0.0.1:${STRAPI_PORT:-1337}:1337"
+    volumes:
+      - strapi_uploads:/app/cms/public/uploads
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:1337/_health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   toranj_postgres_data:
+  strapi_uploads:

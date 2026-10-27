@@ -15,7 +15,12 @@
     "dev:frontend:service": "pnpm --filter frontend dev",
     "dev:backend": "node scripts/run-with-root-env.mjs dev:backend:service",
     "dev:backend:service": "pnpm --filter backend dev",
+    "dev:cms": "node scripts/run-with-root-env.mjs dev:cms:service",
+    "dev:cms:service": "pnpm --filter cms dev",
+    "start:cms": "node scripts/run-with-root-env.mjs start:cms:service",
+    "start:cms:service": "pnpm --filter cms start",
     "build": "pnpm -r build",
+    "build:cms": "pnpm --filter cms build",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "test:e2e:backend": "pnpm --filter backend test:e2e",
@@ -34,5 +39,11 @@
     "db:studio:service": "pnpm --filter backend db:studio",
     "admin:bootstrap": "node scripts/run-with-root-env.mjs admin:bootstrap:service",
     "admin:bootstrap:service": "pnpm --filter backend admin:bootstrap"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "^19",
+      "@types/react-dom": "^19"
+    }
   }
 }

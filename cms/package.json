@@ -1,0 +1,32 @@
+{
+  "name": "cms",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Toranj Plastic standalone Strapi Headless CMS for Editorial Articles",
+  "scripts": {
+    "dev": "strapi develop",
+    "start": "strapi start",
+    "build": "strapi build && node -e \"const fs = require('fs'); fs.cpSync('src', 'dist/src', { recursive: true, filter: (src) => !src.endsWith('.ts') });\"",
+    "strapi": "strapi"
+  },
+  "dependencies": {
+    "@strapi/strapi": "5.59.0",
+    "@strapi/plugin-users-permissions": "5.59.0",
+    "pg": "^8.16.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0",
+    "styled-components": "^6.1.15"
+  },
+  "devDependencies": {
+    "@strapi/typescript-utils": "5.59.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=24.11.0",
+    "pnpm": ">=9.15.0"
+  }
+}

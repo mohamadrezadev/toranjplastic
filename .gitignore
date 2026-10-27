@@ -19,3 +19,7 @@ backend/src/generated/
 Thumbs.db
 .idea/
 .vscode/
+.strapi/
+.strapi-updater.json
+cms/public/uploads/*
+!cms/public/uploads/.gitkeep
