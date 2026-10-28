@@ -10,6 +10,8 @@ const stableRoutes = [
   "/materials",
   "/about",
   "/contact",
+  "/terms",
+  "/privacy",
   "/articles",
 ] as const;
 
