@@ -4,11 +4,13 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { publicContentMetadata } from "@/lib/content-metadata";
+import { organizationJsonLd, serializeJsonLd } from "@/lib/jsonld";
+import { siteOrigin } from "@/lib/site";
 import { listStrapiArticles, type StrapiArticle } from "@/lib/strapi";
 import { ContentCard, ContentGrid, ContentTag } from "@/components/content";
 import styles from "./page.module.css";
 
-const homeDescription = "تولید محصولات پلاستیکی، خدمات تخصصی تزریق پلاستیک صنعتی و تأمین مواد اولیه پلیمری در ترنج پلاستیک.";
+const homeDescription = "تولید محصولات پلاستیکی با قالب اختصاصی، خدمات تزریق کارمزدی در کهریزک و تأمین مواد اولیه پلیمری در صنایع پلاستیک ترنج.";
 export const metadata: Metadata = publicContentMetadata({ title: "ترنج پلاستیک", path: "/", summary: homeDescription });
 
 const formatDate = (value: string) => {
@@ -26,7 +28,7 @@ const capabilities = [
     description: "پذیرش قالب و انجام تزریق کارمزدی با دستگاه‌های ۸۰ تا ۴۵۰ تن در کهریزک، با متریال ارسالی مشتری یا متریال تأمینی ترنج.",
     href: "/injection-molding",
     accent: "injection",
-    image: null,
+    image: { url: "/branding/banners/injection-services.webp", alt: "خدمات تزریق پلاستیک کارمزدی در کهریزک" },
   },
   {
     number: "۰۲",
@@ -42,7 +44,7 @@ const capabilities = [
     description: "تأمین انواع گریدهای پلیمری صنعتی (PP, PE و...) متناسب با نیاز تولیدکنندگان و کارگاه‌ها.",
     href: "/materials",
     accent: "materials",
-    image: null,
+    image: { url: "/branding/banners/materials.webp", alt: "تأمین انواع مواد اولیه پلیمری صنعتی" },
   },
 ] as const;
 
@@ -120,18 +122,40 @@ export async function LatestArticlesSection() {
 }
 
 export default function Home() {
+  const homeJsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      organizationJsonLd(),
+      {
+        "@type": "WebSite",
+        "@id": `${siteOrigin}/#website`,
+        url: siteOrigin,
+        name: "ترنج پلاستیک",
+        description: homeDescription,
+        inLanguage: "fa-IR",
+        publisher: {
+          "@id": `${siteOrigin}/#organization`,
+        },
+      },
+    ],
+  };
+
   return (
     <main className={styles.page}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(homeJsonLd) }}
+      />
       {/* Hero Section */}
       <section className={styles.campaignHero} aria-labelledby="home-title" data-testid="home-campaign">
         <div className={`${styles.campaignFrame} content-container`}>
           <Image
             className={styles.campaignImage}
-            src="/branding/banners/home-hero.png"
+            src="/branding/banners/home-hero.webp"
             alt="معرفی محصولات و خدمات ترنج پلاستیک"
             width={1916}
             height={821}
-            sizes="100vw"
+            sizes="(max-width: 1280px) 100vw, 1280px"
             priority
           />
           <div className={styles.campaignSummary}>

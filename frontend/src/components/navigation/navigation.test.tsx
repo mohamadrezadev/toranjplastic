@@ -33,8 +33,9 @@ describe("public navigation", () => {
   it("renders approved-only footer copy and an aria-current breadcrumb", async () => {
     const { container } = render(<><Breadcrumb items={[{ label: "خانه", href: "/" }, { label: "محصولات" }]} /><Footer /></>);
     expect(screen.getByText("محصولات")).toHaveAttribute("aria-current", "page");
-    expect(screen.getByText(/اطلاعات تماس.*پس از تأیید رسمی/)).toBeInTheDocument();
-    expect(container).not.toHaveTextContent(/@|۰۹\d{9}|021[- ]?\d+/);
+    expect(screen.getByText(/تهران، کهریزک/)).toBeInTheDocument();
+    expect(screen.getByText(/۰۹۱۳ ۲۰۷ ۵۹۲۵/)).toBeInTheDocument();
+    expect(screen.getByText(/info@toranjplastic\.com/)).toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
   });
 });

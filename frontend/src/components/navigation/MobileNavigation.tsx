@@ -40,11 +40,28 @@ export function MobileNavigation() {
   }, [open]);
 
   return <div className={styles.mobileRoot}>
-    <button ref={triggerRef} className={styles.menuTrigger} type="button" aria-expanded={open} aria-controls="mobile-navigation" aria-label="بازکردن فهرست" onClick={() => setOpen(true)}>☰</button>
+    <button ref={triggerRef} className={styles.menuTrigger} type="button" aria-expanded={open} aria-controls="mobile-navigation" aria-label="بازکردن فهرست" onClick={() => setOpen(true)}>
+      <svg className={styles.menuIcon} viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    </button>
     {open ? <>
       <div className={styles.backdrop} aria-hidden="true" onClick={() => setOpen(false)} />
       <div ref={drawerRef} className={styles.drawer} id="mobile-navigation" role="dialog" aria-modal="true" aria-label="فهرست اصلی">
-        <div className={styles.drawerHeader}><strong>فهرست</strong><button className={styles.closeButton} type="button" aria-label="بستن فهرست" onClick={() => setOpen(false)}>×</button></div>
+        <div className={styles.drawerHeader}>
+          <div className={styles.drawerBrand}>
+            <span className={styles.brandSymbol} aria-hidden="true" />
+            <strong>منوی دسترسی</strong>
+          </div>
+          <button className={styles.closeButton} type="button" aria-label="بستن فهرست" onClick={() => setOpen(false)}>
+            <svg className={styles.menuIcon} viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
         <nav className={styles.drawerNav} aria-label="ناوبری موبایل"><ul className={styles.navList}>{primaryNavigationRoutes.map((route) => <li key={route.key}><Link className={styles.navLink} href={route.path} onClick={() => setOpen(false)}>{route.label}</Link></li>)}</ul></nav>
         <div className={styles.drawerTheme}><span>پوسته نمایش</span><ThemeToggle /></div>
         <div className={styles.drawerActions}><ActionLink href={inquiryRoute.path} emphasis="primary">{inquiryRoute.label}</ActionLink><Link className={styles.action} href="/account" onClick={() => setOpen(false)}>حساب من</Link></div>

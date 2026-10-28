@@ -9,13 +9,39 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin),
-  title: "ترنج پلاستیک",
-  description: "معرفی محصولات، خدمات تزریق پلاستیک و مواد اولیه ترنج پلاستیک.",
+  title: {
+    default: "ترنج پلاستیک | تولید و خدمات تزریق پلاستیک",
+    template: "%s | ترنج پلاستیک",
+  },
+  description: "تولید محصولات کاتالوگ اختصاصی، خدمات تزریق پلاستیک کارمزدی در کهریزک بر روی دستگاه‌های ۸۰ تا ۴۵۰ تن و تأمین انواع مواد اولیه پلیمری در صنایع پلاستیک ترنج.",
+  keywords: [
+    "ترنج پلاستیک",
+    "صنایع پلاستیک ترنج",
+    "تزریق پلاستیک",
+    "تزریق کارمزدی",
+    "تزریق پلاستیک کهریزک",
+    "تولید قطعات پلاستیکی",
+    "مواد اولیه پلیمری",
+    "استعلام تزریق پلاستیک",
+  ],
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+  },
   robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
   colorScheme: "light dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1219" },
+  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

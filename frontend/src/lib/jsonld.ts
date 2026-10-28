@@ -9,11 +9,12 @@ export function organizationJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": `${absoluteUrl("/")}#organization`,
     name: siteName,
     alternateName: "صنایع پلاستیک ترنج",
     url: absoluteUrl("/"),
-    logo: absoluteUrl("/branding/brandmark.png"),
-    description: "تولیدکننده قطعات پلاستیکی صنعتی و ارائه‌دهنده خدمات تخصصی قالب‌گیری تزریق پلاستیک در تناژهای ۸۰ تا ۴۵۰ تن.",
+    logo: absoluteUrl("/branding/toranj-symbol-dots.svg"),
+    description: "تولید محصولات کاتالوگ اختصاصی، خدمات تزریق کارمزدی در کهریزک (با قالب مشتری) بر روی دستگاه‌های ۸۰ تا ۴۵۰ تن و تأمین مواد اولیه پلیمری.",
     address: {
       "@type": "PostalAddress",
       addressLocality: "کهریزک",

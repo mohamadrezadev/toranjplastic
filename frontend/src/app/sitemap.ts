@@ -1,9 +1,17 @@
 import type { MetadataRoute } from "next";
-import { listProducts } from "@/lib/public-content";
+import { listMaterials, listProducts, listServices } from "@/lib/public-content";
 import { getAllStrapiArticlesForSitemap, getAllStrapiCategoriesForSitemap } from "@/lib/strapi";
 import { absoluteUrl } from "@/lib/site";
 
-const stableRoutes = ["/", "/products", "/injection-molding", "/materials", "/articles"] as const;
+const stableRoutes = [
+  "/",
+  "/products",
+  "/injection-molding",
+  "/materials",
+  "/about",
+  "/contact",
+  "/articles",
+] as const;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = stableRoutes.map((path) => ({
@@ -27,6 +35,40 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   } catch {
     // Stable approved routes remain discoverable when the content API is unavailable.
+  }
+
+  try {
+    for (let page = 1; ; page += 1) {
+      const result = await listServices(page);
+      entries.push(
+        ...result.items.map((item) => ({
+          url: absoluteUrl(`/injection-molding/${item.slug}`),
+          lastModified: new Date(item.publishedAt),
+          changeFrequency: "monthly" as const,
+          priority: 0.7,
+        })),
+      );
+      if (page >= result.pageInfo.totalPages) break;
+    }
+  } catch {
+    // Fail safe
+  }
+
+  try {
+    for (let page = 1; ; page += 1) {
+      const result = await listMaterials(page);
+      entries.push(
+        ...result.items.map((item) => ({
+          url: absoluteUrl(`/materials/${item.slug}`),
+          lastModified: new Date(item.publishedAt),
+          changeFrequency: "monthly" as const,
+          priority: 0.7,
+        })),
+      );
+      if (page >= result.pageInfo.totalPages) break;
+    }
+  } catch {
+    // Fail safe
   }
 
   try {
