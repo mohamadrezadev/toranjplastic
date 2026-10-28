@@ -43,8 +43,9 @@ export function isStrapiNotFoundError(error: unknown): boolean {
 }
 
 function getStrapiBaseUrl(): string {
-  const url = process.env.STRAPI_API_URL ?? "http://localhost:1337";
-  return url.replace(/\/$/, "");
+  const url = process.env.STRAPI_API_URL ?? process.env.STRAPI_URL ?? "http://localhost:1337";
+  const normalized = url.replace(/\/$/, "");
+  return normalized.endsWith("/api") ? normalized.slice(0, -4) : normalized;
 }
 
 function getStrapiTimeoutMs(): number {
@@ -53,8 +54,9 @@ function getStrapiTimeoutMs(): number {
 }
 
 function getStrapiMediaOrigin(): string {
-  const mediaOrigin = process.env.STRAPI_MEDIA_ORIGIN ?? process.env.STRAPI_API_URL ?? "http://localhost:1337";
-  return mediaOrigin.replace(/\/$/, "");
+  const mediaOrigin = process.env.STRAPI_MEDIA_ORIGIN ?? process.env.STRAPI_URL ?? process.env.STRAPI_API_URL ?? "http://localhost:1337";
+  const normalized = mediaOrigin.replace(/\/$/, "");
+  return normalized.endsWith("/api") ? normalized.slice(0, -4) : normalized;
 }
 
 function getAuthHeaders(): HeadersInit {
