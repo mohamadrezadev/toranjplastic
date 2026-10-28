@@ -1,16 +1,21 @@
-import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import type { InquiryStatus } from '../../generated/prisma/enums.js';
 import { INQUIRY_REPOSITORY, type InquiryRepository } from '../inquiry.repository.js';
 import type { AdminInquiry, AdminInquiryListQuery } from '../inquiry.types.js';
 import type { AdminInquiryListQueryDto } from './admin-inquiry.dto.js';
 import { allowedInquiryTransitions, canTransitionInquiry } from './inquiry-transition.policy.js';
 import { StaffService } from '../../identity/staff.service.js';
+import { NotificationService } from '../../notifications/notifications.service.js';
 
 const conflict = (code: string, message: string) => new ConflictException({ code, message });
 
 @Injectable()
 export class AdminInquiryService {
-  constructor(@Inject(INQUIRY_REPOSITORY) private readonly inquiries: InquiryRepository, private readonly staff: StaffService) {}
+  constructor(
+    @Inject(INQUIRY_REPOSITORY) private readonly inquiries: InquiryRepository,
+    private readonly staff: StaffService,
+    @Optional() private readonly notifications?: NotificationService,
+  ) {}
 
   list(query: AdminInquiryListQueryDto) {
     const normalized: AdminInquiryListQuery = {
@@ -68,7 +73,20 @@ export class AdminInquiryService {
     if (requestMoreInfo && (expectedVersion === undefined || current.status !== 'UNDER_REVIEW')) {
       throw conflict('INQUIRY_MESSAGE_NOT_ALLOWED', 'درخواست اطلاعات تکمیلی فقط در وضعیت بررسی و با نسخه فعلی مجاز است.');
     }
-    return this.resolve(await this.inquiries.adminAddMessage(id, normalized, actorId, requestMoreInfo, expectedVersion));
+    const result = this.resolve(await this.inquiries.adminAddMessage(id, normalized, actorId, requestMoreInfo, expectedVersion));
+
+    if (this.notifications && current.ownerSummary?.mobile) {
+      this.notifications
+        .notifyInquiryMessage({
+          inquiryId: id,
+          customerMobile: current.ownerSummary.mobile,
+          customerName: current.ownerSummary.displayName,
+          senderRole: 'STAFF',
+        })
+        .catch(() => {});
+    }
+
+    return result;
   }
 
   private resolve(result: Awaited<ReturnType<InquiryRepository['adminAssign']>>) {

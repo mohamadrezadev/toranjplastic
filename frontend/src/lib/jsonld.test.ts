@@ -10,7 +10,6 @@ describe("JSON-LD institutional and organization schemas", () => {
     summary: "تولیدکننده قطعات پلاستیکی صنعتی",
     body: "متن کامل درباره ما",
     images: [],
-    displayOrder: 1,
     publishedAt: "2026-10-15T00:00:00.000Z",
     metaTitle: "درباره ما",
     metaDescription: "توضیحات متای درباره ما",

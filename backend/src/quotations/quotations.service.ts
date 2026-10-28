@@ -3,9 +3,11 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { recordAuditEvent } from '../audit/audit.js';
 import { PrismaService } from '../database/prisma.service.js';
+import { NotificationService } from '../notifications/notifications.service.js';
 import { calculateQuotation } from './quotation.calculation.js';
 import type { QuotationDraftInputDto } from './quotation.dto.js';
 import {
@@ -58,7 +60,10 @@ function itemData(
 
 @Injectable()
 export class QuotationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly notifications?: NotificationService,
+  ) {}
 
   adminList(inquiryId: string) {
     return this.prisma.quotation
@@ -316,14 +321,14 @@ export class QuotationsService {
       });
   }
 
-  send(
+  async send(
     inquiryId: string,
     quotationId: string,
     expectedVersion: number,
     inquiryExpectedVersion: number,
     actorId: string,
   ) {
-    return this.prisma.$transaction(
+    const result = await this.prisma.$transaction(
       async (transaction) => {
         await transaction.$executeRawUnsafe(
           'SELECT pg_advisory_xact_lock(hashtext($1))',
@@ -429,6 +434,27 @@ export class QuotationsService {
       },
       { isolationLevel: 'Serializable' },
     );
+
+    if (this.notifications && result) {
+      this.prisma.inquiry
+        .findUnique({
+          where: { id: inquiryId },
+          select: { owner: { select: { displayName: true, mobile: true } } },
+        })
+        .then((inquiry) => {
+          if (inquiry?.owner?.mobile) {
+            this.notifications?.notifyQuotationIssued({
+              inquiryId,
+              quotationNumber: result.quotationNumber,
+              customerName: inquiry.owner.displayName,
+              customerMobile: inquiry.owner.mobile,
+            });
+          }
+        })
+        .catch(() => {});
+    }
+
+    return result;
   }
 
   customerList(ownerId: string, inquiryId: string) {

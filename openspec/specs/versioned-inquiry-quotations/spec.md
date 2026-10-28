@@ -69,3 +69,10 @@ The Admin inquiry detail SHALL provide accessible Persian RTL draft, item, total
 - **WHEN** the owner opens an inquiry without a sent version
 - **THEN** the UI SHALL show a neutral empty state and SHALL NOT imply a price, availability or delivery commitment
 
+### Requirement: Customer notification on official quotation issuance
+When an authorized sales representative or administrator transitions a quotation to `SENT` status, the backend SHALL dispatch an SMS notification to the inquiry owner's mobile number.
+
+#### Scenario: Quotation issued and customer notified
+- **WHEN** a quotation is successfully marked as `SENT`
+- **THEN** an SMS notification containing the inquiry ID, quotation number, and a link to the customer account portal SHALL be dispatched to the customer's verified mobile number
+
