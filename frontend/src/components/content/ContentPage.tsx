@@ -79,4 +79,62 @@ export function Specifications({ items }: { items: PublicSpecification[] }) {
   return <section className={styles.specifications}><h2>مشخصات تأییدشده</h2><dl>{items.map((item) => <div key={`${item.label}-${item.value}`} style={{ display: "contents" }}><dt>{item.label}</dt><dd dir={/^[\x00-\x7F]/.test(item.value) ? "ltr" : undefined}>{item.value}</dd></div>)}</dl></section>;
 }
 
-export const contentStyles = { main: styles.main, section: styles.section, managed: styles.managed, primaryLink: styles.primaryLink, secondaryLink: styles.secondaryLink, catalogSection: styles.catalogSection, detailContent: styles.detailContent };
+export function DetailInquiryCard({
+  eyebrow = "استعلام سفارش عمده و تیراژ",
+  title = "سفارش مستقیم و تیراژ تولید این محصول",
+  description = "این محصول تولید مستقیم خطوط ترنج پلاستیک است (قالب آماده). تیراژ مورد نیاز و مشخصات درخواستی را ثبت کنید تا پیش‌فاکتور رسمی و برنامه تحویل بار برای شما صادر شود.",
+  actionHref,
+  actionLabel = "ثبت استعلام مستقیم",
+  trustPoints = [
+    "تولید با قالب اختصاصی ترنج پلاستیک (بدون نیاز به ساخت قالب)",
+    "امکان سفارشی‌سازی رنگ، مستربچ و گرید متریال",
+    "صدور پیش‌فاکتور رسمی ظرف ۲۴ الی ۴۸ ساعت کاری",
+    "تحویل مستقیم از کارخانه با نظارت و کنترل کیفیت",
+  ],
+}: {
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+  actionHref: string;
+  actionLabel?: string;
+  trustPoints?: string[];
+}) {
+  return (
+    <section className={styles.detailInquiryCard} aria-labelledby="inquiry-fast-track-title">
+      <div className={styles.inquiryCardHeader}>
+        <span className={styles.eyebrow}>{eyebrow}</span>
+        <h2 id="inquiry-fast-track-title">{title}</h2>
+        <p>{description}</p>
+      </div>
+      <div className={styles.inquiryTrustGrid}>
+        {trustPoints.map((point) => (
+          <div key={point} className={styles.inquiryTrustItem}>
+            <span className={styles.inquiryTrustDot} aria-hidden="true" />
+            <span>{point}</span>
+          </div>
+        ))}
+      </div>
+      <div className={styles.inquiryActionRow}>
+        <Link className={styles.primaryLink} href={actionHref}>
+          {actionLabel}
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+export const contentStyles = {
+  main: styles.main,
+  section: styles.section,
+  managed: styles.managed,
+  primaryLink: styles.primaryLink,
+  secondaryLink: styles.secondaryLink,
+  catalogSection: styles.catalogSection,
+  detailContent: styles.detailContent,
+  institutionalSection: styles.institutionalSection,
+  institutionalGrid: styles.institutionalGrid,
+  institutionalCard: styles.institutionalCard,
+  contactChannelValue: styles.contactChannelValue,
+  contactMetaGrid: styles.contactMetaGrid,
+  contactMetaCard: styles.contactMetaCard,
+};

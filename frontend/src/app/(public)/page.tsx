@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { publicContentMetadata } from "@/lib/content-metadata";
 import { listStrapiArticles, type StrapiArticle } from "@/lib/strapi";
 import { ContentCard, ContentGrid, ContentTag } from "@/components/content";
@@ -22,7 +23,7 @@ const capabilities = [
   {
     number: "۰۱",
     title: "خدمات تزریق پلاستیک",
-    description: "قالب‌گیری دقیق قطعات پلاستیکی صنعتی و تجاری در تناژهای گوناگون، با رعایت تلورانس‌های مهندسی و استانداردهای کیفی.",
+    description: "پذیرش قالب و انجام تزریق کارمزدی با دستگاه‌های ۸۰ تا ۴۵۰ تن در کهریزک، با متریال ارسالی مشتری یا متریال تأمینی ترنج.",
     href: "/injection-molding",
     accent: "injection",
     image: null,
@@ -30,7 +31,7 @@ const capabilities = [
   {
     number: "۰۲",
     title: "محصولات کاتالوگ",
-    description: "مجموعه محصولات خانگی، آشپزخانه و نظافتی ترنج پلاستیک؛ تولیدشده با مواد اولیه بهداشتی و طراحی کاربردی.",
+    description: "مجموعه محصولات آماده و کاربردی تولیدشده با قالب‌های اختصاصی ترنج؛ آماده سفارش عمده و در تیراژهای گوناگون.",
     href: "/products",
     accent: "products",
     image: { url: "/catalog/spice-dispenser.webp", alt: "نمک‌پاش و ادویه‌پاش ترنج، از محصولات کاتالوگ" },
@@ -38,7 +39,7 @@ const capabilities = [
   {
     number: "۰۳",
     title: "مواد اولیه و پلیمرها",
-    description: "بررسی مشخصات فنی و کاربردی گریدهای مختلف پلیمری (PP, PE, PS, ABS) جهت انتخاب مناسب‌ترین ماده برای کاربری نهایی.",
+    description: "تأمین انواع گریدهای پلیمری صنعتی (PP, PE و...) متناسب با نیاز تولیدکنندگان و کارگاه‌ها.",
     href: "/materials",
     accent: "materials",
     image: null,
@@ -49,21 +50,26 @@ const inquirySteps = [
   {
     step: "۱",
     title: "ارسال مشخصات یا نمونه",
-    description: "ثبت نقشه فنی، مدل سه‌بعدی یا مشخصات قطعه به همراه تیراژ و ابعاد مورد نیاز در فرم استعلام.",
+    description: "ثبت مشخصات قطعه، ابعاد قالب، نوع متریال و تیراژ درخواستی در سامانه استعلام.",
   },
   {
     step: "۲",
     title: "بررسی مهندسی و امکان‌سنجی",
-    description: "تحلیل فنی ساخت قالب، انتخاب نوع پلیمر، تناژ مورد نیاز دستگاه و شرایط بهینه تزریق توسط تیم فنی.",
+    description: "انطباق ابعاد قالب ارسالی با تناژ دستگاه تزریق (۸۰ تا ۴۵۰ تن)، تعیین گرید پلیمر و سیکل تولید.",
   },
   {
     step: "۳",
     title: "صدور پیش‌فاکتور رسمی",
-    description: "ارائه پیشنهاد رسمی شامل برآورد زمان ساخت، شرایط اجرایی و تأیید مشخصات فنی توسط واحد فروش و مهندسی.",
+    description: "ارائه پیش‌فاکتور رسمی و شفاف شامل برآورد زمان تحویل بار و شرایط اجرایی ظرف ۲۴ الی ۴۸ ساعت کاری.",
   },
 ] as const;
 
 export async function LatestArticlesSection() {
+  try {
+    await connection();
+  } catch {
+    // Allows execution outside a Next.js request scope (e.g., during unit tests)
+  }
   let latestArticles: StrapiArticle[] = [];
 
   try {

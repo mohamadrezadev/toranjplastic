@@ -27,7 +27,7 @@ The home page SHALL present Toranj Plastic as a product, injection-service, and 
 - **THEN** the page SHALL display the multi-step inquiry workflow (specifications submission, engineering review, formal quotation) with an accessible action directing the visitor to `/inquiry`
 
 ### Requirement: Consistent public visual language
-The public header, footer, collection pages, detail pages, and feedback states SHALL share a coherent, distinctive responsive visual hierarchy and preserve all API-sourced titles, summaries, images, and metadata without fabricating content. Public catalog landing pages SHALL compose semantic copy, operable actions, and bounded supporting media instead of presenting portrait campaign artwork as a standalone full-page poster. Collection cards and detail surfaces SHALL use predictable natural sizing and MUST NOT create large empty card regions for sparse results.
+The public header, footer, collection pages, detail pages, and feedback states SHALL share a coherent, distinctive responsive visual hierarchy and preserve all API-sourced titles, summaries, images, and metadata without fabricating content. Public catalog landing pages for products, injection molding services, and raw materials SHALL compose semantic copy, operable actions, and bounded supporting campaign media within a structured landing hero. Collection cards and detail surfaces SHALL use predictable natural sizing, engineered specification badges, and technical spec-sheet formatting without creating artificial empty card regions or unverified ecommerce claims. Reassurance cards on detail pages SHALL strictly align with the domain offering: manufactured products focus on batch production, coloration, and quotation; injection services focus on CAD/mold inspection; materials focus on polymer datasheets.
 
 #### Scenario: Public collection has one published item
 - **WHEN** a public catalog responds with one published item
@@ -44,6 +44,14 @@ The public header, footer, collection pages, detail pages, and feedback states S
 #### Scenario: Visitor activates an entry-page banner
 - **WHEN** the visitor activates a products, injection-services, materials, or contact campaign banner
 - **THEN** the browser SHALL navigate to the banner's declared in-page content target or approved inquiry destination
+
+#### Scenario: Industrial catalog landing hero presentation
+- **WHEN** a visitor loads the products, injection-molding, or materials catalog landing page
+- **THEN** each page SHALL present a structured hero section featuring semantic Persian headings, clear value description, dedicated campaign visual, and direct dual actions for exploring the collection and submitting a technical inquiry
+
+#### Scenario: Technical specification and fast-track reassurance presentation
+- **WHEN** a visitor views any catalog item detail page
+- **THEN** the specifications section SHALL render technical parameters in an engineered tabular format with monospaced LTR formatting for units, accompanied by a domain-accurate B2B fast-track reassurance card (distinguishing factory-manufactured goods from client mold services) linked to the relevant inquiry route
 
 ### Requirement: Responsive and accessible public pages
 Public pages and campaign media SHALL remain Persian RTL, keyboard operable, readable in light and dark themes, and free of unintended horizontal scrolling at widths 360, 390, 768, and 1280 pixels. Campaign media MUST remain bounded inside its landing composition, and card and detail content MUST wrap without overlap, distortion, or artificial viewport-height gaps.

@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { axe } from "jest-axe";
 import { describe, expect, it } from "vitest";
 import { CampaignBanner } from "./CampaignBanner";
-import { CatalogLandingHero, CatalogSectionHeading, ContentCard, ContentGrid, ContentPageHeading, ContentTag, DetailHero, ImageGallery, Pagination, PreservedText, Specifications } from "./ContentPage";
+import { CatalogLandingHero, CatalogSectionHeading, ContentCard, ContentGrid, ContentPageHeading, ContentTag, DetailHero, DetailInquiryCard, ImageGallery, Pagination, PreservedText, Specifications } from "./ContentPage";
 
 describe("public content presentation", () => {
   it("renders approved optional data and a valid detail destination", async () => {
@@ -119,5 +119,18 @@ describe("public content presentation", () => {
     rerender(<><ImageGallery images={[image]} /><Specifications items={[]} /></>);
     expect(screen.queryByRole("region", { name: "تصاویر محتوا" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "مشخصات تأییدشده" })).not.toBeInTheDocument();
+  });
+
+  it("renders accessible B2B detail inquiry reassurance card", async () => {
+    const { container } = render(
+      <DetailInquiryCard
+        actionHref="/inquiry/product?slug=industrial-basket"
+        actionLabel="استعلام این محصول"
+      />,
+    );
+    expect(screen.getByRole("heading", { name: "سفارش مستقیم و تیراژ تولید این محصول" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "استعلام این محصول" })).toHaveAttribute("href", "/inquiry/product?slug=industrial-basket");
+    expect(screen.getByText("صدور پیش‌فاکتور رسمی ظرف ۲۴ الی ۴۸ ساعت کاری")).toBeInTheDocument();
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

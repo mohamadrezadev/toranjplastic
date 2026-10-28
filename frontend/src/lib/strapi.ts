@@ -138,7 +138,7 @@ function mapArticle(raw: unknown, apiOrigin: string): StrapiArticle | null {
     metaTitle: typeof seo?.metaTitle === "string" ? seo.metaTitle : null,
     metaDescription: typeof seo?.metaDescription === "string" ? seo.metaDescription : null,
     canonicalUrl: typeof seo?.canonicalURL === "string" ? seo.canonicalURL : null,
-    publishedAt: typeof record.publishedAt === "string" ? record.publishedAt : new Date().toISOString(),
+    publishedAt: typeof record.publishedAt === "string" ? record.publishedAt : "1970-01-01T00:00:00.000Z",
   };
 }
 
@@ -350,7 +350,7 @@ export async function getAllStrapiArticlesForSitemap(): Promise<Array<{ slug: st
       .filter((item) => typeof item.slug === "string" && Boolean(item.slug))
       .map((item) => ({
         slug: item.slug as string,
-        updatedAt: item.updatedAt || item.publishedAt || new Date().toISOString(),
+        updatedAt: item.updatedAt || item.publishedAt || "1970-01-01T00:00:00.000Z",
       }));
   } catch {
     return [];
@@ -373,7 +373,7 @@ export async function getAllStrapiCategoriesForSitemap(): Promise<Array<{ slug: 
       .filter((item) => typeof item.slug === "string" && Boolean(item.slug))
       .map((item) => ({
         slug: item.slug as string,
-        updatedAt: item.updatedAt || new Date().toISOString(),
+        updatedAt: item.updatedAt || "1970-01-01T00:00:00.000Z",
       }));
   } catch {
     return [];
