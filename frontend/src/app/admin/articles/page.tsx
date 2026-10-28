@@ -23,6 +23,44 @@ export default async function AdminArticlesPage({ searchParams }: { searchParams
   return (
     <main className={styles.main}>
       <div className={styles.shell}>
+        <div style={{
+          background: "var(--color-surface-raised, #f8fafc)",
+          border: "1px solid var(--color-border-default, #e2e8f0)",
+          borderRadius: "var(--radius-md, 8px)",
+          padding: "1.25rem 1.5rem",
+          marginBlockEnd: "1.5rem",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "1rem"
+        }}>
+          <div>
+            <strong style={{ display: "block", fontSize: "1.05rem", marginBlockEnd: "0.35rem", color: "var(--color-brand-primary)" }}>
+              سامانه مدیریت تخصصی محتوا و مقالات (Strapi CMS)
+            </strong>
+            <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--color-text-secondary)" }}>
+              مقالات دانشنامه عمومی با سامانه Strapi مدیریت و منتشر می‌شوند. برای ایجاد و ویرایش پیشرفته، مستقیماً وارد پنل شوید.
+            </p>
+          </div>
+          <a
+            href="http://localhost:1337/admin"
+            target="_blank"
+            rel="noreferrer"
+            className={styles.linkButton}
+            style={{
+              background: "var(--color-brand-primary, #0f766e)",
+              color: "#fff",
+              textDecoration: "none",
+              padding: "0.6rem 1.2rem",
+              borderRadius: "6px",
+              fontWeight: 600
+            }}
+          >
+            ورود مستقیم به پنل استرپی (Strapi) ↗
+          </a>
+        </div>
+
         <section className={styles.card}>
           <div className={styles.header}>
             <div>

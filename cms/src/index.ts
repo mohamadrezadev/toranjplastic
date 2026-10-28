@@ -93,6 +93,34 @@ export default {
         });
         strapi.log.info('Inserted Next.js Revalidation webhook in strapi_webhooks table.');
       }
+
+      // Ensure initial Super Admin user exists so manual registration is not required
+      const adminCount = await strapi.db.query('admin::user').count();
+      if (adminCount === 0) {
+        const superAdminRole = await strapi.db.query('admin::role').findOne({
+          where: { code: 'strapi-super-admin' },
+        });
+
+        if (superAdminRole) {
+          const defaultPassword = process.env.BOOTSTRAP_ADMIN_PASSWORD || 'Toranj@Admin2026';
+          const defaultEmail = 'admin@toranjplastic.com';
+          const hashedPassword = await strapi.service('admin::auth').hashPassword(defaultPassword);
+
+          await strapi.db.query('admin::user').create({
+            data: {
+              email: defaultEmail,
+              firstname: 'مدیر',
+              lastname: 'ترنج',
+              username: 'admin',
+              password: hashedPassword,
+              isActive: true,
+              blocked: false,
+              roles: [superAdminRole.id],
+            },
+          });
+          strapi.log.info(`Seeded default Super Admin user (${defaultEmail}) for Strapi CMS.`);
+        }
+      }
     } catch (err) {
       strapi.log.warn('Could not auto-configure public permissions or seed data:', err);
     }
