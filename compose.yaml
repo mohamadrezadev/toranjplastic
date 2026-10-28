@@ -37,6 +37,12 @@ services:
       - "127.0.0.1:3001:3001"
     volumes:
       - backend_media:/app/backend/media-uploads
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3001/api/v1/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   cms:
     build:
@@ -71,15 +77,22 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 20s
 
   frontend:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api/v1}
+        MEDIA_PUBLIC_ORIGIN: ${MEDIA_PUBLIC_ORIGIN:-http://localhost:3001}
+        STRAPI_MEDIA_ORIGIN: ${STRAPI_MEDIA_ORIGIN:-http://localhost:1337}
     restart: unless-stopped
     depends_on:
-      - backend
-      - cms
+      backend:
+        condition: service_healthy
+      cms:
+        condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -91,6 +104,12 @@ services:
       STRAPI_REVALIDATE_SECRET: ${STRAPI_REVALIDATE_SECRET}
     ports:
       - "127.0.0.1:3000:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3000 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
 volumes:
   toranj_postgres_data:

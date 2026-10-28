@@ -46,7 +46,11 @@ STRAPI_MEDIA_ORIGIN=https://cms.yourdomain.com
 ### گام ۲: اتصال به گیت‌هاب و دیپلوی
 1. در پنل ران‌فلر، مخزن `https://github.com/mohamadrezadev/toranjplastic` را انتخاب کنید.
 2. فایل `compose.yaml` را به عنوان فایل کامپوز تعیین نمایید.
-3. دکمه **Deploy** را بزنید. هر ۴ سرویس بیلد و اجرا خواهند شد.
+3. در محیط محلی یا CI می‌توانید صحت کامپوز را با دستور زیر بررسی کنید:
+   ```bash
+   pnpm check:docker
+   ```
+4. دکمه **Deploy** را بزنید. هر ۴ سرویس بیلد و اجرا خواهند شد. سرویس فرانت‌اند به صورت خودکار تا رسیدن سرویس‌های بک‌اند و CMS به وضعیت سالم (`service_healthy`) منتظر می‌ماند.
 
 ---
 
@@ -68,8 +72,12 @@ STRAPI_MEDIA_ORIGIN=https://cms.yourdomain.com
 1. در ران‌فلر یک سرویس از نوع **Docker / Git App** بسازید و ریپازیتوری را متصل کنید.
 2. مسیر داکرفایل را برابر `backend/Dockerfile` قرار دهید.
 3. پورت داخلی کانتینر را روی `3001` تنظیم کنید.
-4. یک **دیسک ابری (Persistent Volume)** با ظرفیت دلخواه (مثلاً ۵ گیگابایت) بسازید و مسیر مانت آن را روی `/app/backend/media-uploads` قرار دهید (برای ذخیره فایل‌های آپلودی).
-5. متغیرهای محیطی زیر را اضافه کنید:
+4. تنظیم پروب سلامت (Health Check):
+   - نوع پروب: `HTTP GET`
+   - مسیر پروب: `/api/v1/ready`
+   - یا دستور ترمینال: `wget -q -O - http://127.0.0.1:3001/api/v1/ready || exit 1`
+5. یک **دیسک ابری (Persistent Volume)** با ظرفیت دلخواه (مثلاً ۵ گیگابایت) بسازید و مسیر مانت آن را روی `/app/backend/media-uploads` قرار دهید (برای ذخیره فایل‌های آپلودی).
+6. متغیرهای محیطی زیر را اضافه کنید:
    - `NODE_ENV=production`
    - `PORT=3001`
    - `DATABASE_URL=postgresql://USER:PASS@DB_HOST:5432/toranj?schema=public`
@@ -77,9 +85,9 @@ STRAPI_MEDIA_ORIGIN=https://cms.yourdomain.com
    - `SESSION_SECRET=...`
    - `MEDIA_STORAGE_ROOT=/app/backend/media-uploads`
    - `MEDIA_PUBLIC_ORIGIN=https://api.yourdomain.com`
-6. اجرای مایگریشن اولیه: پس از دیپلوی، از تب ترمینال دستور `pnpm db:migrate:deploy` را اجرا کنید.
-7. ساخت اولین مدیر: دستور `pnpm admin:bootstrap` را در کنسول اجرا کنید.
-8. ساب‌دامنه خود مانند `api.yourdomain.com` را به این سرویس متصل کنید.
+7. اجرای مایگریشن اولیه: پس از دیپلوی، از تب ترمینال دستور `pnpm db:migrate:deploy` را اجرا کنید.
+8. ساخت اولین مدیر: دستور `pnpm admin:bootstrap` را در کنسول اجرا کنید.
+9. ساب‌دامنه خود مانند `api.yourdomain.com` را به این سرویس متصل کنید.
 
 ---
 
@@ -87,8 +95,12 @@ STRAPI_MEDIA_ORIGIN=https://cms.yourdomain.com
 1. یک سرویس دیگر از نوع **Docker / Git App** بسازید.
 2. مسیر داکرفایل را برابر `cms/Dockerfile` قرار دهید.
 3. پورت داخلی کانتینر را روی `1337` تنظیم کنید.
-4. یک **دیسک ابری (Persistent Volume)** بسازید و مسیر مانت آن را روی `/app/cms/public/uploads` قرار دهید (برای ماندگاری تصاویر مقالات).
-5. متغیرهای محیطی را تنظیم کنید:
+4. تنظیم پروب سلامت (Health Check):
+   - نوع پروب: `HTTP GET`
+   - مسیر پروب: `/_health`
+   - یا دستور ترمینال: `wget -q -O - http://127.0.0.1:1337/_health || exit 1`
+5. یک **دیسک ابری (Persistent Volume)** بسازید و مسیر مانت آن را روی `/app/cms/public/uploads` قرار دهید (برای ماندگاری تصاویر مقالات).
+6. متغیرهای محیطی را تنظیم کنید:
    - `NODE_ENV=production`
    - `PORT=1337`
    - `DATABASE_CLIENT=postgres`
@@ -104,8 +116,8 @@ STRAPI_MEDIA_ORIGIN=https://cms.yourdomain.com
    - `STRAPI_TRANSFER_TOKEN_SALT=salt2`
    - `STRAPI_REVALIDATE_SECRET=کلید_اشتراکی_یکسان_با_فرانت‌اند`
    - `FRONTEND_REVALIDATE_URL=https://yourdomain.com/api/revalidate`
-6. ساب‌دامنه مانند `cms.yourdomain.com` را به این سرویس متصل کنید.
-7. پس از استقرار، به آدرس `https://cms.yourdomain.com/admin` بروید و کاربر ادمین را ثبت کنید.
+7. ساب‌دامنه مانند `cms.yourdomain.com` را به این سرویس متصل کنید.
+8. پس از استقرار، به آدرس `https://cms.yourdomain.com/admin` بروید و کاربر ادمین را ثبت کنید.
 
 ---
 
@@ -113,7 +125,15 @@ STRAPI_MEDIA_ORIGIN=https://cms.yourdomain.com
 1. سرویس آخر را از نوع **Docker / Git App** بسازید.
 2. مسیر داکرفایل را برابر `frontend/Dockerfile` قرار دهید.
 3. پورت کانتینر را روی `3000` تنظیم کنید.
-4. متغیرهای محیطی:
+4. آرگومان‌های بیلد (Build Arguments) در صورت نیاز به تزریق در زمان Build:
+   - `NEXT_PUBLIC_API_URL=https://api.yourdomain.com/api/v1`
+   - `MEDIA_PUBLIC_ORIGIN=https://api.yourdomain.com`
+   - `STRAPI_MEDIA_ORIGIN=https://cms.yourdomain.com`
+5. تنظیم پروب سلامت (Health Check):
+   - نوع پروب: `HTTP GET`
+   - مسیر پروب: `/`
+   - یا دستور ترمینال: `wget -q -O - http://127.0.0.1:3000 || exit 1`
+6. متغیرهای محیطی:
    - `NODE_ENV=production`
    - `PORT=3000`
    - `NEXT_PUBLIC_API_URL=https://api.yourdomain.com/api/v1`
@@ -122,7 +142,7 @@ STRAPI_MEDIA_ORIGIN=https://cms.yourdomain.com
    - `MEDIA_PUBLIC_ORIGIN=https://api.yourdomain.com`
    - `STRAPI_MEDIA_ORIGIN=https://cms.yourdomain.com`
    - `STRAPI_REVALIDATE_SECRET=کلید_اشتراکی_یکسان_با_Strapi`
-5. دامنه اصلی سایت مانند `yourdomain.com` و `www.yourdomain.com` را به این سرویس متصل کنید.
+7. دامنه اصلی سایت مانند `yourdomain.com` و `www.yourdomain.com` را به این سرویس متصل کنید.
 
 ---
 

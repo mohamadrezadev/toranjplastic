@@ -28,7 +28,7 @@ RUN pnpm build
 
 FROM node:24-alpine AS runner
 
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat wget
 
 WORKDIR /app
 
