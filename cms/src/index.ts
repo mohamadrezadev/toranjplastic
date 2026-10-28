@@ -13,6 +13,9 @@ export default {
         const publicActions = [
           'api::article.article.find',
           'api::article.article.findOne',
+          'api::article.article.create',
+          'api::article.article.update',
+          'api::article.article.delete',
           'api::category.category.find',
           'api::category.category.findOne',
           'api::tag.tag.find',
