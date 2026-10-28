@@ -32,7 +32,7 @@ export function Footer() {
               </div>
             </li>
             <li>
-              <span className={styles.footerLabel}>پشتیبان فنی و هماهنگی تزریق:</span>
+              <span className={styles.footerLabel}>پشتیبانی فنی وب‌سایت:</span>
               <div dir="ltr">
                 <a href="tel:09104500086">۰۹۱۰ ۴۵۰ ۰۰۸۶</a>
               </div>

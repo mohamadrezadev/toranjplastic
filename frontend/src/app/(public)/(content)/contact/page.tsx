@@ -74,9 +74,9 @@ export default async function ContactPage() {
               </div>
 
               <div className={contentStyles.institutionalCard}>
-                <h3>واحد خدمات تزریق کارمزدی (پذیرش قالب)</h3>
+                <h3>پشتیبانی فنی وب‌سایت</h3>
                 <p>
-                  هماهنگی ظرفیت دستگاه‌های تزریق ۸۰ تا ۴۵۰ تن در کهریزک، ارسال قالب مشتری و برآورد اجرت تزریق.
+                  راهنمایی کاربری، رفع مشکلات فنی در ثبت استعلام آنلاین و ورود به حساب کاربری سایت.
                 </p>
                 <a className={contentStyles.contactChannelValue} href="tel:+989104500086">
                   ۰۹۱۰۴۵۰۰۰۸۶
