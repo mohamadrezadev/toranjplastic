@@ -30,6 +30,15 @@ STRAPI_DATABASE_NAME=toranj_strapi
 JWT_SECRET=یک_رشته_تصادفی_طولانی_برای_هش_توکن‌ها
 SESSION_SECRET=یک_رشته_تصادفی_طولانی_برای_نشست‌ها
 
+# سامانه پیامک و نوتیفیکیشن
+ADMIN_NOTIFICATION_MOBILE=09120000000
+SMS_PROVIDER_NAME=http
+SMS_API_KEY=کلید_درگاه_پیامک_مثلا_کاوه‌نگار
+SMS_SENDER_NUMBER=1000...
+SMS_TEMPLATE_INQUIRY_CREATED=کد_الگوی_استعلام_جدید
+SMS_TEMPLATE_QUOTATION_ISSUED=کد_الگوی_صدور_پیش‌فاکتور
+SMS_TEMPLATE_INQUIRY_MESSAGE=کد_الگوی_پیام_پشتیبانی
+
 # کلیدهای امنیتی Strapi
 STRAPI_APP_KEYS=key1_random,key2_random,key3_random,key4_random
 STRAPI_API_TOKEN_SALT=salt_random_32char
@@ -85,6 +94,13 @@ STRAPI_MEDIA_ORIGIN=https://cms.yourdomain.com
    - `SESSION_SECRET=...`
    - `MEDIA_STORAGE_ROOT=/app/backend/media-uploads`
    - `MEDIA_PUBLIC_ORIGIN=https://api.yourdomain.com`
+   - `ADMIN_NOTIFICATION_MOBILE=09120000000`
+   - `SMS_PROVIDER_NAME=http` (یا `mock` برای حالت آزمایشی)
+   - `SMS_API_KEY=کلید_درگاه_پیامک`
+   - `SMS_SENDER_NUMBER=1000...`
+   - `SMS_TEMPLATE_INQUIRY_CREATED=کد_پترن_استعلام`
+   - `SMS_TEMPLATE_QUOTATION_ISSUED=کد_پترن_فاکتور`
+   - `SMS_TEMPLATE_INQUIRY_MESSAGE=کد_پترن_پیام`
 7. اجرای مایگریشن اولیه: پس از دیپلوی، از تب ترمینال دستور `pnpm db:migrate:deploy` را اجرا کنید.
 8. ساخت اولین مدیر: دستور `pnpm admin:bootstrap` را در کنسول اجرا کنید.
 9. ساب‌دامنه خود مانند `api.yourdomain.com` را به این سرویس متصل کنید.

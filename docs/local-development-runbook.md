@@ -72,23 +72,34 @@ pnpm admin:bootstrap
 
 اطلاعات ادمین از `BOOTSTRAP_ADMIN_*` در `.env` خوانده می‌شود. اگر ادمین قبلاً وجود داشته باشد، اجرای مجدد با `ADMIN_ALREADY_EXISTS` متوقف می‌شود.
 
-### ۶. اجرای Frontend و Backend
+### ۶. اجرای سرویس‌های برنامه (Frontend، Backend و Strapi CMS)
 
 ```powershell
 pnpm dev
 ```
 
-این دستور `.env` ریشه را بارگذاری می‌کند و هر دو برنامه را هم‌زمان اجرا می‌کند:
+این دستور `.env` ریشه را بارگذاری می‌کند و برنامه‌ها را هم‌زمان اجرا می‌کند:
 
-- Frontend: `http://localhost:3000`
-- Backend: `http://localhost:3001`
-- Backend health: `http://localhost:3001/api/v1/health`
+- **Frontend:** `http://localhost:3000`
+- **Backend:** `http://localhost:3001`
+- **Backend Health:** `http://localhost:3001/api/v1/health`
+- **Strapi CMS:** `http://localhost:1337/admin` (نام کاربری: `admin@toranjplastic.com` / رمز: `Toranj@Admin2026`)
 
-برای اجرای جداگانه:
+برای اجرای جداگانه هر سرویس:
 
 ```powershell
-pnpm dev:backend
-pnpm dev:frontend
+pnpm dev:backend   # اجرای بک‌اند NestJS
+pnpm dev:frontend  # اجرای فرانت‌اند Next.js
+pnpm start:cms     # اجرای پنل و وب‌سرویس Strapi CMS
+```
+
+### ۷. اجرای سرور هوش مصنوعی Strapi MCP (اختیاری)
+
+جهت اتصال دستیارهای هوش مصنوعی و Claude Desktop به سیستم مقالات:
+
+```powershell
+pnpm --filter strapi-mcp build
+node tools/strapi-mcp/dist/index.js
 ```
 
 ## اجرای روزمره
@@ -171,11 +182,13 @@ PostgreSQL رمز یا کاربر موجود در `DATABASE_URL` را قبول �
 
 ## دستورات کنترل کیفیت
 
+پروژه دارای **۴۳۴ آزمون خودکار موفق** در سراسر لایه‌ها است:
+
 ```powershell
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm build
-pnpm check
+pnpm lint               # بررسی ESLint
+pnpm typecheck          # بررسی خطاهای تایپ TypeScript
+pnpm test               # اجرای تست‌های واحد و یکپارچگی (Vitest)
+pnpm check:architecture # بررسی مرزبندی لایه‌ها و پکیج‌ها
+pnpm check              # اجرای کامل تمام تست‌ها و گیت‌های کیفی
 ```
 

@@ -1,36 +1,105 @@
-# ترنج پلاستیک
+# ترنج پلاستیک (Toranj Plastic)
 
-Monorepo مشخصات‌محور وب‌سایت فارسی و RTL ترنج پلاستیک. فرانت‌اند و بک‌اند مستقل‌اند، اما dependency و quality gate مشترک دارند.
+سامانه جامع و یکپارچه B2B ترنج پلاستیک — خدمات تزریق پلاستیک کارمزدی (۸۰ تا ۴۵۰ تن)، قطعات اختصاصی صنعتی و تأمین مواد اولیه پلیمری.
 
-## ساختار
+این پروژه یک **Monorepo مشخصات‌محور (Spec-driven)** با پشتیبانی کامل از زبان فارسی و چینش راست‌به‌چپ (RTL) است.
+
+---
+
+## ۱. ساختار Monorepo
 
 ```text
-frontend/             Next.js public site, portal and admin UI
-backend/              NestJS modular monolith and Prisma
-openspec/             OpenSpec source-of-truth specs and change artifacts
-docs/                 architecture, handoff review and ADRs
-compose.yaml          local PostgreSQL
+├── frontend/             Next.js 16 (App Router) — پورت ۳۰۰۰ (پورتال عمومی، کاتالوگ، پنل مشتری و پنل مدیریت)
+├── backend/              NestJS Modular Monolith & Prisma — پورت ۳۰۰۱ (منطق تجاری، استعلام‌ها، پیش‌فاکتور، پیامک و مدیا)
+├── cms/                  Strapi v5 Headless CMS — پورت ۱۳۳۷ (دانشنامه تخصصی، مقالات سئو و وبلاگ)
+├── tools/strapi-mcp/     سرور رسمی Model Context Protocol (MCP) جهت اتصال ایجنت‌های هوش مصنوعی به Strapi
+├── openspec/             مرجع رسمی نیازمندی‌ها (Source of Truth) و مستندات تغییرات OpenSpec
+├── docs/                 معماری کلان، تصمیمات مهندسی (ADRs) و راهنماهای عملیاتی (Runbooks)
+└── compose.yaml          پیکربندی کانتینرهای داکر (PostgreSQL 17، Backend، CMS و Frontend)
 ```
 
-## شروع محلی
+---
 
-پیش‌نیاز: Node.js 24.11+، pnpm 9.15+ و Docker.
+## ۲. قابلیت‌های کلیدی سیستم
+
+* **سایت بازاریابی و کاتالوگ صنعتی B2B:**
+  - فرم استعلام سریع (Fast-Track) و فرم‌های تفصیلی چندمرحله‌ای متصل به دیتابیس.
+  - معرفی دقیق ناوگان تزریق کارخانه کهریزک (۸۰ تا ۴۵۰ تن، قطعات ۵ تا ۱۵۰۰ گرم) و شرایط قالب‌های مشتری.
+  - کاتالوگ محصولات و گریدهای پلیمری به همراه اسناد فنی و متاتگ‌های سئو Schema.org JSON-LD.
+* **پنل کاربری مشتریان (`/account`):**
+  - پیگیری گام‌به‌گام وضعیت استعلام‌ها، گفتگوی مستقیم با کارشناسان و دانلود پیش‌فاکتور رسمی PDF.
+* **پنل مدیریت سازمانی (`/admin`):**
+  - کنترل دسترسی چندسطحی (Admin، Sales، Operator).
+  - مدیریت استعلام‌ها، یادداشت‌های محرمانه داخلی (`InternalNote`) و صدور پیش‌فاکتورهای رسمی با محاسبه ارزش افزوده.
+  - مدیریت پرسنل (`/admin/staff`)، کاتالوگ محصولات و کتابخانه چندرسانه‌ای (`MediaAsset`).
+* **تحریریه هوشمند و وبلاگ (Strapi v5 + ISR):**
+  - مدیریت مقالات با بازتولید آنی کش صفحات عمومی (On-Demand ISR Revalidation).
+  - ساخت خودکار سوپرادمین اولیه (`admin@toranjplastic.com`) و دسترسی مستقیم از پنل ادمین وب‌سایت.
+* **سیستم نوتیفیکیشن پیامکی تراکنشی (Transactional SMS):**
+  - ارسال پیامک در ۳ رویداد: ثبت استعلام مشتری (به مدیر)، صدور پیش‌فاکتور رسمی (به مشتری) و پیام جدید گفتگو.
+  - معماری مستقل از درگاه (کاوه‌نگار، ملی‌پیامک و...)، ارسال غیرمسدودکننده (Non-blocking) و نرمال‌سازی شماره‌های ایران.
+* **سرور هوش مصنوعی Strapi MCP (`tools/strapi-mcp`):**
+  - فراهم‌کننده ابزارهای استاندارد MCP برای اتصال به LLMها و ایجنت‌های خودکار جهت تولید، سئو و انتشار مقالات.
+
+---
+
+## ۳. شروع به کار در محیط محلی (Local Development)
+
+### پیش‌نیازها
+- Node.js نسخه `24.11` یا بالاتر
+- pnpm نسخه `9.15` یا بالاتر
+- Docker Desktop و Docker Compose
+
+### راه‌اندازی سریع
 
 ```bash
+# ۱. کپی فایل متغیرهای محیطی
 cp .env.example .env
+
+# ۲. نصب وابستگی‌ها
 pnpm install
+
+# ۳. اجرای دیتابیس PostgreSQL
 docker compose up -d postgres
+
+# ۴. اعمال مایگریشن‌های دیتابیس و ساخت کلاینت پریزما
 pnpm db:generate
 pnpm db:migrate:deploy
+
+# ۵. ساخت ادمین اولیه پرتال و استراپی
 pnpm admin:bootstrap
+
+# ۶. اجرای سرویس‌ها در حالت توسعه
 pnpm dev
 ```
 
-- Frontend: `http://localhost:3000`
-- Backend health: `http://localhost:3001/api/v1/health`
+در سیستم‌عامل ویندوز و PowerShell به‌جای `cp` از `Copy-Item .env.example .env` استفاده نمایید.
 
-روی PowerShell به‌جای `cp` از `Copy-Item .env.example .env` استفاده کنید. برای اجرای همه gateها: `pnpm check`.
+### پورت‌ها و آدرس‌های دسترسی محلی:
+- **وب‌سایت و پرتال فرانت‌اند:** `http://localhost:3000`
+- **وب‌سرویس بک‌اند:** `http://localhost:3001/api/v1/health`
+- **پنل مدیریت محتوای Strapi:** `http://localhost:1337/admin`
 
-راهنمای کامل اجرای اولیه، اجرای روزمره، توقف سرویس‌ها و رفع خطاها در [راهنمای اجرای محلی](docs/local-development-runbook.md) قرار دارد.
+---
 
-قبل از توسعه قابلیت جدید، [OpenSpec](openspec/config.yaml) و [قوانین پروژه](AGENTS.md) را بخوانید. چرخه رسمی پروژه `explore → propose → review → apply → archive` است.
+## ۴. کنترل کیفیت و آزمون‌های خودکار
+
+پروژه دارای **۴۳۴ آزمون خودکار موفق** در سراسر لایه‌ها است:
+
+```bash
+pnpm lint               # بررسی استانداردهای کد و ESLint
+pnpm typecheck          # بررسی دقیق تایپ‌های TypeScript در تمام پکیج‌ها
+pnpm test               # اجرای ۴۳۴ تست واحد و یکپارچگی (Vitest)
+pnpm check:architecture # بررسی عدم شکستن مرزهای لایه‌ای معماری
+pnpm check              # اجرای کامل تمام گیت‌های کیفی
+```
+
+---
+
+## ۵. راهنماها و مستندات تکمیلی (Runbooks)
+
+- [راهنمای جامع توسعه محلی (Local Development Runbook)](docs/local-development-runbook.md)
+- [راهنمای استقرار روی ران‌فلر (Runflare Deployment Guide)](docs/runbooks/runflare-deployment.md)
+- [راهنمای مدیریت و پشتیبان‌گیری Strapi (Strapi Operations Runbook)](docs/runbooks/strapi-operations.md)
+- [راهنمای ابزار سرور هوش مصنوعی Strapi MCP](tools/strapi-mcp/README.md)
+- [قرارداد ایجنت‌ها و اصول معماری پروژه](AGENTS.md)
