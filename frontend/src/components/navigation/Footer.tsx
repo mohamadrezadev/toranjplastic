@@ -1,6 +1,24 @@
 import Link from "next/link";
 import styles from "./Navigation.module.css";
 
+const productLinks = [
+  ["/products", "محصولات کاتالوگ"],
+  ["/injection-molding", "خدمات تزریق پلاستیک"],
+  ["/materials", "مواد اولیه و پلیمرها"],
+  ["/inquiry", "سامانه استعلام آنلاین"],
+] as const;
+
+const institutionalLinks = [
+  ["/about", "درباره ترنج پلاستیک"],
+  ["/contact", "تماس با ما"],
+  ["/articles", "مقالات و راهنمای تخصصی"],
+  ["/account", "حساب کاربری و پیگیری"],
+] as const;
+
+function FooterLinks({ links }: { links: ReadonlyArray<readonly [string, string]> }) {
+  return <ul className={styles.footerNavList}>{links.map(([href, label]) => <li key={href}><Link href={href}>{label}</Link></li>)}</ul>;
+}
+
 export function Footer() {
   return (
     <footer className={styles.footer} data-shell-inert>
@@ -47,30 +65,32 @@ export function Footer() {
         </div>
 
         {/* Catalog & Services Links Column */}
-        <div className={styles.footerCol}>
+        <div className={`${styles.footerCol} ${styles.footerDesktopCol}`}>
           <h3 className={styles.footerColTitle}>محصولات و خدمات</h3>
           <nav aria-label="محصولات و خدمات فوتر">
-            <ul className={styles.footerNavList}>
-              <li><Link href="/products">محصولات کاتالوگ</Link></li>
-              <li><Link href="/injection-molding">خدمات تزریق پلاستیک</Link></li>
-              <li><Link href="/materials">مواد اولیه و پلیمرها</Link></li>
-              <li><Link href="/inquiry">سامانه استعلام آنلاین</Link></li>
-            </ul>
+            <FooterLinks links={productLinks} />
           </nav>
         </div>
+        <details className={`${styles.footerCol} ${styles.footerDisclosure}`}>
+          <summary className={styles.footerSummary}>محصولات و خدمات</summary>
+          <nav aria-label="محصولات و خدمات فوتر موبایل">
+            <FooterLinks links={productLinks} />
+          </nav>
+        </details>
 
         {/* Institutional & Articles Links Column */}
-        <div className={styles.footerCol}>
+        <div className={`${styles.footerCol} ${styles.footerDesktopCol}`}>
           <h3 className={styles.footerColTitle}>دسترسی و راهنما</h3>
           <nav aria-label="پیوندهای سازمانی فوتر">
-            <ul className={styles.footerNavList}>
-              <li><Link href="/about">درباره ترنج پلاستیک</Link></li>
-              <li><Link href="/contact">تماس با ما</Link></li>
-              <li><Link href="/articles">مقالات و راهنمای تخصصی</Link></li>
-              <li><Link href="/account">حساب کاربری و پیگیری</Link></li>
-            </ul>
+            <FooterLinks links={institutionalLinks} />
           </nav>
         </div>
+        <details className={`${styles.footerCol} ${styles.footerDisclosure}`}>
+          <summary className={styles.footerSummary}>دسترسی و راهنما</summary>
+          <nav aria-label="پیوندهای سازمانی فوتر موبایل">
+            <FooterLinks links={institutionalLinks} />
+          </nav>
+        </details>
       </div>
 
       <div className={`${styles.footerBottom} content-container`}>

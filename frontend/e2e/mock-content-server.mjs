@@ -16,6 +16,7 @@ const salesCapabilities = [
 ];
 const operatorCapabilities = ["MANAGEMENT_ACCESS", "CONTENT_MANAGEMENT"];
 const revokedSessions = new Set();
+let retryableProductsFailures = 0;
 const cookieValue = (request, name) =>
   (request.headers.cookie ?? "")
     .split(";")
@@ -498,6 +499,17 @@ const adminRecords = {
 
 createServer((request, response) => {
   const url = new URL(request.url ?? "/", `http://127.0.0.1:${port}`);
+  if (
+    url.pathname === "/api/v1/public/content/products" &&
+    url.searchParams.get("page") === "97" &&
+    retryableProductsFailures++ === 0
+  ) {
+    response.writeHead(503, {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+    });
+    return response.end(JSON.stringify({ message: "temporary fixture failure" }));
+  }
   if (url.pathname === "/api/articles") {
     const slugFilter = url.searchParams.get("filters[slug][$eq]");
     const slugNotFilter = url.searchParams.get("filters[slug][$ne]");

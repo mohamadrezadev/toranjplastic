@@ -8,7 +8,10 @@ const product = {
   publishedAt: "2026-10-10T00:00:00.000Z",
 };
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
 describe("public content client", () => {
   it("accepts a valid collection and builds bounded pagination", async () => {
@@ -37,6 +40,17 @@ describe("public content client", () => {
   it("classifies transport failures without turning them into empty content", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
     await expect(listProducts(1)).rejects.toMatchObject({ kind: "upstream" });
+  });
+
+  it("bounds public reads with an abort signal", async () => {
+    const signal = new AbortController().signal;
+    const timeout = vi.spyOn(AbortSignal, "timeout").mockReturnValue(signal);
+    const fetchMock = vi.fn().mockRejectedValue(new DOMException("timed out", "TimeoutError"));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(listProducts(1)).rejects.toMatchObject({ kind: "upstream" });
+    expect(timeout).toHaveBeenCalledWith(8_000);
+    expect(fetchMock).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ signal }));
   });
 });
 

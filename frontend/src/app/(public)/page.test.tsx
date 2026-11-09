@@ -54,7 +54,8 @@ describe("Public Home Page", () => {
   it("renders campaign hero with approved heading and primary navigation links", () => {
     render(<Home />);
 
-    expect(screen.getByRole("heading", { level: 1, name: "محصولات و خدمات ترنج پلاستیک" })).toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { level: 1, name: "محصولات و خدمات ترنج پلاستیک" })).toHaveLength(1);
+    expect(screen.getByRole("img", { name: "نمونه محصولات پلاستیکی ترنج" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "مشاهده محصولات" })).toHaveAttribute("href", "/products");
     expect(screen.getByRole("link", { name: "ثبت استعلام" })).toHaveAttribute("href", "/inquiry");
   });

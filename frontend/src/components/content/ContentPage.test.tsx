@@ -14,10 +14,15 @@ describe("public content presentation", () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it("marks a sparse collection for the featured responsive layout", () => {
-    const { container, rerender } = render(<ContentGrid featured><ContentCard title="سبد صنعتی" href="/products/industrial-basket" image={null} /></ContentGrid>);
+  it("marks one-, two-, and three-item collections for adaptive responsive layouts", () => {
+    const card = (title: string) => <ContentCard key={title} title={title} href={`/products/${title}`} image={null} />;
+    const { container, rerender } = render(<ContentGrid featured>{card("featured")}</ContentGrid>);
     expect(container.querySelector('[data-layout="featured"]')).toBeInTheDocument();
-    rerender(<ContentGrid><ContentCard title="سبد صنعتی" href="/products/industrial-basket" image={null} /></ContentGrid>);
+    rerender(<ContentGrid>{card("single")}</ContentGrid>);
+    expect(container.querySelector('[data-layout="single"]')).toBeInTheDocument();
+    rerender(<ContentGrid>{[card("one"), card("two")]}</ContentGrid>);
+    expect(container.querySelector('[data-layout="pair"]')).toBeInTheDocument();
+    rerender(<ContentGrid>{[card("one"), card("two"), card("three")]}</ContentGrid>);
     expect(container.querySelector('[data-layout="grid"]')).toBeInTheDocument();
   });
 

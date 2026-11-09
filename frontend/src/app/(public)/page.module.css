@@ -1,16 +1,20 @@
 .page { overflow: clip; }
 .campaignHero { padding-block: clamp(1rem, 2.5vw, 2.25rem); background: var(--color-surface-subtle); border-block-end: 1px solid var(--color-border-default); }
-.campaignFrame { position: relative; }
-.campaignImage { width: 100%; height: auto; display: block; overflow: hidden; border: 1px solid var(--color-border-default); border-radius: clamp(.5rem, 1vw, 1rem); background: #f4f7fb; box-shadow: var(--shadow-md); }
-.campaignSummary { width: 1px; height: 1px; padding: 0; position: absolute; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-.campaignAction { height: 10.5%; position: absolute; z-index: 2; inset-block-start: 69%; border-radius: 999px; }
-.campaignAction span { width: 1px; height: 1px; padding: 0; position: absolute; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-.campaignAction:hover { box-shadow: inset 0 0 0 3px rgb(255 255 255 / 65%); }
+.campaignFrame { min-height: clamp(25rem, 43vw, 34rem); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); overflow: hidden; border: 1px solid var(--color-border-default); border-radius: clamp(.65rem, 1.2vw, 1.15rem); background: var(--color-surface-card); box-shadow: var(--shadow-md); }
+.campaignCopy { padding: clamp(2rem, 5vw, 4.75rem); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; position: relative; z-index: 1; }
+.campaignCopy h1 { max-width: 11ch; margin-block: .8rem 1rem; color: var(--color-brand-primary); font-size: clamp(2.35rem, 5vw, 4.9rem); line-height: 1.2; letter-spacing: -.05em; }
+.campaignCopy p { max-width: 34rem; color: var(--color-text-secondary); font-size: clamp(.95rem, 1.3vw, 1.08rem); line-height: 1.85; }
+.campaignMedia { min-width: 0; min-height: 22rem; position: relative; overflow: hidden; background: var(--color-surface-raised); border-inline-start: 1px solid var(--color-border-default); }
+.campaignImage { width: auto; max-width: none; height: 100%; position: absolute; inset-block: 0; left: 0; display: block; object-fit: cover; object-position: left center; }
+.campaignActions { width: 100%; margin-block-start: clamp(1.5rem, 3vw, 2.5rem); display: flex; flex-wrap: wrap; gap: .75rem; }
+.campaignAction { min-height: 3.25rem; padding-inline: 1.4rem; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--color-brand-action); border-radius: .45rem; font-weight: 700; text-decoration: none; transition: transform .2s, color .2s, background-color .2s; }
+.campaignAction:hover { transform: translateY(-2px); }
 .campaignAction:focus-visible { outline: .28rem solid var(--color-brand-action); outline-offset: .22rem; }
-.productAction { width: 16.1%; inset-inline-start: 6%; }
-.campaignFrame .productAction { color: var(--color-on-action); }
-.inquiryAction { width: 13.2%; inset-inline-start: 23.2%; }
-.eyebrow { display: inline-flex; align-items: center; gap: .75rem; color: var(--color-hero-muted); font-size: .78rem; font-weight: 700; letter-spacing: .06em; }
+.campaignFrame .productAction { color: var(--color-on-action); background: var(--color-brand-action); }
+.campaignFrame .productAction:hover { background: var(--color-brand-action-hover); }
+.campaignFrame .inquiryAction { color: var(--color-brand-primary); background: var(--color-surface-card); }
+.campaignFrame .inquiryAction:hover { background: var(--color-brand-action-soft); }
+.eyebrow { display: inline-flex; align-items: center; gap: .75rem; color: var(--color-brand-action); font-size: .78rem; font-weight: 700; letter-spacing: .04em; }
 .closingAction { min-height: 3.4rem; padding-inline: 1.5rem; display: inline-flex; align-items: center; justify-content: center; gap: 2.5rem; color: var(--color-on-action); background: var(--color-brand-action); border-radius: .35rem; font-weight: 700; transition: transform .2s, background-color .2s; text-decoration: none; }
 .closingAction:hover { transform: translateY(-2px); background: var(--color-brand-action-hover); }
 .closingAction:focus-visible { outline: .28rem solid var(--color-brand-action); outline-offset: .22rem; }
@@ -61,33 +65,39 @@
 
 /* Closing Section */
 .closing { background: var(--color-surface-subtle); border-block-start: 1px solid var(--color-border-default); }
-.closingInner { padding-block: clamp(4rem, 7vw, 6rem); display: grid; grid-template-columns: .4fr 1.5fr auto; align-items: center; gap: 2rem; }
+.closingInner { padding-block: clamp(4rem, 7vw, 6rem); display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: clamp(2rem, 5vw, 5rem); }
+.closingCopy { display: grid; justify-items: start; }
 .closing h2 { max-width: 24ch; color: var(--color-brand-primary); font-size: clamp(1.8rem, 3vw, 3rem); line-height: 1.4; }
 .closing p { max-width: 34rem; margin-block-start: .75rem; color: var(--color-text-secondary); }
 .closingAction { white-space: nowrap; }
 
 @media (max-width: 64rem) {
-  .closingInner { grid-template-columns: 1fr 2fr; }
-  .closingAction { grid-column: 2; justify-self: start; }
+  .campaignFrame { grid-template-columns: minmax(0, 1.05fr) minmax(18rem, .95fr); }
+  .areas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .areas > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .closingInner { grid-template-columns: minmax(0, 1fr) auto; }
 }
 
 @media (max-width: 48rem) {
-  .campaignFrame { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
-  .campaignImage { grid-column: 1 / -1; }
-  .campaignSummary { width: auto; height: auto; padding: 1rem 0 .35rem; position: static; grid-column: 1 / -1; overflow: visible; clip: auto; white-space: normal; border: 0; }
-  .campaignSummary h1 { margin-block: .55rem .35rem; color: var(--color-brand-primary); font-size: clamp(1.75rem, 8vw, 2.6rem); line-height: 1.35; }
-  .campaignSummary p { color: var(--color-text-secondary); }
-  .campaignAction { width: 100%; min-width: 0; min-height: 3rem; height: auto; padding-inline: .75rem; position: static; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--color-brand-action); border-radius: .45rem; font-weight: 700; }
-  .campaignAction span { width: auto; height: auto; position: static; overflow: visible; clip: auto; white-space: nowrap; }
-  .productAction { color: #fff; background: var(--color-brand-action); }
-  .inquiryAction { color: var(--color-brand-primary); background: var(--color-surface-card); }
+  .campaignFrame { min-height: 0; grid-template-columns: 1fr; }
+  .campaignCopy { padding: clamp(1.4rem, 6vw, 2.25rem); }
+  .campaignCopy h1 { max-width: 12ch; font-size: clamp(2.1rem, 10vw, 3rem); }
+  .campaignMedia { min-height: clamp(13rem, 56vw, 20rem); grid-row: 1; border-inline-start: 0; border-block-end: 1px solid var(--color-border-default); }
+  .campaignActions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .campaignAction { min-width: 0; padding-inline: .75rem; }
   .intro { grid-template-columns: 1fr; gap: 1rem; }
-  .areas { grid-template-columns: 1fr; }
   .area { min-height: 16rem; }
   .areaGlyph { min-height: 7rem; }
   .inquirySteps { grid-template-columns: 1fr; }
   .inquiryMainAction { width: 100%; }
   .articlesHeader { flex-direction: column; align-items: flex-start; gap: 1rem; }
   .closingInner { grid-template-columns: 1fr; }
-  .closingAction { grid-column: auto; }
+  .closingAction { justify-self: start; }
+}
+
+@media (max-width: 40rem) {
+  .areas { grid-template-columns: 1fr; }
+  .areas > :last-child:nth-child(odd) { grid-column: auto; }
+  .campaignActions { grid-template-columns: 1fr; }
+  .campaignAction { width: 100%; }
 }

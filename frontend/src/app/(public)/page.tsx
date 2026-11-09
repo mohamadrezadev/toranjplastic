@@ -149,26 +149,30 @@ export default function Home() {
       {/* Hero Section */}
       <section className={styles.campaignHero} aria-labelledby="home-title" data-testid="home-campaign">
         <div className={`${styles.campaignFrame} content-container`}>
-          <Image
-            className={styles.campaignImage}
-            src="/branding/banners/home-hero.webp"
-            alt="معرفی محصولات و خدمات ترنج پلاستیک"
-            width={1916}
-            height={821}
-            sizes="(max-width: 1280px) 100vw, 1280px"
-            priority
-          />
-          <div className={styles.campaignSummary}>
+          <div className={styles.campaignCopy}>
             <span className={styles.eyebrow}>ترنج پلاستیک / تولید و تأمین محصولات پلاستیکی</span>
             <h1 id="home-title">محصولات و خدمات ترنج پلاستیک</h1>
             <p>محصولات، خدمات تزریق پلاستیک و مواد اولیه را مرور کنید یا درخواست استعلام خود را ثبت کنید.</p>
+            <div className={styles.campaignActions}>
+              <Link className={`${styles.campaignAction} ${styles.productAction}`} href="/products">
+                مشاهده محصولات
+              </Link>
+              <Link className={`${styles.campaignAction} ${styles.inquiryAction}`} href="/inquiry">
+                ثبت استعلام
+              </Link>
+            </div>
           </div>
-          <Link className={`${styles.campaignAction} ${styles.productAction}`} href="/products">
-            <span>مشاهده محصولات</span>
-          </Link>
-          <Link className={`${styles.campaignAction} ${styles.inquiryAction}`} href="/inquiry">
-            <span>ثبت استعلام</span>
-          </Link>
+          <div className={styles.campaignMedia}>
+            <Image
+              className={styles.campaignImage}
+              src="/branding/banners/home-hero.webp"
+              alt="نمونه محصولات پلاستیکی ترنج"
+              width={1916}
+              height={821}
+              sizes="(max-width: 48rem) 100vw, 50vw"
+              priority
+            />
+          </div>
         </div>
       </section>
 
@@ -246,8 +250,8 @@ export default function Home() {
       {/* Closing Consultation & Contact Section */}
       <section className={styles.closing} aria-labelledby="closing-title">
         <div className={`${styles.closingInner} content-container`}>
-          <span className={styles.sectionNumber}>۰۴ / ارتباط با واحد مهندسی</span>
-          <div>
+          <div className={styles.closingCopy}>
+            <span className={styles.sectionNumber}>۰۴ / ارتباط با واحد مهندسی</span>
             <h2 id="closing-title">جزئیات، مسیر تصمیم‌گیری را روشن‌تر می‌کنند.</h2>
             <p>
               برای شناخت بیشتر، محتوای منتشرشده هر بخش را بخوانید یا از صفحه تماس به سراغ راه‌های ارتباط و مشاوره بروید.

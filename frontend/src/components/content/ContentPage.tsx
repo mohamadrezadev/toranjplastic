@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Children, type ReactNode } from "react";
 import type { PageInfo, PublicImage, PublicSpecification } from "@/lib/public-content";
 import styles from "./Content.module.css";
 
@@ -32,7 +32,10 @@ export function CatalogSectionHeading({ eyebrow, title, description }: { eyebrow
 }
 
 export function ContentGrid({ children, featured = false }: { children: ReactNode; featured?: boolean }) {
-  return <div className={`${styles.grid} ${featured ? styles.gridFeatured : ""}`} data-layout={featured ? "featured" : "grid"}>{children}</div>;
+  const itemCount = Children.count(children);
+  const layout = featured ? "featured" : itemCount === 1 ? "single" : itemCount === 2 ? "pair" : "grid";
+  const layoutClass = featured ? styles.gridFeatured : itemCount === 1 ? styles.gridSingle : itemCount === 2 ? styles.gridPair : "";
+  return <div className={`${styles.grid} ${layoutClass}`} data-layout={layout}>{children}</div>;
 }
 
 export function ContentCard({ title, summary, href, image, meta }: { title: string; summary?: string | null; href: string; image?: PublicImage | null; meta?: ReactNode }) {

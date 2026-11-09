@@ -36,6 +36,21 @@ describe("public navigation", () => {
     expect(screen.getByText(/تهران، کهریزک/)).toBeInTheDocument();
     expect(screen.getByText(/۰۹۱۳ ۲۰۷ ۵۹۲۵/)).toBeInTheDocument();
     expect(screen.getByText(/info@toranjplastic\.com/)).toBeInTheDocument();
+    expect(screen.getByText(/۰۹۱۳ ۲۰۷ ۵۹۲۵/).closest("[dir='ltr']")).toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("keeps primary contact visible and exposes lower-priority links through native disclosures", async () => {
+    const user = userEvent.setup();
+    render(<Footer />);
+    const productsSummary = screen.getAllByText("محصولات و خدمات").find((element) => element.tagName === "SUMMARY");
+    if (!productsSummary) throw new Error("mobile footer disclosure summary is missing");
+    const productsDisclosure = productsSummary.closest("details");
+
+    expect(productsDisclosure).not.toHaveAttribute("open");
+    expect(screen.getByText(/info@toranjplastic\.com/)).toBeInTheDocument();
+    await user.click(productsSummary);
+    expect(productsDisclosure).toHaveAttribute("open");
+    expect(screen.getAllByRole("link", { name: "محصولات کاتالوگ" }).some((link) => link.getAttribute("href") === "/products")).toBe(true);
   });
 });

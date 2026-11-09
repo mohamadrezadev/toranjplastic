@@ -98,6 +98,7 @@ export class PublicContentError extends Error {
 }
 
 const apiBaseUrl = (process.env.BACKEND_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:3001/api/v1").replace(/\/$/, "");
+const publicContentTimeoutMs = 8_000;
 
 type RecordValue = Record<string, unknown>;
 type Parser<T> = (value: unknown) => value is T;
@@ -161,7 +162,11 @@ function pageParser<T>(itemParser: Parser<T>): Parser<PageResult<T>> {
 async function request<T>(path: string, parser: Parser<T>): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(`${apiBaseUrl}/public/content/${path}`, { cache: "no-store", headers: { Accept: "application/json" } });
+    response = await fetch(`${apiBaseUrl}/public/content/${path}`, {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(publicContentTimeoutMs),
+    });
   } catch {
     throw new PublicContentError("upstream");
   }

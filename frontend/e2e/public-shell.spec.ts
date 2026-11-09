@@ -15,6 +15,7 @@ test("public shell is responsive without horizontal overflow", async ({ page }, 
   if ((viewport?.width ?? 0) > 1024) {
     await expect(desktopNavigation).toBeVisible();
     await expect(mobileTrigger).toBeHidden();
+    await expect(page.getByRole("navigation", { name: "محصولات و خدمات فوتر", exact: true })).toBeVisible();
   } else {
     await expect(desktopNavigation).toBeHidden();
     await expect(mobileTrigger).toBeVisible();
@@ -53,7 +54,7 @@ test("theme follows the system, switches accessibly and persists", async ({ page
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", themeColors.dark);
+  await expect(page.locator('meta[name="theme-color"]').first()).toHaveAttribute("content", themeColors.dark);
   const darkCanvas = await page.locator("body").evaluate((element) => getComputedStyle(element).backgroundColor);
   await page.screenshot({ path: testInfo.outputPath("public-home-dark.png"), fullPage: true });
 
@@ -72,14 +73,14 @@ test("theme follows the system, switches accessibly and persists", async ({ page
   expect(target?.height).toBeGreaterThanOrEqual(44);
   await toggle.click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", themeColors.light);
+  await expect(page.locator('meta[name="theme-color"]').first()).toHaveAttribute("content", themeColors.light);
   expect(await page.evaluate((key) => localStorage.getItem(key), themeStorageKey)).toBe("light");
   const lightCanvas = await page.locator("body").evaluate((element) => getComputedStyle(element).backgroundColor);
   expect(lightCanvas).not.toBe(darkCanvas);
 
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", themeColors.light);
+  await expect(page.locator('meta[name="theme-color"]').first()).toHaveAttribute("content", themeColors.light);
   const hasOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(hasOverflow).toBe(false);
 });
@@ -154,7 +155,7 @@ test("campaign artwork stays responsive and exposes real actions", async ({ page
   await page.goto("/");
   const homeCampaign = page.getByTestId("home-campaign");
   await expect(homeCampaign).toBeVisible();
-  await expect(homeCampaign.getByRole("img", { name: "معرفی محصولات و خدمات ترنج پلاستیک" })).toBeVisible();
+  await expect(homeCampaign.getByRole("img", { name: "نمونه محصولات پلاستیکی ترنج" })).toBeVisible();
   const productsAction = homeCampaign.getByRole("link", { name: "مشاهده محصولات" });
   const inquiryAction = homeCampaign.getByRole("link", { name: "ثبت استعلام" });
   await expect(productsAction).toHaveAttribute("href", "/products");
@@ -192,7 +193,6 @@ test("campaign artwork stays responsive and exposes real actions", async ({ page
 
   const routes = [
     ["/injection-molding", "injection-campaign", "ثبت درخواست خدمات تزریق پلاستیک", "/inquiry/injection"],
-    ["/contact", "contact-campaign", "مشاهده راه‌های تماس با ترنج پلاستیک", "#managed-content"],
   ] as const;
 
   for (const [path, testId, label, href] of routes) {
@@ -214,5 +214,48 @@ test("campaign artwork stays responsive and exposes real actions", async ({ page
   }
   const materialsArtwork = await request.get("/branding/banners/materials.png");
   expect(materialsArtwork.ok()).toBe(true);
+  await page.goto("/contact");
+  await expect(page.getByRole("heading", { name: "تماس با ما", exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
   await page.screenshot({ path: testInfo.outputPath("campaign-contact.png"), fullPage: true });
+});
+
+test("adjacent tablet breakpoints keep capability cards proportionate", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1280", "single deterministic breakpoint sweep");
+
+  for (const width of [767, 768, 769]) {
+    await page.setViewportSize({ width, height: 1024 });
+    await page.goto("/");
+    const cards = page.locator('section[aria-label="حوزه‌های ترنج پلاستیک"] > a');
+    await expect(cards).toHaveCount(3);
+    const boxes = await cards.evaluateAll((elements) => elements.map((element) => {
+      const box = element.getBoundingClientRect();
+      return { width: box.width, top: box.top };
+    }));
+    expect(Math.abs(boxes[0].top - boxes[1].top)).toBeLessThan(2);
+    expect(boxes[0].width).toBeGreaterThan(width * .35);
+    expect(boxes[2].top).toBeGreaterThan(boxes[0].top);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+  }
+});
+
+test("retry leaves the bounded error state and reloads a successful public read", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1280", "stateful retry fixture runs once");
+  await page.goto("/products?page=97");
+  const alert = page.locator("[data-error-state] [role='alert']");
+  await expect(alert).toContainText("محتوای این صفحه اکنون در دسترس نیست");
+  await expect(alert).not.toContainText(/temporary fixture failure|127\.0\.0\.1|postgres|stack/i);
+  await page.getByRole("button", { name: "تلاش دوباره" }).click();
+  await expect(page.getByRole("heading", { name: "سبد صنعتی نمونه" })).toBeVisible();
+});
+
+test("mobile footer disclosures keep contact visible and reveal reachable links", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-390", "mobile disclosure behavior");
+  await page.goto("/");
+  await expect(page.getByText("info@toranjplastic.com")).toBeVisible();
+  const disclosure = page.locator("details").filter({ hasText: "محصولات و خدمات" });
+  await expect(disclosure).not.toHaveAttribute("open", "");
+  await disclosure.locator("summary").click();
+  await expect(disclosure).toHaveAttribute("open", "");
+  await expect(disclosure.getByRole("link", { name: "محصولات کاتالوگ" })).toBeVisible();
 });

@@ -41,6 +41,12 @@
 .footerMeta { color: var(--color-hero-ink); font-size: .85rem; }
 .footerCol { display: flex; flex-direction: column; gap: .85rem; }
 .footerColTitle { color: var(--color-hero-ink); font-size: .98rem; font-weight: 700; margin: 0; }
+.footerDisclosure { min-width: 0; display: none; }
+.footerSummary { color: var(--color-hero-ink); font-size: .98rem; font-weight: 700; list-style: none; cursor: pointer; }
+.footerSummary::-webkit-details-marker { display: none; }
+.footerSummary::after { content: "+"; margin-inline-start: .75rem; color: var(--color-hero-link-hover); font-size: 1.15rem; }
+.footerDisclosure[open] > .footerSummary::after { content: "−"; }
+.footerSummary:focus-visible { outline: .2rem solid var(--color-brand-action); outline-offset: .25rem; border-radius: .2rem; }
 .footerList { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .8rem; font-size: .88rem; }
 .footerList li { display: flex; flex-direction: column; gap: .25rem; }
 .footerLabel { color: var(--color-hero-muted); font-size: .8rem; }
@@ -68,5 +74,10 @@
   .brandTitle { font-size: 1.15rem; }
   .brandSymbol { width: 1.85rem; height: 1.85rem; }
   .footerGrid { grid-template-columns: 1fr; gap: 2rem; }
+  .footerDesktopCol { display: none; }
+  .footerDisclosure { display: block; }
+  .footerDisclosure { padding-block: 1rem; border-block: 1px solid color-mix(in srgb, var(--color-hero-ink) 14%, transparent); }
+  .footerDisclosure + .footerDisclosure { margin-block-start: -2rem; border-block-start: 0; }
+  .footerDisclosure > nav { padding-block-start: 1rem; }
   .footerBottom { flex-direction: column; align-items: flex-start; gap: .75rem; }
 }
