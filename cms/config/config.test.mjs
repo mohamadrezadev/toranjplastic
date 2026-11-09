@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import serverConfig from './server.ts';
 import adminConfig from './admin.ts';
 import databaseConfig from './database.ts';
+import pluginsConfig from './plugins.ts';
 
 // Mock Strapi env helper
 function createMockEnv(envMap = {}) {
@@ -46,6 +47,9 @@ describe('Strapi Config Security Guards', () => {
 
     const db = databaseConfig({ env });
     assert.strictEqual(db.connection.connection.password, 'change-me-locally');
+
+    const plugins = pluginsConfig({ env });
+    assert.strictEqual(plugins['users-permissions'].config.jwtSecret, 'jwt_secret_dev');
   });
 
   it('throws in production if STRAPI_APP_KEYS is missing or default', () => {
@@ -108,6 +112,15 @@ describe('Strapi Config Security Guards', () => {
     );
   });
 
+  it('throws in production if the users-permissions JWT secret is missing', () => {
+    process.env.NODE_ENV = 'production';
+
+    assert.throws(
+      () => pluginsConfig({ env: createMockEnv({}) }),
+      /\[Security Error\] In production, STRAPI_JWT_SECRET/
+    );
+  });
+
   it('boots cleanly in production when all secrets are securely provided', () => {
     process.env.NODE_ENV = 'production';
 
@@ -116,6 +129,7 @@ describe('Strapi Config Security Guards', () => {
       STRAPI_ADMIN_JWT_SECRET: 'custom-prod-admin-jwt-secret-xyz',
       STRAPI_API_TOKEN_SALT: 'custom-prod-api-token-salt-xyz',
       STRAPI_TRANSFER_TOKEN_SALT: 'custom-prod-transfer-salt-xyz',
+      STRAPI_JWT_SECRET: 'custom-prod-users-permissions-jwt-secret-xyz',
       STRAPI_DATABASE_PASSWORD: 'strong-production-db-password-1234',
     });
 
@@ -129,6 +143,12 @@ describe('Strapi Config Security Guards', () => {
 
     const db = databaseConfig({ env });
     assert.strictEqual(db.connection.connection.password, 'strong-production-db-password-1234');
+
+    const plugins = pluginsConfig({ env });
+    assert.strictEqual(
+      plugins['users-permissions'].config.jwtSecret,
+      'custom-prod-users-permissions-jwt-secret-xyz'
+    );
   });
 
   // Restore

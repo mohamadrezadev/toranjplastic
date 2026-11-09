@@ -1,117 +1,179 @@
+name: ${COMPOSE_PROJECT_NAME:-toranjplastic}
+
 services:
   postgres:
     image: postgres:17-alpine
-    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-toranj}
       POSTGRES_USER: ${POSTGRES_USER:-toranj}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-locally}
+      STRAPI_DATABASE_NAME: ${STRAPI_DATABASE_NAME:-toranj_strapi}
     ports:
-      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+      - target: 5432
+        published: ${POSTGRES_PORT:-5433}
+        host_ip: 127.0.0.1
+        protocol: tcp
     volumes:
-      - toranj_postgres_data:/var/lib/postgresql/data
-      - ./scripts/init-postgres-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init/01-create-strapi-database.sh:/docker-entrypoint-initdb.d/01-create-strapi-database.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+
+  backend-migrate:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: builder
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-toranj}:${POSTGRES_PASSWORD:-change-me-locally}@postgres:5432/${POSTGRES_DB:-toranj}?schema=public
+    command: ["pnpm", "db:migrate:deploy"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
 
   backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
+      target: runner
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       PORT: 3001
+      BACKEND_PORT: 3001
       DATABASE_URL: postgresql://${POSTGRES_USER:-toranj}:${POSTGRES_PASSWORD:-change-me-locally}@postgres:5432/${POSTGRES_DB:-toranj}?schema=public
-      JWT_SECRET: ${JWT_SECRET:-change-me-jwt-secret}
-      SESSION_SECRET: ${SESSION_SECRET:-change-me-session-secret}
-      MEDIA_STORAGE_ROOT: /app/backend/media-uploads
-      MEDIA_PUBLIC_ORIGIN: ${MEDIA_PUBLIC_ORIGIN:-http://localhost:3001}
+      FRONTEND_ORIGIN: http://localhost:${FRONTEND_PORT:-3000}
+      AUTH_SESSION_DAYS: ${AUTH_SESSION_DAYS:-7}
+      AUTH_LOGIN_LIMIT: ${AUTH_LOGIN_LIMIT:-10}
+      AUTH_LOGIN_WINDOW_SECONDS: ${AUTH_LOGIN_WINDOW_SECONDS:-900}
+      AUTH_COOKIE_SECURE: "false"
+      MEDIA_STORAGE_PROVIDER: mounted-disk
+      MEDIA_ROOT: /app/var/media
+      MEDIA_PUBLIC_ORIGIN: http://localhost:${BACKEND_PORT:-3001}
+      MEDIA_MAX_UPLOAD_BYTES: ${MEDIA_MAX_UPLOAD_BYTES:-10485760}
+      MEDIA_MAX_PIXELS: ${MEDIA_MAX_PIXELS:-20000000}
+      MEDIA_MIN_FREE_BYTES: ${MEDIA_MIN_FREE_BYTES:-1048576}
+      MEDIA_MAX_PRODUCT_IMAGES: ${MEDIA_MAX_PRODUCT_IMAGES:-6}
+      MEDIA_PROCESSING_CONCURRENCY: ${MEDIA_PROCESSING_CONCURRENCY:-2}
+      MEDIA_TEMP_RETENTION_HOURS: ${MEDIA_TEMP_RETENTION_HOURS:-24}
+      MEDIA_UNATTACHED_RETENTION_DAYS: ${MEDIA_UNATTACHED_RETENTION_DAYS:-30}
+      SMS_PROVIDER: ${SMS_PROVIDER:-mock}
+      SMS_API_KEY: ${SMS_API_KEY:-}
+      SMS_SENDER: ${SMS_SENDER:-}
+      ADMIN_NOTIFICATION_MOBILE: ${ADMIN_NOTIFICATION_MOBILE:-09120000000}
+      BOOTSTRAP_ADMIN_MOBILE: ${BOOTSTRAP_ADMIN_MOBILE:-}
+      BOOTSTRAP_ADMIN_DISPLAY_NAME: ${BOOTSTRAP_ADMIN_DISPLAY_NAME:-}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
     ports:
-      - "127.0.0.1:3001:3001"
+      - target: 3001
+        published: ${BACKEND_PORT:-3001}
+        host_ip: 127.0.0.1
+        protocol: tcp
     volumes:
-      - backend_media:/app/backend/media-uploads
+      - backend-media:/app/var/media
+    depends_on:
+      backend-migrate:
+        condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3001/api/v1/ready || exit 1"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:3001/api/v1/ready"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 15s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
 
   cms:
     build:
       context: .
       dockerfile: cms/Dockerfile
-    restart: unless-stopped
+      target: runner
+    environment:
+      NODE_ENV: production
+      STRAPI_HOST: 0.0.0.0
+      STRAPI_PORT: 1337
+      STRAPI_URL: http://localhost:${STRAPI_PORT:-1337}
+      STRAPI_DATABASE_CLIENT: postgres
+      STRAPI_DATABASE_HOST: postgres
+      STRAPI_DATABASE_PORT: 5432
+      STRAPI_DATABASE_NAME: ${STRAPI_DATABASE_NAME:-toranj_strapi}
+      STRAPI_DATABASE_USERNAME: ${POSTGRES_USER:-toranj}
+      STRAPI_DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-change-me-locally}
+      STRAPI_DATABASE_SSL: "false"
+      STRAPI_APP_KEYS: ${STRAPI_APP_KEYS:-sample_app_key_1,sample_app_key_2}
+      STRAPI_API_TOKEN_SALT: ${STRAPI_API_TOKEN_SALT:-sample_api_token_salt}
+      STRAPI_ADMIN_JWT_SECRET: ${STRAPI_ADMIN_JWT_SECRET:-sample_admin_jwt_secret}
+      STRAPI_TRANSFER_TOKEN_SALT: ${STRAPI_TRANSFER_TOKEN_SALT:-sample_transfer_token_salt}
+      STRAPI_JWT_SECRET: ${STRAPI_JWT_SECRET:-sample_jwt_secret}
+      STRAPI_REVALIDATE_SECRET: ${STRAPI_REVALIDATE_SECRET:-change-me-locally}
+      FRONTEND_REVALIDATE_URL: http://frontend:3000/api/revalidate
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+    ports:
+      - target: 1337
+        published: ${STRAPI_PORT:-1337}
+        host_ip: 127.0.0.1
+        protocol: tcp
+    volumes:
+      - strapi-uploads:/app/cms/public/uploads
     depends_on:
       postgres:
         condition: service_healthy
-    environment:
-      NODE_ENV: production
-      PORT: 1337
-      APP_KEYS: ${STRAPI_APP_KEYS}
-      API_TOKEN_SALT: ${STRAPI_API_TOKEN_SALT}
-      ADMIN_JWT_SECRET: ${STRAPI_ADMIN_JWT_SECRET}
-      TRANSFER_TOKEN_SALT: ${STRAPI_TRANSFER_TOKEN_SALT}
-      DATABASE_CLIENT: postgres
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      DATABASE_NAME: ${STRAPI_DATABASE_NAME:-toranj_strapi}
-      DATABASE_USERNAME: ${POSTGRES_USER:-toranj}
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
-      DATABASE_SSL: "false"
-      STRAPI_REVALIDATE_SECRET: ${STRAPI_REVALIDATE_SECRET}
-      FRONTEND_REVALIDATE_URL: ${FRONTEND_REVALIDATE_URL:-http://frontend:3000/api/revalidate}
-    ports:
-      - "127.0.0.1:${STRAPI_PORT:-1337}:1337"
-    volumes:
-      - strapi_uploads:/app/cms/public/uploads
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:1337/_health || exit 1"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:1337/_health"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 20s
+      retries: 18
+      start_period: 45s
+    restart: unless-stopped
 
   frontend:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+      target: runner
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api/v1}
-        MEDIA_PUBLIC_ORIGIN: ${MEDIA_PUBLIC_ORIGIN:-http://localhost:3001}
-        STRAPI_MEDIA_ORIGIN: ${STRAPI_MEDIA_ORIGIN:-http://localhost:1337}
-    restart: unless-stopped
+        NEXT_PUBLIC_API_URL: http://localhost:${BACKEND_PORT:-3001}/api/v1
+        BACKEND_API_URL: http://backend:3001/api/v1
+        NEXT_PUBLIC_SITE_URL: http://localhost:${FRONTEND_PORT:-3000}
+        MEDIA_PUBLIC_ORIGIN: http://localhost:${BACKEND_PORT:-3001}
+        STRAPI_API_URL: http://cms:1337
+        STRAPI_MEDIA_ORIGIN: http://localhost:${STRAPI_PORT:-1337}
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_SITE_URL: http://localhost:${FRONTEND_PORT:-3000}
+      NEXT_PUBLIC_API_URL: http://localhost:${BACKEND_PORT:-3001}/api/v1
+      BACKEND_API_URL: http://backend:3001/api/v1
+      FRONTEND_ORIGIN: http://localhost:${FRONTEND_PORT:-3000}
+      MEDIA_PUBLIC_ORIGIN: http://localhost:${BACKEND_PORT:-3001}
+      MEDIA_MAX_UPLOAD_BYTES: ${MEDIA_MAX_UPLOAD_BYTES:-10485760}
+      MEDIA_SERVER_ACTION_BODY_SIZE_LIMIT_BYTES: ${MEDIA_SERVER_ACTION_BODY_SIZE_LIMIT_BYTES:-11534336}
+      STRAPI_API_URL: http://cms:1337
+      STRAPI_MEDIA_ORIGIN: http://localhost:${STRAPI_PORT:-1337}
+      STRAPI_REVALIDATION_SECRET: ${STRAPI_REVALIDATION_SECRET:-change-me-locally}
+    ports:
+      - target: 3000
+        published: ${FRONTEND_PORT:-3000}
+        host_ip: 127.0.0.1
+        protocol: tcp
     depends_on:
       backend:
         condition: service_healthy
       cms:
         condition: service_healthy
-    environment:
-      NODE_ENV: production
-      PORT: 3000
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api/v1}
-      BACKEND_API_URL: http://backend:3001/api/v1
-      STRAPI_API_URL: http://cms:1337
-      MEDIA_PUBLIC_ORIGIN: ${MEDIA_PUBLIC_ORIGIN:-http://localhost:3001}
-      STRAPI_MEDIA_ORIGIN: ${STRAPI_MEDIA_ORIGIN:-http://localhost:1337}
-      STRAPI_REVALIDATE_SECRET: ${STRAPI_REVALIDATE_SECRET}
-    ports:
-      - "127.0.0.1:3000:3000"
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3000 || exit 1"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:3000/"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 15s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
 
 volumes:
-  toranj_postgres_data:
-  backend_media:
-  strapi_uploads:
+  postgres-data:
+  backend-media:
+  strapi-uploads:

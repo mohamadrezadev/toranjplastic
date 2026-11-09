@@ -50,35 +50,36 @@
 - pnpm نسخه `9.15` یا بالاتر
 - Docker Desktop و Docker Compose
 
-### راه‌اندازی سریع
+### راه‌اندازی کامل با Docker Compose
 
-```bash
-# ۱. کپی فایل متغیرهای محیطی
-cp .env.example .env
+```powershell
+# ۱. فقط در اولین اجرا
+Copy-Item .env.example .env
 
-# ۲. نصب وابستگی‌ها
-pnpm install
+# ۲. secretها و مقادیر محلی .env را تنظیم کنید، سپس config را بررسی کنید
+pnpm check:docker
 
-# ۳. اجرای دیتابیس PostgreSQL
-docker compose up -d postgres
+# ۳. ساخت imageها، اجرای migration و بالا آوردن کل stack
+docker compose up --build -d --wait
 
-# ۴. اعمال مایگریشن‌های دیتابیس و ساخت کلاینت پریزما
-pnpm db:generate
-pnpm db:migrate:deploy
-
-# ۵. ساخت ادمین اولیه پرتال و استراپی
-pnpm admin:bootstrap
-
-# ۶. اجرای سرویس‌ها در حالت توسعه
-pnpm dev
+# ۴. مشاهده وضعیت؛ backend-migrate باید با Exit Code صفر تمام شده باشد
+docker compose ps --all
 ```
 
-در سیستم‌عامل ویندوز و PowerShell به‌جای `cp` از `Copy-Item .env.example .env` استفاده نمایید.
+این مسیر PostgreSQL، Backend، Strapi CMS و Frontend را اجرا می‌کند. دیتابیس Backend و CMS در یک PostgreSQL ولی با نام‌های جدا (`POSTGRES_DB` و `STRAPI_DATABASE_NAME`) ساخته می‌شوند. برای توسعه‌ی hybrid با Node.js روی میزبان، [runbook توسعه محلی](docs/local-development-runbook.md) را ببینید.
 
 ### پورت‌ها و آدرس‌های دسترسی محلی:
 - **وب‌سایت و پرتال فرانت‌اند:** `http://localhost:3000`
 - **وب‌سرویس بک‌اند:** `http://localhost:3001/api/v1/health`
+- **آمادگی بک‌اند و وابستگی‌ها:** `http://localhost:3001/api/v1/ready`
 - **پنل مدیریت محتوای Strapi:** `http://localhost:1337/admin`
+
+برای مشاهده‌ی لاگ‌ها و توقف بدون حذف داده‌ها:
+
+```powershell
+docker compose logs -f
+docker compose down
+```
 
 ---
 
