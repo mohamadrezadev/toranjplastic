@@ -3,6 +3,7 @@ import Script from "next/script";
 import "@fontsource-variable/vazirmatn";
 import "@fontsource/poppins/700.css";
 import "@fontsource/poppins/800.css";
+import { AstryxProvider } from "@/components/providers/AstryxProvider";
 import { themeBootstrapScript } from "@/design-system/theme";
 import { siteOrigin } from "@/lib/site";
 import "./globals.css";
@@ -49,7 +50,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="fa" dir="rtl" suppressHydrationWarning>
       <body>
         <Script id="toranj-theme-bootstrap" strategy="beforeInteractive">{themeBootstrapScript}</Script>
-        {children}
+          <AstryxProvider>{children}</AstryxProvider>
       </body>
     </html>
   );

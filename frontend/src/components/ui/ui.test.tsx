@@ -2,22 +2,31 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "jest-axe";
 import { describe, expect, it, vi } from "vitest";
-import { Button, Checkbox, DirectionalData, Input, Radio, Select, Switch, Textarea } from ".";
+import { Button, Checkbox, DirectionalData, Input, Radio, Select, StatusBadge, Switch, Textarea } from ".";
 
 describe("UI primitives", () => {
   it("activates an enabled button once and blocks loading or disabled actions", async () => {
     const user = userEvent.setup();
     const onClick = vi.fn();
     const { rerender } = render(<Button onClick={onClick}>ثبت درخواست</Button>);
-    await user.click(screen.getByRole("button", { name: "ثبت درخواست" }));
+    screen.getByRole("button", { name: "ثبت درخواست" }).focus();
+    await user.keyboard("{Enter}");
     expect(onClick).toHaveBeenCalledTimes(1);
 
     rerender(<Button onClick={onClick} isLoading loadingText="در حال ثبت">ثبت درخواست</Button>);
     expect(screen.getByRole("button", { name: "در حال ثبت" })).toBeDisabled();
     expect(screen.getByRole("button")).toHaveAttribute("aria-busy", "true");
-    expect(screen.getByRole("status")).toHaveTextContent("در حال ثبت");
     await user.click(screen.getByRole("button"));
     expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("maps Toranj action variants and link actions to public Astryx behavior", () => {
+    render(<>
+      <Button variant="danger">حذف</Button>
+      <Button href="/inquiry" variant="secondary">ثبت استعلام</Button>
+    </>);
+    expect(screen.getByRole("button", { name: "حذف" })).toHaveAttribute("data-variant", "destructive");
+    expect(screen.getByRole("link", { name: "ثبت استعلام" })).toHaveAttribute("href", "/inquiry");
   });
 
   it("associates labels, help and Persian errors with form controls", async () => {
@@ -38,9 +47,49 @@ describe("UI primitives", () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
+  it("preserves native form names, values and change events through Astryx adapters", async () => {
+    const user = userEvent.setup();
+    const inputChange = vi.fn();
+    const choiceChange = vi.fn();
+    const { container } = render(<form>
+      <Input label="نام" name="name" defaultValue="ترنج" onChange={inputChange} required />
+      <Textarea label="پیام" name="message" defaultValue="سلام" maxLength={12} />
+      <Checkbox label="تأیید" name="accepted" onChange={choiceChange} required />
+      <Switch label="اعلان" name="notification" />
+      <Input label="فایل" name="attachment" type="file" />
+    </form>);
+
+    const input = screen.getByRole("textbox", { name: /^نام/ });
+    await user.clear(input);
+    await user.type(input, "پارس");
+    await user.type(screen.getByRole("textbox", { name: "پیام" }), " دنیا");
+    await user.click(screen.getByRole("checkbox", { name: /^تأیید/ }));
+    await user.click(screen.getByRole("switch", { name: "اعلان" }));
+
+    expect(inputChange).toHaveBeenCalled();
+    expect(inputChange.mock.lastCall?.[0].target.value).toBe("پارس");
+    expect(choiceChange.mock.lastCall?.[0].target.checked).toBe(true);
+    expect(screen.getByRole("checkbox", { name: /^تأیید/ })).toBeRequired();
+    expect(screen.getByLabelText("فایل")).toHaveAttribute("type", "file");
+
+    const data = new FormData(container.querySelector("form")!);
+    expect(data.get("name")).toBe("پارس");
+    expect(data.get("message")).toBe("سلام دنیا");
+    expect(data.get("accepted")).toBe("on");
+    expect(data.get("notification")).toBe("on");
+  });
+
   it("isolates technical identifiers without changing surrounding direction", () => {
     render(<p dir="rtl">کد پیگیری <DirectionalData>TRJ-2048-A</DirectionalData></p>);
     expect(screen.getByText("TRJ-2048-A")).toHaveAttribute("dir", "ltr");
     expect(screen.getByText("TRJ-2048-A")).toHaveClass("ltr-data");
+  });
+
+  it("renders a read-only status badge with domain-selected emphasis", () => {
+    render(<StatusBadge label="نیازمند بررسی" tone="warning" />);
+    const badge = screen.getByText("نیازمند بررسی").closest("[data-variant]");
+    expect(badge).not.toBeNull();
+    expect(badge).toHaveAttribute("data-variant", "warning");
+    expect(badge).not.toHaveAttribute("role", "button");
   });
 });

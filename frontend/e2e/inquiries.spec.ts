@@ -35,7 +35,7 @@ test("authenticated customer can submit and view a private product inquiry", asy
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
     await expect(page.getByRole("navigation", { name: "بخش‌های پنل مشتری" })).toBeVisible();
-    await expect(page.getByRole("status")).toContainText("مرحله 1 از 3");
+    await expect(page.getByRole("status").filter({ hasText: /\S/ })).toContainText("مرحله 1 از 3");
     await expect(page.getByRole("group", { name: /موضوع درخواست/ })).toBeVisible();
     await expect(page.getByRole("group", { name: /مقدار و تحویل/ })).toBeHidden();
     await expect(page.getByRole("button", { name: "مرحله بعد" })).toBeVisible();
@@ -60,13 +60,13 @@ test("authenticated customer can submit and view a private product inquiry", asy
     }
     await page.getByLabel("محصول *", { exact: true }).selectOption("product-1");
     await page.getByRole("button", { name: "مرحله بعد" }).click();
-    await expect(page.getByRole("status")).toContainText("مرحله 2 از 3");
+    await expect(page.getByRole("status").filter({ hasText: /\S/ })).toContainText("مرحله 2 از 3");
     await expect(page.getByRole("group", { name: /موضوع درخواست/ })).toBeHidden();
     await expect(page.getByRole("group", { name: /مقدار و تحویل/ })).toBeVisible();
     await page.getByLabel("مقدار تقریبی (اختیاری)").fill("100");
     await page.getByLabel("شهر یا محل تحویل").fill("تهران");
     await page.getByRole("button", { name: "مرحله بعد" }).click();
-    await expect(page.getByRole("status")).toContainText("مرحله 3 از 3");
+    await expect(page.getByRole("status").filter({ hasText: /\S/ })).toContainText("مرحله 3 از 3");
     await expect(page.getByRole("group", { name: /توضیحات تکمیلی/ })).toBeVisible();
     await page.getByLabel("توضیحات تکمیلی").fill("درخواست آزمون");
     if (testInfo.project.name === "mobile-360" || testInfo.project.name === "mobile-390") {
@@ -83,7 +83,7 @@ test("authenticated customer can submit and view a private product inquiry", asy
     }
     await page.getByRole("button", { name: "ثبت درخواست" }).click();
     await expect(page).toHaveURL(/\/account\/inquiries\/inquiry-1\?created=1$/, { timeout: 15_000 });
-    await expect(page.getByRole("status")).toContainText("درخواست شما ثبت شد");
+    await expect(page.getByRole("status").filter({ hasText: /\S/ })).toContainText("درخواست شما ثبت شد");
     await expect(page.getByText("ثبت‌شده", { exact: true }).first()).toBeVisible();
     await expect(page.getByRole("heading", { name: "اطلاعات ثبت‌شده" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "گفتگو با کارشناس" })).toBeVisible();
@@ -91,7 +91,7 @@ test("authenticated customer can submit and view a private product inquiry", asy
     await page.getByLabel("پیام شما").fill("پاسخ آزمایشی مشتری");
     await page.getByRole("button", { name: "ارسال پیام" }).click();
     await expect(page).toHaveURL(/success=message/);
-    await expect(page.getByRole("status")).toContainText("پیام شما برای کارشناس ثبت شد");
+    await expect(page.getByRole("status").filter({ hasText: /\S/ })).toContainText("پیام شما برای کارشناس ثبت شد");
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
     if (testInfo.project.name === "mobile-360" || testInfo.project.name === "mobile-390") await expectVisibleActionsNotToOverlap(page);
     if (testInfo.project.name === "desktop-1280") {

@@ -1,0 +1,133 @@
+/*
+ * Toranj's phase-one Astryx mapping.
+ * The published Neutral theme supplies component contracts; these unlayered,
+ * theme-scoped values keep Toranj's approved petroleum-and-stone identity and
+ * intentionally outrank Astryx's generated theme layer.
+ */
+[data-astryx-theme="neutral"] {
+  --font-family-body: var(--font-family-fa);
+  --font-family-heading: var(--font-family-fa);
+  --font-family-code: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --font-size-xs: .75rem;
+  --font-size-sm: .875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: clamp(2rem, 5vw, 3.5rem);
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 700;
+  --font-weight-bold: 700;
+  --text-body-size: var(--font-size-base);
+  --text-body-weight: var(--font-weight-normal);
+  --text-body-leading: 1.9;
+  --text-supporting-size: var(--font-size-sm);
+  --text-supporting-weight: var(--font-weight-normal);
+  --text-supporting-leading: 1.8;
+  --spacing-1: .25rem;
+  --spacing-3: .75rem;
+  --radius-element: .5rem;
+  --radius-inner: .75rem;
+  --radius-container: 1.125rem;
+  --radius-page: 1.5rem;
+  --size-element-sm: 2.75rem;
+  --size-element-md: 3rem;
+  --size-element-lg: 3.5rem;
+  --duration-fast: 140ms;
+  --duration-medium: 220ms;
+  --duration-slow: 320ms;
+  --shadow-low: var(--shadow-sm);
+  --shadow-med: var(--shadow-md);
+  --shadow-high: var(--shadow-md);
+  --color-background-body: var(--color-surface-canvas);
+  --color-background-surface: var(--color-surface-card);
+  --color-background-card: var(--color-surface-card);
+  --color-background-popover: var(--color-surface-raised);
+  --color-background-muted: var(--color-surface-subtle);
+  --color-accent: var(--color-brand-action);
+  --color-accent-muted: var(--color-brand-action-soft);
+  --color-on-accent: var(--color-on-action);
+  --color-text-accent: var(--color-brand-action);
+  --color-icon-accent: var(--color-brand-action);
+  --color-icon-primary: var(--color-text-primary);
+  --color-icon-secondary: var(--color-text-secondary);
+  --color-border: var(--color-border-default);
+  --color-border-emphasized: var(--color-border-strong);
+  --color-success: var(--color-status-success);
+  --color-success-muted: var(--color-status-success-surface);
+  --color-warning: var(--color-status-warning);
+  --color-warning-muted: var(--color-status-warning-surface);
+  --color-error: var(--color-status-danger);
+  --color-error-muted: var(--color-status-danger-surface);
+  --color-info: var(--color-status-info);
+  --color-info-muted: var(--color-status-info-surface);
+  --color-text-success: var(--color-status-success);
+  --color-text-warning: var(--color-status-warning);
+  --color-text-error: var(--color-status-danger);
+  --color-text-info: var(--color-status-info);
+  --color-border-success: var(--color-status-success);
+  --color-border-warning: var(--color-status-warning);
+  --color-border-error: var(--color-status-danger);
+  --color-border-info: var(--color-status-info);
+}
+
+/*
+ * Astryx Neutral declares --color-text-primary/-secondary, the same names as
+ * two Toranj tokens, on its theme wrapper. Inherit the Toranj values from the
+ * root so legacy and Astryx text keep the approved ink instead of pure
+ * black/white. The descendant selector deliberately excludes <html>.
+ */
+:root [data-astryx-theme="neutral"] {
+  --color-text-primary: inherit;
+  --color-text-secondary: inherit;
+}
+
+/*
+ * Toranj controls keep the 2.75rem (44 px) minimum touch target. Astryx's
+ * Collapsible densities stop below it, so the documented
+ * `astryx-collapsible-trigger` theme target carries the minimum.
+ */
+[data-astryx-theme="neutral"] .astryx-collapsible-trigger {
+  min-block-size: var(--control-min-height);
+}
+
+/*
+ * Toranj's always-dark brand surfaces (the public footer) in both themes.
+ * Astryx semantic roles inside them resolve to the hero palette, so Astryx
+ * text, links, icons, hairlines and disclosure triggers stay readable, and
+ * light-dark() tokens such as hover overlays take their dark side. The focus
+ * outline switches to the hero ink: the default action colour equals the
+ * light-theme hero background and would leave keyboard focus invisible.
+ */
+[data-toranj-surface="inverse"] {
+  color-scheme: dark;
+  --color-text-primary: var(--color-hero-ink);
+  --color-text-secondary: var(--color-hero-muted);
+  --color-text-accent: var(--color-hero-link-hover);
+  --color-icon-primary: var(--color-hero-ink);
+  --color-icon-secondary: var(--color-hero-muted);
+  --color-icon-accent: var(--color-hero-link-hover);
+  --color-border: color-mix(in srgb, var(--color-hero-ink) 14%, transparent);
+}
+
+[data-toranj-surface="inverse"] :focus-visible {
+  outline-color: var(--color-hero-ink);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-hero-ink) 30%, transparent);
+}
+
+/* The pre-paint resolver owns mode; this also beats Theme's system class. */
+html[data-theme="light"] [data-astryx-theme="neutral"] {
+  color-scheme: light;
+}
+
+html[data-theme="dark"] [data-astryx-theme="neutral"] {
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-astryx-theme="neutral"] {
+    --duration-fast: .01ms;
+    --duration-medium: .01ms;
+    --duration-slow: .01ms;
+  }
+}

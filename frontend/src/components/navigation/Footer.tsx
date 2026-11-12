@@ -1,29 +1,52 @@
-import Link from "next/link";
+import { Collapsible, CollapsibleGroup } from "@astryxdesign/core/Collapsible";
+import { Link } from "@astryxdesign/core/Link";
+import { Text } from "@astryxdesign/core/Text";
+import type { ReactNode } from "react";
 import styles from "./Navigation.module.css";
 
-const productLinks = [
+type FooterLink = readonly [href: string, label: string];
+
+const productLinks: ReadonlyArray<FooterLink> = [
   ["/products", "محصولات کاتالوگ"],
   ["/injection-molding", "خدمات تزریق پلاستیک"],
   ["/materials", "مواد اولیه و پلیمرها"],
   ["/inquiry", "سامانه استعلام آنلاین"],
-] as const;
+];
 
-const institutionalLinks = [
+const institutionalLinks: ReadonlyArray<FooterLink> = [
   ["/about", "درباره ترنج پلاستیک"],
   ["/contact", "تماس با ما"],
   ["/articles", "مقالات و راهنمای تخصصی"],
   ["/account", "حساب کاربری و پیگیری"],
-] as const;
+];
 
-function FooterLinks({ links }: { links: ReadonlyArray<readonly [string, string]> }) {
-  return <ul className={styles.footerNavList}>{links.map(([href, label]) => <li key={href}><Link href={href}>{label}</Link></li>)}</ul>;
+const legalLinks: ReadonlyArray<FooterLink> = [
+  ["/terms", "قوانین و مقررات"],
+  ["/privacy", "حریم خصوصی"],
+];
+
+function FooterLinks({ links }: { links: ReadonlyArray<FooterLink> }) {
+  return <ul className={styles.footerNavList}>{links.map(([href, label]) => <li key={href}><Link href={href} color="primary" type="inherit">{label}</Link></li>)}</ul>;
 }
 
+function ContactLink({ href, children }: { href: string; children: ReactNode }) {
+  return <Link href={href} color="primary" type="inherit">{children}</Link>;
+}
+
+function DisclosureTitle({ children }: { children: string }) {
+  return <Text type="body" weight="bold" color="primary">{children}</Text>;
+}
+
+/**
+ * The public footer is a Toranj composition on the always-dark brand surface:
+ * Astryx has no site-footer pattern. Links and the mobile link groups use the
+ * public Astryx Link and Collapsible components, themed through the inverse
+ * surface roles in astryx-theme.css.
+ */
 export function Footer() {
   return (
-    <footer className={styles.footer} data-shell-inert>
+    <footer className={styles.footer} data-toranj-surface="inverse">
       <div className={`${styles.footerGrid} content-container`}>
-        {/* Brand & Mission Column */}
         <div className={styles.footerColBrand}>
           <div className={styles.footerBrandWrap}>
             <span className={styles.footerSymbol} aria-hidden="true" />
@@ -37,60 +60,60 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Contact Points Column */}
         <div className={styles.footerCol}>
           <h3 className={styles.footerColTitle}>راه‌های ارتباط و پیگیری</h3>
           <ul className={styles.footerList}>
             <li>
               <span className={styles.footerLabel}>واحد فروش و سفارش عمده:</span>
               <div className={styles.footerPhones} dir="ltr">
-                <a href="tel:09132075925">۰۹۱۳ ۲۰۷ ۵۹۲۵</a>
+                <ContactLink href="tel:09132075925">۰۹۱۳ ۲۰۷ ۵۹۲۵</ContactLink>
                 <span aria-hidden="true"> | </span>
-                <a href="tel:09122009515">۰۹۱۲ ۲۰۰ ۹۵۱۵</a>
+                <ContactLink href="tel:09122009515">۰۹۱۲ ۲۰۰ ۹۵۱۵</ContactLink>
               </div>
             </li>
             <li>
               <span className={styles.footerLabel}>پشتیبانی فنی وب‌سایت:</span>
               <div dir="ltr">
-                <a href="tel:09104500086">۰۹۱۰ ۴۵۰ ۰۰۸۶</a>
+                <ContactLink href="tel:09104500086">۰۹۱۰ ۴۵۰ ۰۰۸۶</ContactLink>
               </div>
             </li>
             <li>
               <span className={styles.footerLabel}>پست الکترونیک رسمی:</span>
               <div dir="ltr">
-                <a href="mailto:info@toranjplastic.com">info@toranjplastic.com</a>
+                <ContactLink href="mailto:info@toranjplastic.com">info@toranjplastic.com</ContactLink>
               </div>
             </li>
           </ul>
         </div>
 
-        {/* Catalog & Services Links Column */}
         <div className={`${styles.footerCol} ${styles.footerDesktopCol}`}>
           <h3 className={styles.footerColTitle}>محصولات و خدمات</h3>
           <nav aria-label="محصولات و خدمات فوتر">
             <FooterLinks links={productLinks} />
           </nav>
         </div>
-        <details className={`${styles.footerCol} ${styles.footerDisclosure}`}>
-          <summary className={styles.footerSummary}>محصولات و خدمات</summary>
-          <nav aria-label="محصولات و خدمات فوتر موبایل">
-            <FooterLinks links={productLinks} />
-          </nav>
-        </details>
-
-        {/* Institutional & Articles Links Column */}
         <div className={`${styles.footerCol} ${styles.footerDesktopCol}`}>
           <h3 className={styles.footerColTitle}>دسترسی و راهنما</h3>
           <nav aria-label="پیوندهای سازمانی فوتر">
             <FooterLinks links={institutionalLinks} />
           </nav>
         </div>
-        <details className={`${styles.footerCol} ${styles.footerDisclosure}`}>
-          <summary className={styles.footerSummary}>دسترسی و راهنما</summary>
-          <nav aria-label="پیوندهای سازمانی فوتر موبایل">
-            <FooterLinks links={institutionalLinks} />
-          </nav>
-        </details>
+
+        {/* Narrow screens keep contact details open and fold the lower-priority link groups. */}
+        <div className={styles.footerDisclosures}>
+          <CollapsibleGroup type="multiple" hasDividers>
+            <Collapsible value="products" trigger={<DisclosureTitle>محصولات و خدمات</DisclosureTitle>}>
+              <nav aria-label="محصولات و خدمات فوتر موبایل">
+                <FooterLinks links={productLinks} />
+              </nav>
+            </Collapsible>
+            <Collapsible value="institutional" trigger={<DisclosureTitle>دسترسی و راهنما</DisclosureTitle>}>
+              <nav aria-label="پیوندهای سازمانی فوتر موبایل">
+                <FooterLinks links={institutionalLinks} />
+              </nav>
+            </Collapsible>
+          </CollapsibleGroup>
+        </div>
       </div>
 
       <div className={`${styles.footerBottom} content-container`}>
@@ -98,8 +121,7 @@ export function Footer() {
           © کلیه حقوق مادی و معنوی متعلق به صنایع پلاستیک ترنج است.
         </p>
         <div className={styles.footerLegalLinks}>
-          <Link href="/terms">قوانین و مقررات</Link>
-          <Link href="/privacy">حریم خصوصی</Link>
+          {legalLinks.map(([href, label]) => <Link key={href} href={href} color="secondary" type="inherit">{label}</Link>)}
         </div>
       </div>
     </footer>

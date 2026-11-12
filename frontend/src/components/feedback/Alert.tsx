@@ -1,13 +1,21 @@
+import { Banner } from "@astryxdesign/core/Banner";
+import { VStack } from "@astryxdesign/core/VStack";
 import type { ReactNode } from "react";
-import styles from "./Feedback.module.css";
 
 export type AlertVariant = "info" | "success" | "warning" | "danger";
-const icons: Record<AlertVariant, string> = { info: "i", success: "✓", warning: "!", danger: "×" };
 const labels: Record<AlertVariant, string> = { info: "اطلاع", success: "موفق", warning: "هشدار", danger: "خطا" };
 
 export function Alert({ variant = "info", title, children }: { variant?: AlertVariant; title: string; children?: ReactNode }) {
-  return <div className={[styles.surface, styles[variant]].join(" ")} role={variant === "danger" ? "alert" : "status"} aria-live={variant === "danger" ? "assertive" : "polite"}>
-    <span className={styles.icon} aria-label={labels[variant]}>{icons[variant]}</span>
-    <div className={styles.content}><p className={styles.title}>{title}</p>{children ? <div className={styles.description}>{children}</div> : null}</div>
-  </div>;
+  return <VStack
+    gap={0}
+    role={variant === "danger" ? "alert" : "status"}
+    aria-label={labels[variant]}
+    aria-live={variant === "danger" ? "assertive" : "polite"}
+  >
+    <Banner
+      status={variant === "danger" ? "error" : variant}
+      title={title}
+      description={children}
+    />
+  </VStack>;
 }

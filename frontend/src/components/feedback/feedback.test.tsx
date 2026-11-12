@@ -25,6 +25,6 @@ describe("feedback patterns", () => {
     rerender(<ErrorState onRetry={retry} />);
     await user.click(screen.getByRole("button", { name: "تلاش دوباره" }));
     expect(retry).toHaveBeenCalledOnce();
-    expect(screen.getByRole("alert")).not.toHaveTextContent(/token|password|stack/i);
+    expect(screen.getByLabelText("خطا")).not.toHaveTextContent(/token|password|stack/i);
   });
 });

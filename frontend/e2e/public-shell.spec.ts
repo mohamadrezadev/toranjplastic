@@ -12,12 +12,15 @@ test("public shell is responsive without horizontal overflow", async ({ page }, 
 
   const desktopNavigation = page.getByRole("navigation", { name: "ناوبری اصلی" });
   const mobileTrigger = page.getByRole("button", { name: "بازکردن فهرست" });
-  if ((viewport?.width ?? 0) > 1024) {
-    await expect(desktopNavigation).toBeVisible();
+  const primaryDestination = desktopNavigation.getByRole("link", { name: "محصولات", exact: true });
+  await expect(desktopNavigation).toBeVisible();
+  await expect(desktopNavigation.getByRole("link", { name: "ترنج پلاستیک — صفحه اصلی" })).toBeVisible();
+  if ((viewport?.width ?? 0) > 1152) {
+    await expect(primaryDestination).toBeVisible();
     await expect(mobileTrigger).toBeHidden();
     await expect(page.getByRole("navigation", { name: "محصولات و خدمات فوتر", exact: true })).toBeVisible();
   } else {
-    await expect(desktopNavigation).toBeHidden();
+    await expect(primaryDestination).toBeHidden();
     await expect(mobileTrigger).toBeVisible();
   }
 
@@ -35,19 +38,75 @@ test("public shell is responsive without horizontal overflow", async ({ page }, 
   await page.screenshot({ path: testInfo.outputPath("public-inner.png"), fullPage: true });
 });
 
-test("mobile drawer supports keyboard, focus return and inert background", async ({ page }) => {
-  test.skip((page.viewportSize()?.width ?? 0) > 1024, "mobile navigation flow");
-  await page.goto("/");
+test("mobile drawer supports keyboard, focus return and an inert background", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) > 1152, "mobile navigation flow");
+  await page.goto("/products");
   const trigger = page.getByRole("button", { name: "بازکردن فهرست" });
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
   await trigger.focus();
   await page.keyboard.press("Enter");
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
-  await expect(page.getByRole("button", { name: "بستن فهرست" })).toBeFocused();
-  await expect(page.locator("[data-shell-inert]").first()).toHaveAttribute("inert", "");
+
+  const dialog = page.getByRole("dialog", { name: "فهرست اصلی" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "بستن فهرست" })).toBeVisible();
+  await expect(dialog.getByRole("link", { name: "محصولات", exact: true })).toHaveAttribute("aria-current", "page");
+  const focusIsInsideDialog = () => dialog.evaluate((element) => element.contains(document.activeElement));
+  await expect.poll(focusIsInsideDialog).toBe(true);
+
+  // The native modal keeps keyboard focus away from the page behind it.
+  for (let step = 0; step < 14; step += 1) {
+    await page.keyboard.press("Tab");
+    expect(await page.evaluate(() => Boolean(document.activeElement?.closest("main, footer")))).toBe(false);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(trigger).toBeFocused();
-  await expect(page.locator("[data-shell-inert]").first()).not.toHaveAttribute("inert", "");
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+});
+
+test("header switches between inline links and the drawer at the 72rem breakpoint", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1280", "single deterministic breakpoint sweep");
+  for (const theme of ["light", "dark"] as const) {
+    await page.emulateMedia({ colorScheme: theme });
+    for (const width of [1151, 1152, 1153]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/products");
+      const navigation = page.getByRole("navigation", { name: "ناوبری اصلی" });
+      const inlineLink = navigation.getByRole("link", { name: "محصولات", exact: true });
+      const drawerTrigger = page.getByRole("button", { name: "بازکردن فهرست" });
+      if (width > 1152) {
+        await expect(inlineLink).toBeVisible();
+        await expect(drawerTrigger).toBeHidden();
+        await expect(navigation.getByRole("link", { name: "ثبت استعلام" })).toBeVisible();
+      } else {
+        await expect(inlineLink).toBeHidden();
+        await expect(drawerTrigger).toBeVisible();
+      }
+      const header = await page.getByRole("banner").boundingBox();
+      expect(header?.height, `header must stay on one row at ${width}px`).toBeLessThan(100);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), `${width}px must not overflow`).toBe(false);
+    }
+  }
+});
+
+test("primary navigation marks the current section and breadcrumbs stay semantic", async ({ page }) => {
+  const runtimeErrors: string[] = [];
+  page.on("pageerror", (error) => runtimeErrors.push(error.message));
+  await page.goto("/products/industrial-basket");
+  const breadcrumb = page.getByRole("navigation", { name: "مسیر صفحه" });
+  await expect(breadcrumb).toBeVisible();
+  await expect(breadcrumb.getByRole("link", { name: "خانه" })).toHaveAttribute("href", "/");
+  await expect(breadcrumb.locator('[aria-current="page"]')).toHaveCount(1);
+  if ((page.viewportSize()?.width ?? 0) > 1152) {
+    const navigation = page.getByRole("navigation", { name: "ناوبری اصلی" });
+    await expect(navigation.getByRole("link", { name: "محصولات", exact: true })).toHaveAttribute("aria-current", "page");
+    await expect(navigation.getByRole("link", { name: "مقالات", exact: true })).not.toHaveAttribute("aria-current", "page");
+  }
+  // The shared shell must not force dynamic content routes into client-side recovery.
+  expect(runtimeErrors).toEqual([]);
 });
 
 test("theme follows the system, switches accessibly and persists", async ({ page }, testInfo) => {
@@ -63,7 +122,7 @@ test("theme follows the system, switches accessibly and persists", async ({ page
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.screenshot({ path: testInfo.outputPath("public-inner-dark.png"), fullPage: true });
 
-  if ((page.viewportSize()?.width ?? 0) <= 1024) {
+  if ((page.viewportSize()?.width ?? 0) <= 1152) {
     await page.getByRole("button", { name: "بازکردن فهرست" }).click();
   }
   const toggle = page.getByRole("button", { name: "فعال‌کردن حالت روشن" });
@@ -252,10 +311,30 @@ test("retry leaves the bounded error state and reloads a successful public read"
 test("mobile footer disclosures keep contact visible and reveal reachable links", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile-390", "mobile disclosure behavior");
   await page.goto("/");
-  await expect(page.getByText("info@toranjplastic.com")).toBeVisible();
-  const disclosure = page.locator("details").filter({ hasText: "محصولات و خدمات" });
-  await expect(disclosure).not.toHaveAttribute("open", "");
-  await disclosure.locator("summary").click();
-  await expect(disclosure).toHaveAttribute("open", "");
-  await expect(disclosure.getByRole("link", { name: "محصولات کاتالوگ" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "info@toranjplastic.com" })).toBeVisible();
+  const trigger = page.getByRole("button", { name: "محصولات و خدمات" });
+  const links = page.getByRole("navigation", { name: "محصولات و خدمات فوتر موبایل" });
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  expect((await trigger.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+  await expect(links).toBeHidden();
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  await expect(links.getByRole("link", { name: "محصولات کاتالوگ" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+});
+
+test("footer keeps keyboard focus visible on the dark brand surface", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.goto("/");
+  const link = page.getByRole("contentinfo").getByRole("link", { name: "info@toranjplastic.com" });
+  await link.focus();
+  await expect(link).toBeFocused();
+  const focus = await link.evaluate((element) => {
+    const style = getComputedStyle(element);
+    const footer = element.closest("footer");
+    return { outline: style.outlineColor, outlineStyle: style.outlineStyle, background: footer ? getComputedStyle(footer).backgroundColor : "" };
+  });
+  expect(focus.outlineStyle).not.toBe("none");
+  expect(focus.outline).not.toBe(focus.background);
 });

@@ -1,8 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Icon } from "@astryxdesign/core/Icon";
+import { IconButton } from "@astryxdesign/core/IconButton";
+import { useEffect, useState, type SVGProps } from "react";
 import { applyTheme, isTheme, storeTheme, themeChangeEvent, themeStorageKey, type Theme } from "@/design-system/theme";
-import styles from "./ThemeToggle.module.css";
+
+function SunIcon(props: SVGProps<SVGSVGElement>) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.64 5.64 7.2 7.2M16.8 16.8l1.56 1.56M18.36 5.64 16.8 7.2M7.2 16.8l-1.56 1.56M16.25 12A4.25 4.25 0 1 1 7.75 12a4.25 4.25 0 0 1 8.5 0Z" /></svg>;
+}
+
+function MoonIcon(props: SVGProps<SVGSVGElement>) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M20.2 15.15A8.5 8.5 0 0 1 8.85 3.8 8.5 8.5 0 1 0 20.2 15.15Z" /></svg>;
+}
 
 function currentTheme(): Theme {
   const value = document.documentElement.dataset.theme;
@@ -13,7 +22,7 @@ function applyInDocument(theme: Theme) {
   applyTheme(theme, document.documentElement, document.querySelector<HTMLMetaElement>('meta[name="theme-color"]'));
 }
 
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme | null>(null);
 
   useEffect(() => {
@@ -24,9 +33,15 @@ export function ThemeToggle({ className }: { className?: string }) {
       setTheme(event.newValue);
     };
     syncFromDocument();
+    // The document attribute is the single source of truth. Observing it keeps
+    // the control correct when the Astryx theme provider settles the resolved
+    // mode after this effect has already read the attribute.
+    const observer = new MutationObserver(syncFromDocument);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
     window.addEventListener(themeChangeEvent, syncFromDocument);
     window.addEventListener("storage", syncFromStorage);
     return () => {
+      observer.disconnect();
       window.removeEventListener(themeChangeEvent, syncFromDocument);
       window.removeEventListener("storage", syncFromStorage);
     };
@@ -45,17 +60,12 @@ export function ThemeToggle({ className }: { className?: string }) {
   }
 
   return (
-    <button
-      className={[styles.toggle, className].filter(Boolean).join(" ")}
-      type="button"
-      aria-label={label}
+    <IconButton
+      label={label}
+      variant="secondary"
       aria-pressed={effectiveTheme === "dark"}
-      title={label}
+      icon={<Icon icon={effectiveTheme === "dark" ? SunIcon : MoonIcon} color="inherit" />}
       onClick={toggleTheme}
-    >
-      <svg className={styles.icon} aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        {effectiveTheme === "dark" ? <path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.64 5.64 7.2 7.2M16.8 16.8l1.56 1.56M18.36 5.64 16.8 7.2M7.2 16.8l-1.56 1.56M16.25 12A4.25 4.25 0 1 1 7.75 12a4.25 4.25 0 0 1 8.5 0Z" /> : <path d="M20.2 15.15A8.5 8.5 0 0 1 8.85 3.8 8.5 8.5 0 1 0 20.2 15.15Z" />}
-      </svg>
-    </button>
+    />
   );
 }

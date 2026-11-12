@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/navigation";
-import { DetailHero, ImageGallery, PreservedText, contentStyles } from "@/components/content";
+import { DetailHero, ImageGallery, contentStyles } from "@/components/content";
 import { getManagedPage, isNotFoundError } from "@/lib/public-content";
 import { publicContentMetadata } from "@/lib/content-metadata";
 import { contactPageJsonLd, serializeJsonLd } from "@/lib/jsonld";

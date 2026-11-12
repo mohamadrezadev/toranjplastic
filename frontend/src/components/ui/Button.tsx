@@ -1,5 +1,7 @@
-import type { ButtonHTMLAttributes } from "react";
-import styles from "./Button.module.css";
+"use client";
+
+import { Button as AstryxButton } from "@astryxdesign/core/Button";
+import { Children, type ButtonHTMLAttributes, type ReactNode } from "react";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
@@ -7,6 +9,16 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   isLoading?: boolean;
   loadingText?: string;
+  href?: string;
+  target?: string;
+  rel?: string;
+}
+
+function accessibleText(children: ReactNode): string {
+  return Children.toArray(children)
+    .filter((child): child is string | number => typeof child === "string" || typeof child === "number")
+    .join(" ")
+    .trim();
 }
 
 export function Button({
@@ -14,25 +26,31 @@ export function Button({
   isLoading = false,
   loadingText = "در حال انجام…",
   disabled,
+  href,
+  target,
+  rel,
   children,
   className,
   type = "button",
   ...props
 }: ButtonProps) {
-  const classes = [styles.button, styles[variant], className].filter(Boolean).join(" ");
+  const visibleLabel = accessibleText(children);
+  const label = isLoading ? loadingText : (typeof props["aria-label"] === "string" ? props["aria-label"] : visibleLabel);
+  const nativeDisabled = disabled || isLoading;
 
   return (
-    <button
+    <AstryxButton
       {...props}
+      {...{ disabled: nativeDisabled }}
+      label={label || "عملیات"}
+      variant={variant === "danger" ? "destructive" : variant}
       type={type}
-      className={classes}
-      disabled={disabled || isLoading}
-      aria-busy={isLoading || undefined}
-    >
-      <span className={isLoading ? styles.contentHidden : undefined} aria-hidden={isLoading || undefined}>
-        {children}
-      </span>
-      {isLoading ? <span className={styles.loadingLabel} role="status" aria-live="polite">{loadingText}</span> : null}
-    </button>
+      className={className}
+      isDisabled={nativeDisabled}
+      isLoading={isLoading}
+      href={href}
+      target={target}
+      rel={rel}
+    >{isLoading ? loadingText : children}</AstryxButton>
   );
 }
