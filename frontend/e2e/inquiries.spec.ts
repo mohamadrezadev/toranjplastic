@@ -28,7 +28,7 @@ test("authenticated customer can submit and view a private product inquiry", asy
   for (const theme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme: theme });
     await page.goto("/auth/login?next=/inquiry/product");
-    await page.getByLabel("شماره موبایل").fill("09123456789");
+    await page.getByLabel("شماره موبایل").fill("09144444444");
     await page.getByLabel("رمز عبور").fill("strong-password");
     await page.getByRole("button", { name: "ورود" }).click();
     await expect(page).toHaveURL(/\/inquiry\/product$/);
@@ -68,7 +68,7 @@ test("authenticated customer can submit and view a private product inquiry", asy
     await page.getByRole("button", { name: "مرحله بعد" }).click();
     await expect(page.getByRole("status").filter({ hasText: /\S/ })).toContainText("مرحله 3 از 3");
     await expect(page.getByRole("group", { name: /توضیحات تکمیلی/ })).toBeVisible();
-    await page.getByLabel("توضیحات تکمیلی").fill("درخواست آزمون");
+    await page.getByRole("textbox", { name: "توضیحات تکمیلی" }).fill("درخواست آزمون");
     if (testInfo.project.name === "mobile-360" || testInfo.project.name === "mobile-390") {
       const submit = page.getByRole("button", { name: "ثبت درخواست" });
       const navigation = page.getByRole("navigation", { name: "بخش‌های پنل مشتری" });

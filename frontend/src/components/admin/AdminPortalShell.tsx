@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Button } from "@/components/ui";
+import { SecureLogoutForm } from "@/components/auth";
 import type { AuthAccount } from "@/lib/auth";
 import { AdminNavigation } from "./AdminNavigation";
 import { AdminBreadcrumbs } from "./AdminBreadcrumbs";
@@ -36,7 +36,7 @@ export function AdminPortalShell({ account, children, logoutAction }: AdminPorta
               <span>{roleLabels[account.role]}</span>
             </div>
             <AdminNavigation capabilities={account.capabilities} />
-            <form action={logoutAction}><Button type="submit" variant="secondary">خروج امن</Button></form>
+            <SecureLogoutForm action={logoutAction} />
           </div>
         </details>
       </header>
@@ -59,7 +59,7 @@ export function AdminPortalShell({ account, children, logoutAction }: AdminPorta
 
         <div className={styles.sidebarFooter}>
           <p>اطلاعات این محیط محرمانه و ویژه کارکنان مجاز است.</p>
-          <form action={logoutAction}><Button type="submit" variant="secondary">خروج امن</Button></form>
+          <SecureLogoutForm action={logoutAction} />
         </div>
       </aside>
 

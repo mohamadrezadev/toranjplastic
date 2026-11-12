@@ -1,6 +1,10 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { Banner } from "@astryxdesign/core/Banner";
+import { Step, Stepper } from "@astryxdesign/core/Stepper";
+import { Text } from "@astryxdesign/core/Text";
+import { startTransition, useActionState, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { Alert } from "@/components/feedback";
 import { Button, Input, Select, Textarea } from "@/components/ui";
 import { createInquiryAction, type InquiryFormState } from "./actions";
 import styles from "./Inquiry.module.css";
@@ -17,8 +21,8 @@ const stepTitles: Record<Kind, string[]> = {
 
 function FormSection({ step, title, description, active, children }: { step: number; title: string; description?: string; active: boolean; children: ReactNode }) {
   return <fieldset className={styles.section} data-step-panel={step} hidden={!active}>
-    <legend tabIndex={-1}><span className={styles.legendInner}><span className={styles.sectionIndex} aria-hidden="true">{String(step + 1).padStart(2, "0")}</span><span>{title}</span></span></legend>
-    {description ? <p className={styles.sectionDescription}>{description}</p> : null}
+    <legend tabIndex={-1}><span className={styles.legendInner}><span className={styles.sectionIndex} aria-hidden="true">{String(step + 1).padStart(2, "0")}</span><Text type="large" weight="bold">{title}</Text></span></legend>
+    {description ? <Text as="p" color="secondary" size="sm">{description}</Text> : null}
     <div className={styles.fieldGrid}>{children}</div>
   </fieldset>;
 }
@@ -66,9 +70,22 @@ export function InquiryForm({ kind, options = [], selectedId }: { kind: Kind; op
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    if (isLastStep) return;
     event.preventDefault();
-    goNext();
+    if (!isLastStep) {
+      goNext();
+      return;
+    }
+    if (pending) return;
+    // Dispatching the action manually (instead of letting React run the form
+    // action) keeps every entered value in place when the service rejects the
+    // request; React resets a form after its action prop completes. The `action`
+    // prop stays on the element for the no-JavaScript fallback only.
+    const data = new FormData(event.currentTarget);
+    startTransition(() => action(data));
+  };
+
+  const goToCompletedStep = (step: number) => {
+    if (step < currentStep) moveTo(step);
   };
 
   return <form ref={formRef} action={action} onSubmit={handleSubmit} className={styles.form} aria-label={formLabels[kind]}>
@@ -76,16 +93,17 @@ export function InquiryForm({ kind, options = [], selectedId }: { kind: Kind; op
 
     <section className={styles.progress} aria-label="پیشرفت فرم درخواست">
       <div className={styles.progressHeading} role="status" aria-live="polite">
-        <span>مرحله {currentStep + 1} از {titles.length}</span>
-        <strong>{titles[currentStep]}</strong>
+        <Text type="label" weight="bold" color="accent">مرحله {currentStep + 1} از {titles.length}</Text>
+        <Text weight="bold">{titles[currentStep]}</Text>
       </div>
-      <ol className={styles.stepList}>
-        {titles.map((title, index) => <li key={title} data-state={index === currentStep ? "current" : index < currentStep ? "complete" : "upcoming"}>
-          <span className={styles.stepDot}>{index < currentStep ? "✓" : index + 1}</span>
-          <span className={styles.stepLabel}>{title}</span>
-        </li>)}
-      </ol>
-      <div className={styles.progressTrack} aria-hidden="true"><span style={{ width: `${((currentStep + 1) / titles.length) * 100}%` }} /></div>
+      {titles.length > 1 ? <Stepper
+        activeStep={currentStep}
+        label="مراحل فرم درخواست"
+        onStepClick={goToCompletedStep}
+        horizontalOptions={{ minimumStepWidth: 112, collapsedVariant: "hiddenLabel" }}
+      >
+        {titles.map((title, index) => <Step key={title} step={index} label={title} isDisabled={index > currentStep} />)}
+      </Stepper> : null}
     </section>
 
     {kind !== "contact" ? <FormSection step={0} title="موضوع درخواست" active={currentStep === 0} description="نوع درخواست و زمینه اصلی آن را مشخص کنید.">
@@ -120,9 +138,9 @@ export function InquiryForm({ kind, options = [], selectedId }: { kind: Kind; op
       <Textarea label={kind === "contact" ? "متن درخواست" : "توضیحات تکمیلی"} name="description" required={kind === "contact"} maxLength={4000} />
     </FormSection>
 
-    {isLastStep ? <p className={styles.notice}><span className={styles.noticeMark} aria-hidden="true">i</span><span>پیوست فایل در این مرحله فعال نیست و پس از تصویب سیاست ذخیره‌سازی امن اضافه خواهد شد.</span></p> : null}
+    {isLastStep ? <Banner status="info" title="پیوست فایل در این مرحله فعال نیست و پس از تصویب سیاست ذخیره‌سازی امن اضافه خواهد شد." /> : null}
     <div className={styles.formFooter}>
-      {state.error && isLastStep ? <p role="alert" className={styles.error}>{state.error}</p> : null}
+      {state.error && isLastStep ? <Alert variant="danger" title={state.error}>مقادیر واردشده حفظ شده‌اند؛ پس از بررسی، دوباره «ثبت درخواست» را بزنید.</Alert> : null}
       <div className={styles.wizardActions}>
         {currentStep > 0 ? <Button type="button" variant="secondary" onClick={() => moveTo(currentStep - 1)}>مرحله قبل</Button> : null}
         {!isLastStep ? <Button type="button" onClick={(event) => { event.preventDefault(); goNext(); }}>مرحله بعد</Button> : <Button type="submit" isLoading={pending} disabled={pending} loadingText="در حال ثبت…">ثبت درخواست</Button>}

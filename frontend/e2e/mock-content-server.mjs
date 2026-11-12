@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 
 const port = 3199;
 const publishedAt = "2026-10-10T08:00:00.000Z";
+const customerFixtureMobile = "09144444444";
 const adminCapabilities = [
   "MANAGEMENT_ACCESS",
   "STAFF_MANAGEMENT",
@@ -602,6 +603,17 @@ createServer((request, response) => {
     );
   }
   if (
+    url.pathname === "/api/v1/inquiries/injection-service" &&
+    request.method === "POST"
+  ) {
+    // Fixture for the backend validation failure path of the inquiry wizard.
+    response.writeHead(400, {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+    });
+    return response.end(JSON.stringify({ code: "VALIDATION_FAILED" }));
+  }
+  if (
     url.pathname === "/api/v1/inquiries/inquiry-1" &&
     request.method === "GET"
   ) {
@@ -707,27 +719,31 @@ createServer((request, response) => {
     url.pathname === "/api/v1/auth/login/password" &&
     request.method === "POST"
   ) {
-    response.writeHead(200, {
-      "Content-Type": "application/json; charset=utf-8",
-      "Set-Cookie": [
-        "toranj_session=fixture-session; HttpOnly; Path=/; SameSite=Lax",
-        "toranj_csrf=fixture-csrf; Path=/; SameSite=Lax",
-      ],
+    // The customer fixture mobile signs in as a Customer; every other mobile
+    // keeps the original Admin fixture session.
+    let body = "";
+    request.on("data", (chunk) => {
+      body += chunk;
     });
-    return response.end(
-      JSON.stringify({
-        id: "admin-1",
-        mobile: "+989123456789",
-        displayName: "مدیر آزمون",
-        email: null,
-        companyName: null,
-        role: "ADMIN",
-        status: "ACTIVE",
-        createdAt: publishedAt,
-        lastLoginAt: publishedAt,
-        capabilities: adminCapabilities,
-      }),
-    );
+    request.on("end", () => {
+      let mobile = "";
+      try {
+        mobile = String(JSON.parse(body).mobile ?? "");
+      } catch {
+        mobile = "";
+      }
+      const isCustomer = mobile === customerFixtureMobile;
+      const session = isCustomer ? "customer-login-session" : "fixture-session";
+      response.writeHead(200, {
+        "Content-Type": "application/json; charset=utf-8",
+        "Set-Cookie": [
+          `toranj_session=${session}; HttpOnly; Path=/; SameSite=Lax`,
+          "toranj_csrf=fixture-csrf; Path=/; SameSite=Lax",
+        ],
+      });
+      response.end(JSON.stringify(accountForSession(session)));
+    });
+    return;
   }
   if (url.pathname === "/api/v1/auth/register" && request.method === "POST") {
     response.writeHead(201, {

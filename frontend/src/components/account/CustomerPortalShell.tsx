@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { AuthAccount } from "@/lib/auth";
-import { Button } from "@/components/ui";
+import { SecureLogoutForm } from "@/components/auth";
 import { PortalNavigation } from "./PortalNavigation";
 import styles from "./CustomerPortalShell.module.css";
 
@@ -34,9 +34,7 @@ export function CustomerPortalShell({ account, children, logoutAction }: Custome
 
         <div className={styles.sidebarFooter}>
           <p>اطلاعات این بخش فقط برای حساب شما نمایش داده می‌شود.</p>
-          <form action={logoutAction}>
-            <Button type="submit" variant="secondary">خروج امن</Button>
-          </form>
+          <SecureLogoutForm action={logoutAction} />
         </div>
       </aside>
 
