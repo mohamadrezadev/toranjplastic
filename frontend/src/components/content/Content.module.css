@@ -1,101 +1,364 @@
+/*
+ * Public content composition (OpenSpec change rebuild-ui-with-astryx).
+ * Astryx Card, Grid, Stack, Heading, Text, Link, Badge, MetadataList and List
+ * own surfaces, type and spacing; these rules only add the Toranj-specific
+ * layouts around them. Values come from Toranj tokens (tokens.css) or the
+ * Astryx roles mapped onto them (astryx-theme.css). No raw colours.
+ * Unlayered rules here deliberately win over the Astryx base layer when a
+ * className extends a component (documented Astryx extension point).
+ */
+
+/* ---------- Route frames used by the page files (contentStyles) ---------- */
 .main { min-height: 60vh; padding-block-end: var(--space-16); }
 .section { padding-block: clamp(2.5rem, 6vw, 5rem); }
-.heading { max-width: 54rem; display: grid; gap: 1rem; padding-block-end: clamp(1rem, 3vw, 2rem); border-block-end: 1px solid var(--color-border-default); }
-.eyebrow { color: var(--color-brand-action); font-size: .78rem; font-weight: 700; letter-spacing: .02em; }
-.heading h1, .detailTitle { color: var(--color-brand-primary); font-size: clamp(2.3rem, 5vw, 4.3rem); line-height: 1.3; letter-spacing: -.05em; }
-.heading p, .summary { max-width: 46rem; color: var(--color-text-secondary); font-size: var(--font-size-lg); }
-.landingHero { min-height: 29rem; display: grid; grid-template-columns: minmax(0, .92fr) minmax(24rem, 1.08fr); align-items: stretch; overflow: hidden; border: 1px solid var(--color-border-default); border-radius: 1.25rem; background: var(--color-surface-card); box-shadow: var(--shadow-md); }
-.landingCopy { padding: clamp(1.75rem, 4vw, 3.5rem); display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
-.landingCopy h1 { max-width: 11ch; margin-block: .75rem 1rem; color: var(--color-brand-primary); font-size: clamp(2.5rem, 4.3vw, 4.5rem); line-height: 1.16; letter-spacing: -.055em; }
-.landingCopy > p { max-width: 34rem; color: var(--color-text-secondary); font-size: clamp(1rem, 1.4vw, 1.18rem); line-height: 2; }
-.landingActions { margin-block-start: 1.35rem; display: flex; flex-wrap: wrap; gap: .75rem; }
-.landingMedia { min-width: 0; min-height: 29rem; padding: clamp(1rem, 2.5vw, 2rem); position: relative; display: grid; place-items: center; overflow: hidden; background: linear-gradient(145deg, var(--color-media-backdrop-start), var(--color-media-backdrop-end)); }
-.landingMedia::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 65%, color-mix(in srgb, var(--color-brand-primary) 24%, transparent)); pointer-events: none; }
-.landingMedia picture { width: 100%; display: block; }
-.landingMedia img { width: 100%; height: auto; aspect-ratio: 16 / 10; display: block; object-fit: cover; border-radius: .75rem; box-shadow: 0 1.5rem 3rem rgb(0 0 0 / 24%); }
-.landingMediaLabel { padding: .6rem .8rem; position: absolute; z-index: 1; inset-inline-end: 1.25rem; inset-block-end: 1.25rem; color: #fff; background: rgb(4 34 67 / 78%); border: 1px solid rgb(255 255 255 / 28%); border-radius: .35rem; font: 600 .68rem/1 var(--font-family-latin); letter-spacing: .12em; }
-.catalogSection { padding-block-start: clamp(3rem, 6vw, 5rem); scroll-margin-top: 6rem; }
-.catalogHeading { display: grid; grid-template-columns: 1fr minmax(17rem, .72fr); align-items: end; gap: 2rem; padding-block-end: 1.5rem; border-block-end: 1px solid var(--color-border-default); }
-.catalogHeading h2 { margin-block-start: .55rem; color: var(--color-brand-primary); font-size: clamp(2rem, 4vw, 3.75rem); line-height: 1.25; letter-spacing: -.045em; }
-.catalogHeading p { color: var(--color-text-secondary); }
-.grid { margin-block-start: clamp(1.5rem, 4vw, 3rem); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 1.25rem; }
-.gridSingle { grid-template-columns: minmax(0, min(100%, 42rem)); justify-content: start; }
-.gridPair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.gridFeatured { grid-template-columns: minmax(0, 1fr); }
-.gridFeatured > .card { height: 22rem; display: grid; grid-template-columns: minmax(19rem, .82fr) minmax(0, 1.18fr); }
-.gridFeatured .cardMediaLink { height: 100%; min-height: 0; }
-.gridFeatured .cardMedia, .gridFeatured .cardPlaceholder { height: 100%; min-height: 0; aspect-ratio: auto; }
-.gridFeatured .cardBody { min-height: 0; justify-content: center; }
-.card { min-width: 0; display: flex; flex-direction: column; align-self: start; overflow: hidden; background: var(--color-surface-card); border: 1px solid var(--color-border-default); border-radius: .9rem; box-shadow: 0 .25rem 1.25rem rgb(15 42 68 / 6%); transition: transform .2s, box-shadow .2s, border-color .2s; }
-.card:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--color-brand-action) 50%, var(--color-border-default)); box-shadow: var(--shadow-md); }
-.cardMediaLink { padding: clamp(.45rem, 1vw, .75rem); display: block; overflow: hidden; background: var(--color-surface-subtle); border-block-end: 1px solid var(--color-border-default); }
-.cardMedia { width: 100%; height: auto; aspect-ratio: 4 / 3; display: block; object-fit: cover; border: 1px solid var(--color-border-default); border-radius: .65rem; background: var(--color-surface-raised); transition: transform .35s ease; }
-.card:hover .cardMedia { transform: scale(1.025); }
-.cardPlaceholder { aspect-ratio: 4 / 3; display: grid; place-items: center; color: var(--color-brand-industrial); background: radial-gradient(circle at 50% 50%, var(--color-surface-raised) 0 22%, transparent 22.5% 32%, var(--color-border-strong) 32.5% 33%, transparent 33.5%), linear-gradient(135deg, var(--color-surface-subtle), var(--color-surface-raised)); border: 1px solid var(--color-border-default); border-radius: .65rem; font-size: var(--font-size-sm); }
-.cardBody { min-height: 15rem; padding: clamp(1.15rem, 2.5vw, 1.6rem); display: flex; flex-direction: column; align-items: flex-start; gap: .8rem; }
-.cardBody h2 { color: var(--color-brand-primary); font-size: clamp(1.3rem, 2vw, 1.7rem); line-height: var(--line-height-heading); }
-.cardBody h2 a:hover { color: var(--color-brand-action); }
-.cardBody p { display: -webkit-box; overflow: hidden; color: var(--color-text-secondary); -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
-.meta { display: flex; flex-wrap: wrap; gap: var(--space-2); color: var(--color-text-secondary); font-size: var(--font-size-sm); }
-.tag { padding: var(--space-1) var(--space-2); color: var(--color-brand-primary); background: var(--color-brand-action-soft); border-radius: var(--radius-sm); }
-.cardLink { width: 100%; min-height: var(--control-min-height); margin-block-start: auto; padding-block-start: .9rem; display: flex; align-items: center; justify-content: space-between; color: var(--color-brand-action); border-block-start: 1px solid var(--color-border-default); font-weight: var(--font-weight-bold); }
-.cardLink:hover { color: var(--color-brand-action-hover); }
-.primaryLink, .secondaryLink { min-height: var(--control-min-height); padding-inline: var(--control-padding-inline); display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); font-weight: var(--font-weight-bold); }
-.primaryLink { color: var(--color-on-action); background: var(--color-brand-action); }
-.primaryLink:hover { color: var(--color-on-action); background: var(--color-brand-action-hover); }
-.secondaryLink { color: var(--color-brand-primary); background: var(--color-surface-card); border: 1px solid var(--color-border-strong); }
-.secondaryLink:hover { color: var(--color-brand-action); border-color: var(--color-brand-action); }
-.pagination { margin-block-start: var(--space-8); display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: var(--space-3); }
-.pageLink { min-height: var(--control-min-height); padding-inline: var(--control-padding-inline); display: inline-flex; align-items: center; border: var(--border-width) solid var(--color-border-default); border-radius: var(--radius-sm); }
-.pageLink:hover { border-color: var(--color-brand-action); color: var(--color-brand-action); }
-.pageStatus { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
-.detailHero { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(20rem, .92fr); align-items: stretch; overflow: hidden; background: var(--color-surface-card); border: 1px solid var(--color-border-default); border-radius: 1.1rem; box-shadow: var(--shadow-md); }
-.detailMedia { min-width: 0; min-height: 32rem; padding: clamp(1rem, 3vw, 2rem); display: grid; place-items: center; background: linear-gradient(145deg, var(--color-surface-subtle), var(--color-surface-raised)); }
-.heroMedia { width: 100%; height: 100%; max-height: 38rem; display: block; object-fit: cover; border-radius: .7rem; background: var(--color-surface-subtle); }
-.detailPlaceholder { width: 100%; min-height: 24rem; display: grid; place-items: center; color: var(--color-text-muted); border: 1px dashed var(--color-border-strong); border-radius: .7rem; }
-.detailCopy { min-width: 0; padding: clamp(2rem, 5vw, 4rem); display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: var(--space-4); }
-.detailMeta { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.detailNote { padding-block-start: 1rem; color: var(--color-text-muted); border-block-start: 1px solid var(--color-border-default); font-size: var(--font-size-sm); }
-.detailContent { max-width: 68rem; margin-inline: auto; }
-.contentBody { max-width: 52rem; margin-block-start: clamp(3rem, 7vw, 5rem); display: grid; gap: var(--space-4); }
-.contentBody h2 { color: var(--color-brand-primary); font-size: var(--font-size-heading-sm); }
-.contentBody p { white-space: pre-wrap; overflow-wrap: anywhere; }
-.gallery { margin-block-start: var(--space-12); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
-.gallery img { width: 100%; height: auto; display: block; border-radius: var(--radius-md); background: var(--color-surface-subtle); }
-.specifications { margin-block-start: var(--space-12); overflow: hidden; border: var(--border-width) solid var(--color-border-default); border-radius: .85rem; box-shadow: 0 .25rem 1.25rem rgb(15 42 68 / 5%); background: var(--color-surface-card); }
-.specifications h2 { padding: var(--space-4) var(--space-6); color: var(--color-brand-primary); background: var(--color-surface-raised); border-block-end: var(--border-width) solid var(--color-border-default); font-size: var(--font-size-heading-sm); }
-.specifications dl { display: grid; grid-template-columns: minmax(9rem, .42fr) 1fr; }
-.specifications dt, .specifications dd { min-width: 0; padding: var(--space-3) var(--space-6); overflow-wrap: anywhere; border-block-end: var(--border-width) solid var(--color-border-default); }
-.specifications dt { color: var(--color-text-secondary); background: var(--color-surface-raised); font-weight: var(--font-weight-medium); font-size: var(--font-size-sm); }
-.specifications dd { background: var(--color-surface-card); color: var(--color-text-primary); font-size: var(--font-size-sm); }
-.specifications dt:last-of-type, .specifications dd:last-of-type { border-block-end: 0; }
 .managed { max-width: 52rem; }
-.detailInquiryCard { margin-block-start: var(--space-12); padding: clamp(1.75rem, 4vw, 2.75rem); background: var(--color-surface-card); border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 1.5rem; }
-.inquiryCardHeader { display: grid; gap: .5rem; }
-.inquiryCardHeader h2 { color: var(--color-brand-primary); font-size: clamp(1.35rem, 2.5vw, 1.85rem); line-height: var(--line-height-heading); }
-.inquiryCardHeader p { color: var(--color-text-secondary); font-size: var(--font-size-body); max-width: 48rem; line-height: 1.8; }
-.inquiryTrustGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
-.inquiryTrustItem { padding: .85rem 1rem; background: var(--color-surface-raised); border: 1px solid var(--color-border-default); border-radius: var(--radius-sm); display: flex; align-items: center; gap: .65rem; font-size: var(--font-size-sm); color: var(--color-text-primary); font-weight: var(--font-weight-medium); }
-.inquiryTrustDot { width: .6rem; height: .6rem; border-radius: 50%; background: var(--color-brand-action); flex-shrink: 0; }
-.inquiryActionRow { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-block-start: .5rem; }
-.campaignBanner { width: min(100%, 42rem); margin: 0 auto clamp(2.5rem, 6vw, 5rem); display: block; overflow: hidden; border: 1px solid var(--color-border-default); border-radius: clamp(.6rem, 1.2vw, 1rem); background: #f5f7fa; box-shadow: var(--shadow-md); transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
-.campaignBanner:hover { transform: translateY(-3px); border-color: var(--color-brand-action); box-shadow: var(--shadow-md); }
+.catalogSection { padding-block-start: clamp(3rem, 6vw, 5rem); scroll-margin-top: 6rem; }
+.detailContent { max-width: 68rem; margin-inline: auto; }
+
+/*
+ * Link actions written by route files. They mirror the Astryx Button metrics
+ * (height, radius, label type) so a page that mixes them with Button-adapter
+ * actions reads as one system. Labels may wrap instead of being clipped.
+ */
+.primaryLink,
+.secondaryLink {
+  min-height: var(--size-element-md, var(--control-min-height));
+  padding-block: var(--space-2);
+  padding-inline: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-element, var(--radius-sm));
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-heading);
+  text-align: center;
+  text-decoration: none;
+  transition: background-color var(--motion-fast) var(--motion-easing), color var(--motion-fast) var(--motion-easing);
+}
+.primaryLink { color: var(--color-on-action); background-color: var(--color-brand-action); }
+.primaryLink:hover { color: var(--color-on-action); background-color: var(--color-brand-action-hover); }
+.secondaryLink { color: var(--color-text-primary); background-color: var(--color-neutral, var(--color-surface-subtle)); }
+.secondaryLink:hover { color: var(--color-text-primary); background-color: color-mix(in srgb, var(--color-text-primary) 12%, transparent); }
+
+/* ---------- Shared type roles ---------- */
+.title { color: var(--color-brand-primary); }
+.lead { max-width: 46rem; }
+
+/* ---------- ContentPageHeading ---------- */
+.heading {
+  max-width: 54rem;
+  padding-block-end: clamp(1rem, 3vw, 2rem);
+  border-block-end: var(--border-width) solid var(--color-border-default);
+}
+
+/* ---------- CatalogLandingHero ---------- */
+.landingHero {
+  min-height: 29rem;
+  display: grid;
+  grid-template-columns: minmax(0, .92fr) minmax(24rem, 1.08fr);
+  align-items: stretch;
+}
+.landingCopy { min-width: 0; padding: clamp(1.75rem, 4vw, 3.5rem); }
+.landingTitle { max-width: 11ch; }
+.landingLead { max-width: 34rem; }
+.landingActions { margin-block-start: var(--space-2); }
+.landingMedia {
+  position: relative;
+  min-width: 0;
+  min-height: 29rem;
+  padding: clamp(1rem, 2.5vw, 2rem);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(145deg, var(--color-media-backdrop-start), var(--color-media-backdrop-end));
+}
+.landingMedia::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 65%, color-mix(in srgb, var(--color-brand-primary) 24%, transparent));
+  pointer-events: none;
+}
+.landingMedia picture { width: 100%; display: block; }
+.landingMedia img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  display: block;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+.landingMediaLabel {
+  position: absolute;
+  z-index: 1;
+  inset-inline-end: 1.25rem;
+  inset-block-end: 1.25rem;
+  padding: var(--space-2) var(--space-3);
+  background-color: color-mix(in srgb, var(--color-hero) 82%, transparent);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-hero-ink) 28%, transparent);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-latin);
+  line-height: 1;
+  letter-spacing: .12em;
+}
+
+/* ---------- CatalogSectionHeading ---------- */
+.catalogHeading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, .72fr);
+  align-items: end;
+  gap: var(--space-8);
+  padding-block-end: var(--space-6);
+  border-block-end: var(--border-width) solid var(--color-border-default);
+}
+.sectionTitle { font-size: var(--font-size-heading-lg); line-height: var(--text-heading-1-leading, var(--line-height-heading)); }
+
+/* ---------- ContentGrid ---------- */
+.grid { margin-block-start: clamp(1.5rem, 4vw, 3rem); }
+.gridFeatured > .card {
+  height: 22rem;
+  display: grid;
+  grid-template-columns: minmax(19rem, .82fr) minmax(0, 1.18fr);
+}
+.gridFeatured .cardMediaLink {
+  height: 100%;
+  min-height: 0;
+  border-block-end: 0;
+  border-inline-end: var(--border-width) solid var(--color-border-default);
+}
+.gridFeatured .cardMedia,
+.gridFeatured .cardPlaceholder { height: 100%; min-height: 0; aspect-ratio: auto; }
+.gridFeatured .cardBody { min-height: 0; justify-content: center; }
+
+/* ---------- ContentCard (an Astryx Card) ---------- */
+.card {
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--motion-normal) var(--motion-easing), box-shadow var(--motion-normal) var(--motion-easing), border-color var(--motion-normal) var(--motion-easing);
+}
+.card:hover {
+  transform: translateY(-.25rem);
+  border-color: color-mix(in srgb, var(--color-brand-action) 50%, var(--color-border-default));
+  box-shadow: var(--shadow-md);
+}
+.cardMediaLink {
+  display: block;
+  padding: clamp(.45rem, 1vw, .75rem);
+  overflow: hidden;
+  background-color: var(--color-surface-subtle);
+  border-block-end: var(--border-width) solid var(--color-border-default);
+}
+.cardMedia {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  display: block;
+  object-fit: cover;
+  border: var(--border-width) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-raised);
+  transition: transform var(--motion-normal) var(--motion-easing);
+}
+.card:hover .cardMedia { transform: scale(1.025); }
+.cardPlaceholder {
+  aspect-ratio: 4 / 3;
+  display: grid;
+  place-items: center;
+  color: var(--color-brand-industrial);
+  background:
+    radial-gradient(circle at 50% 50%, var(--color-surface-raised) 0 22%, transparent 22.5% 32%, var(--color-border-strong) 32.5% 33%, transparent 33.5%),
+    linear-gradient(135deg, var(--color-surface-subtle), var(--color-surface-raised));
+  border: var(--border-width) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+.cardBody { flex: 1 1 auto; min-width: 0; padding: clamp(1rem, 2.5vw, 1.5rem); }
+.meta { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
+.cardLink {
+  width: 100%;
+  min-height: var(--control-min-height);
+  margin-block-start: auto;
+  padding-block-start: var(--space-3);
+  display: flex;
+  align-items: center;
+  border-block-start: var(--border-width) solid var(--color-border-default);
+}
+
+/* ---------- ContentTag (an Astryx Badge) ---------- */
+.tag {
+  color: var(--color-brand-primary);
+  background-color: var(--color-brand-action-soft);
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- Pagination ---------- */
+.pagination { margin-block-start: var(--space-8); }
+
+/* ---------- DetailHero (an Astryx Card) ---------- */
+.detailHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(20rem, .92fr);
+  align-items: stretch;
+}
+.detailMedia {
+  min-width: 0;
+  min-height: 32rem;
+  padding: clamp(1rem, 3vw, 2rem);
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, var(--color-surface-subtle), var(--color-surface-raised));
+}
+.heroMedia {
+  width: 100%;
+  height: 100%;
+  max-height: 38rem;
+  display: block;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-subtle);
+}
+.detailPlaceholder {
+  width: 100%;
+  min-height: 24rem;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  border: var(--border-width) dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+.detailCopy { min-width: 0; padding: clamp(2rem, 5vw, 4rem); }
+.detailNote {
+  padding-block-start: var(--space-4);
+  border-block-start: var(--border-width) solid var(--color-border-default);
+}
+
+/* ---------- PreservedText, ImageGallery, Specifications ---------- */
+.contentBody { max-width: 52rem; margin-block-start: clamp(3rem, 7vw, 5rem); }
+.preserved { white-space: pre-wrap; overflow-wrap: anywhere; }
+.gallery { margin-block-start: var(--space-12); }
+.galleryImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-subtle);
+}
+.specifications { max-width: 52rem; margin-block-start: var(--space-12); }
+
+/* ---------- DetailInquiryCard (an Astryx Card) ---------- */
+.inquirySection { margin-block-start: var(--space-12); }
+/* Astryx's documented card padding token; the Card keeps its theme padding mode. */
+.inquiryCard { --astryx-card-padding: clamp(1.25rem, 4vw, 2.5rem); }
+.inquiryLead { max-width: 48rem; }
+/* Long Persian action labels wrap instead of being cut with an ellipsis. */
+.inquiryAction {
+  height: auto;
+  min-height: var(--size-element-md, var(--control-min-height));
+  white-space: normal;
+  text-align: center;
+}
+
+/* ---------- CampaignBanner (retained Toranj image link) ---------- */
+.campaignBanner {
+  width: min(100%, 42rem);
+  margin: 0 auto clamp(2.5rem, 6vw, 5rem);
+  display: block;
+  overflow: hidden;
+  border: var(--border-width) solid var(--color-border-default);
+  border-radius: clamp(.6rem, 1.2vw, 1rem);
+  background-color: var(--color-surface-subtle);
+  box-shadow: var(--shadow-md);
+  transition: transform var(--motion-normal) var(--motion-easing), border-color var(--motion-normal) var(--motion-easing);
+}
+.campaignBanner:hover { transform: translateY(-3px); border-color: var(--color-brand-action); }
 .campaignBanner:focus-visible { outline: .25rem solid var(--color-brand-action); outline-offset: .25rem; }
 .campaignBannerImage { width: 100%; height: auto; display: block; }
-@media (max-width: 56rem) { .landingHero { min-height: 0; grid-template-columns: 1fr; } .landingCopy { padding: clamp(1.5rem, 5vw, 2.5rem); } .landingCopy h1 { max-width: 14ch; } .landingMedia { min-height: 16rem; max-height: 16rem; order: -1; } .landingMedia picture { height: 100%; } .landingMedia img { height: 100%; aspect-ratio: auto; object-position: center bottom !important; } .catalogHeading { grid-template-columns: 1fr; gap: .75rem; } .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .gridSingle { grid-template-columns: minmax(0, min(100%, 42rem)); } .gridFeatured { grid-template-columns: minmax(0, 1fr); } .gridFeatured > .card { height: 20rem; grid-template-columns: minmax(16rem, .85fr) minmax(0, 1.15fr); } .detailHero { grid-template-columns: 1fr; } .detailMedia { min-height: 25rem; } }
-@media (max-width: 38rem) { .section { padding-block: 2rem 3rem; } .landingHero { border-radius: .75rem; } .landingMedia { min-height: 10rem; max-height: 10rem; padding: .65rem; } .landingMediaLabel { display: none; } .landingCopy { padding: 1.25rem; } .landingCopy h1 { margin-block: .55rem .75rem; font-size: clamp(2.1rem, 10.5vw, 2.8rem); } .landingCopy > p { line-height: 1.85; } .landingActions { width: 100%; margin-block-start: 1rem; display: grid; grid-template-columns: 1fr; } .landingActions a { width: 100%; } .catalogSection { padding-block-start: 2.75rem; } .grid, .gridPair, .gallery { grid-template-columns: 1fr; } .gridFeatured > .card { height: auto; display: flex; } .gridFeatured .cardMediaLink { height: auto; } .gridFeatured .cardMedia, .gridFeatured .cardPlaceholder { height: auto; min-height: 0; aspect-ratio: 4 / 3; } .gridFeatured .cardBody, .cardBody { min-height: 0; padding: var(--space-4); } .detailMedia { min-height: 19rem; padding: .75rem; } .detailCopy { padding: 1.5rem; } .detailTitle { font-size: clamp(2.1rem, 11vw, 3.25rem); } .specifications dl { grid-template-columns: 1fr; } .specifications dt { border-block-end: 0; } .inquiryTrustGrid { grid-template-columns: 1fr; } .inquiryActionRow a { width: 100%; } .campaignBanner { width: 100%; margin-block-end: var(--space-8); border-radius: .55rem; } }
+
+/* ---------- Institutional sections written by the about/contact routes ---------- */
 .institutionalSection { margin-block-start: clamp(2.5rem, 6vw, 4rem); display: grid; gap: 1.25rem; }
-.institutionalSection h2 { color: var(--color-brand-primary); font-size: clamp(1.35rem, 2.5vw, 1.85rem); line-height: var(--line-height-heading); }
+.institutionalSection h2 { color: var(--color-brand-primary); font-size: var(--font-size-heading-sm); font-weight: var(--font-weight-bold); line-height: var(--line-height-heading); }
 .institutionalGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; }
-.institutionalCard { padding: clamp(1.25rem, 2.5vw, 1.75rem); background: var(--color-surface-card); border: 1px solid var(--color-border-default); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: .75rem; }
+.institutionalCard {
+  padding: clamp(1.25rem, 2.5vw, 1.75rem);
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  background-color: var(--color-surface-card);
+  border: var(--border-width) solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
 .institutionalCard:hover { border-color: color-mix(in srgb, var(--color-brand-action) 50%, var(--color-border-default)); }
-.institutionalCard h3 { color: var(--color-brand-primary); font-size: 1.15rem; font-weight: var(--font-weight-bold); }
+.institutionalCard h3 { color: var(--color-brand-primary); font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); }
 .institutionalCard p { color: var(--color-text-secondary); font-size: var(--font-size-sm); line-height: 1.8; }
-.contactChannelValue { font-family: var(--font-family-latin); font-size: 1.25rem; font-weight: 700; color: var(--color-brand-action); direction: ltr; text-align: right; display: inline-block; margin-block-start: .25rem; }
-.contactChannelValue:hover { text-decoration: underline; color: var(--color-brand-action-hover); }
-.contactMetaGrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.25rem; margin-block-start: 1rem; }
-.contactMetaCard { padding: clamp(1.25rem, 2.5vw, 1.75rem); background: var(--color-surface-raised); border: 1px solid var(--color-border-default); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: .75rem; }
+/* A standalone phone or email action: 44px target, LTR digits, right aligned like the surrounding Persian text. */
+.contactChannelValue {
+  min-block-size: var(--control-min-height);
+  margin-block-start: var(--space-1);
+  display: inline-block;
+  direction: ltr;
+  text-align: right;
+  color: var(--color-brand-action);
+  font-family: var(--font-family-latin);
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-bold);
+  line-height: var(--control-min-height);
+}
+.contactChannelValue:hover { color: var(--color-brand-action-hover); text-decoration: underline; }
+.contactMetaGrid { margin-block-start: 1rem; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.25rem; }
+.contactMetaCard {
+  padding: clamp(1.25rem, 2.5vw, 1.75rem);
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  background-color: var(--color-surface-raised);
+  border: var(--border-width) solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+}
 .contactMetaCard h3 { color: var(--color-brand-primary); font-size: 1.1rem; }
 .contactMetaCard p, .contactMetaCard li { color: var(--color-text-secondary); font-size: var(--font-size-sm); line-height: 1.8; }
-.contactMetaCard ul { list-style: none; padding: 0; margin: 0; display: grid; gap: .4rem; }
-@media (max-width: 56rem) { .institutionalGrid { grid-template-columns: 1fr; } .contactMetaGrid { grid-template-columns: 1fr; } }
+.contactMetaCard ul { margin: 0; padding: 0; display: grid; gap: .4rem; list-style: none; }
+
+/* ---------- Tablet (at or below 56rem) ---------- */
+@media (max-width: 56rem) {
+  .landingHero { min-height: 0; grid-template-columns: minmax(0, 1fr); }
+  .landingCopy { padding: clamp(1.5rem, 5vw, 2.5rem); }
+  .landingTitle { max-width: 14ch; }
+  .landingMedia { min-height: 16rem; max-height: 16rem; order: -1; }
+  .landingMedia picture { height: 100%; }
+  .landingMedia img { height: 100%; aspect-ratio: auto; object-position: center bottom !important; }
+  .catalogHeading { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+  .gridFeatured > .card { height: 20rem; grid-template-columns: minmax(16rem, .85fr) minmax(0, 1.15fr); }
+  .detailHero { grid-template-columns: minmax(0, 1fr); }
+  .detailMedia { min-height: 25rem; }
+  .institutionalGrid,
+  .contactMetaGrid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---------- Mobile (at or below 38rem) ---------- */
+@media (max-width: 38rem) {
+  .section { padding-block: 2rem 3rem; }
+  .catalogSection { padding-block-start: 2.75rem; }
+  .landingMedia { min-height: 10rem; max-height: 10rem; padding: .65rem; }
+  .landingMediaLabel { display: none; }
+  .landingCopy { padding: 1.25rem; }
+  /* The Astryx HStack becomes a full-width action column. */
+  .landingActions { width: 100%; flex-direction: column; align-items: stretch; }
+  .landingActions > * { width: 100%; }
+  .gridFeatured > .card { height: auto; display: flex; }
+  .gridFeatured .cardMediaLink {
+    height: auto;
+    border-inline-end: 0;
+    border-block-end: var(--border-width) solid var(--color-border-default);
+  }
+  .gridFeatured .cardMedia,
+  .gridFeatured .cardPlaceholder { height: auto; aspect-ratio: 4 / 3; }
+  .cardBody { padding: var(--space-4); }
+  .detailMedia { min-height: 19rem; padding: .75rem; }
+  .detailCopy { padding: var(--space-6); }
+  .inquiryAction { width: 100%; }
+  .campaignBanner { width: 100%; margin-block-end: var(--space-8); border-radius: .55rem; }
+}

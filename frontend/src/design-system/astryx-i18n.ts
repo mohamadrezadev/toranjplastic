@@ -42,5 +42,9 @@ export const astryxPersianOverrides = {
     "@astryx.pagination.count": "{from, number} تا {to, number} از {total, number}",
     "@astryx.pagination.pageOfTotal": "صفحهٔ {current, number} از {total, number}",
     "@astryx.pagination.pageAnnounce": "صفحهٔ {current, number}",
+    // Public content layer (Link, MetadataList); task 5.3.
+    "@astryx.link.newTab": "(در برگهٔ تازه باز می‌شود)",
+    "@astryx.metadataList.showMore": "نمایش بیشتر",
+    "@astryx.metadataList.showLess": "نمایش کمتر",
   },
 } satisfies Overrides;
