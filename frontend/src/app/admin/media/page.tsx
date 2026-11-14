@@ -33,7 +33,7 @@ export default async function AdminMediaPage({ searchParams }: {
   const query = `${status ? `&status=${status}` : ''}${search ? `&search=${encodeURIComponent(search)}` : ''}`;
 
   return (
-    <main className={styles.main}>
+    <div className={styles.main}>
       <div className={styles.shell}>
         <section className={styles.card}>
           <div className={styles.header}><div><h1>کتابخانه رسانه</h1><p className={styles.subtitle}>{result.total} فایل</p></div></div>
@@ -85,6 +85,6 @@ export default async function AdminMediaPage({ searchParams }: {
           </nav> : null}
         </section>
       </div>
-    </main>
+    </div>
   );
 }

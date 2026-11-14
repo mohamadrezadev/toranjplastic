@@ -129,6 +129,7 @@ Differences from earlier notes, found while verifying:
 | OD-11 | Badge used for category tags | Exception recorded | none; confirmed at 9.6 |
 | OD-12 | Astryx extension points that the CLI docs do not list | Exception recorded | none; confirmed at 9.2 and 9.6 |
 | OD-13 | Customer portal frame stays Toranj CSS, not Astryx `AppShell` | Exception recorded | none; confirmed at 7.4 and 9.6 |
+| OD-14 | Admin frame stays Toranj CSS, not Astryx `AppShell` | Exception recorded | none; confirmed at 8.6 and 9.6 |
 
 #### OD-1: Material detail inquiry card and hero action follow `inquiryAvailable`
 
@@ -324,3 +325,11 @@ Differences from earlier notes, found while verifying:
 - **In tension:** the Astryx-first rule (use the documented component for the pattern) against `spec: customer-portal-experience`, Requirement "Responsive RTL portal composition", and the existing e2e checks that a phone keeps its navigation reachable in a fixed bottom bar.
 - **Decision:** the landmarks and the responsive frame of `CustomerPortalShell` (sidebar, sticky phone top bar, fixed bottom bar) stay Toranj CSS. Astryx `AppShell`/`SideNav`/`MobileNav` turn the phone navigation into a drawer, which would change a tested behaviour and hide the three destinations behind a control. Everything inside the frame is Astryx (`Link`, `Avatar`, `Text`, `Card`, `Heading`) and the shared `Button`.
 - **Revisit:** if the owner prefers the drawer, replace the frame in one change and update the portal e2e frame test.
+
+#### OD-14: Admin frame stays Toranj CSS
+
+- **Status:** Exception recorded (2026-11-14), confirmed at 8.6 and 9.6.
+- **In tension:** the Astryx-first rule against the approved admin frame (fixed 17rem sidebar with the Toranj wordmark, sticky phone/tablet bar with an account menu) and the existing admin e2e checks that open the `details` menu (`admin-inquiries.spec.ts`).
+- **Decision:** the landmarks and responsive frame of `AdminPortalShell` stay Toranj CSS, as for the customer portal (OD-13). Inside the frame the pieces are Astryx: `Link`, `Avatar`, `Text`, `Breadcrumbs`/`BreadcrumbItem`, with the shared `Button` for logout. The phone menu stays a native `<details>` and gains Escape, outside-click and route-change closing in `AdminMobileMenu`. The shell now owns the single `<main>`; the 23 admin pages that rendered their own `<main>` render a `<div>` instead (two nested landmarks before).
+- **Revisit:** if the owner prefers the Astryx drawer, replace the frame in one change and update `admin-shell.spec.ts`.
+

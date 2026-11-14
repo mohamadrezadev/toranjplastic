@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import { Button } from "@/components/ui";
 import { listCategories } from "@/features/admin-content/category";
 import { createProductAction } from "@/features/admin-content/product";
 import { listMedia } from "@/features/admin-media";
 import { ProductFields } from "../ProductFields";
-import styles from "../../Admin.module.css";
+import { AdminForm, AdminFormAlert, AdminPage } from "@/components/admin/AdminContent";
 
 export const metadata: Metadata = { title: "محصول جدید", robots: { index: false, follow: false } };
 export const instant = false;
@@ -23,21 +22,11 @@ export default async function NewProductPage({ searchParams }: { searchParams: P
   ]);
 
   return (
-    <main className={styles.main}>
-      <div className={styles.shell}>
-        <section className={styles.card}>
-          <div className={styles.header}>
-            <h1>محصول جدید</h1>
-          </div>
-          {error ? <p className={styles.feedback} role="alert">{errorMessages[error] ?? errorMessages.failed}</p> : null}
-          <form action={createProductAction} className={styles.form}>
-            <ProductFields categories={categoryPage.items} mediaAssets={mediaPage.items} />
-            <div className={styles.formActions}>
-              <Button type="submit">ایجاد محصول</Button>
-            </div>
-          </form>
-        </section>
-      </div>
-    </main>
+    <AdminPage title="محصول جدید">
+      {error ? <AdminFormAlert message={errorMessages[error] ?? errorMessages.failed} /> : null}
+      <AdminForm action={createProductAction} submitLabel="ایجاد محصول">
+        <ProductFields categories={categoryPage.items} mediaAssets={mediaPage.items} />
+      </AdminForm>
+    </AdminPage>
   );
 }

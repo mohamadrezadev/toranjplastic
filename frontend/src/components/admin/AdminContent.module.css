@@ -1,0 +1,20 @@
+/* Admin content screens (task 8.2). Astryx supplies cards, headings, tables and fields; this file keeps only Toranj layout. */
+.page { min-width: 0; }
+.pageHeader, .headerCopy { min-width: 0; }
+.title { color: var(--color-brand-primary); font-size: clamp(1.4rem, 2.4vw, 1.9rem); line-height: 1.4; overflow-wrap: anywhere; }
+.rowLink { font-weight: var(--font-weight-bold); overflow-wrap: anywhere; }
+.filters { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; }
+.filters > * { min-width: min(100%, 11rem); }
+.form { min-width: 0; }
+.formRow { min-width: 0; }
+.formRow > * { min-width: 0; }
+.fieldset { min-width: 0; margin: 0; padding: 1rem; border: 1px solid var(--color-border-default); border-radius: var(--radius-md); }
+.legend { padding-inline: .3rem; color: var(--color-brand-primary); font-weight: var(--font-weight-bold); }
+.statusActions form { margin: 0; }
+
+@media (max-width: 40rem) {
+  .filters { display: grid; grid-template-columns: 1fr; }
+  .formActions, .formActions > *, .formActions button, .statusActions { width: 100%; }
+  .statusActions { display: grid; grid-template-columns: 1fr; }
+  .statusActions button, .statusActions form { width: 100%; }
+}

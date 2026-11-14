@@ -22,7 +22,7 @@ export default async function StaffDetailPage({ params, searchParams }: { params
   if (access.status === 401) redirect("/auth/login");
   if (!access.account || !hasCapability(access.account, "STAFF_MANAGEMENT")) return <p className={styles.danger} role="alert">شما اجازه مشاهده این صفحه را ندارید.</p>;
   const { id } = await params; const query = await searchParams; const item = await getStaff(id);
-  return <main className={adminStyles.main}><div className={adminStyles.shell}><section className={adminStyles.card}>
+  return <div className={adminStyles.main}><div className={adminStyles.shell}><section className={adminStyles.card}>
     <div className={adminStyles.header}><div><h1>{item.displayName}</h1><p className={adminStyles.subtitle}>مدیریت نقش و وضعیت حساب سازمانی</p></div><span className={styles.badge}>{item.status === "ACTIVE" ? "فعال" : item.status === "DISABLED" ? "غیرفعال" : "تعلیق‌شده"}</span></div>
     {query.error ? <><p className={styles.danger} role="alert">{errors[query.error] ?? errors.failed}</p>{query.error === "STAFF_VERSION_CONFLICT" ? <Link className={adminStyles.backLink} href={`/admin/staff/${item.id}`}>تازه‌سازی اطلاعات</Link> : null}</> : null}
     {query.success ? <p className={styles.success} role="status">تغییر با موفقیت ذخیره شد و نشست‌های قبلی این کاربر باطل شدند.</p> : null}
@@ -30,5 +30,5 @@ export default async function StaffDetailPage({ params, searchParams }: { params
     <form action={changeStaffRoleAction.bind(null, item.id)} className={adminStyles.form}><input type="hidden" name="expectedVersion" value={item.version}/><Select label="سطح دسترسی" name="role" defaultValue={item.role}><option value="ADMIN">مدیر — دسترسی کامل</option><option value="SALES">فروش — مدیریت استعلام‌ها</option><option value="OPERATOR">اپراتور — مدیریت محتوا</option></Select><div className={adminStyles.formActions}><Button type="submit" disabled={item.id === access.account.id}>ذخیره نقش</Button></div></form>
     <form action={changeStaffStatusAction.bind(null, item.id)} className={adminStyles.form}><input type="hidden" name="expectedVersion" value={item.version}/><Select label="وضعیت حساب" name="status" defaultValue={item.status === "ACTIVE" ? "ACTIVE" : "DISABLED"}><option value="ACTIVE">فعال</option><option value="DISABLED">غیرفعال</option></Select><div className={adminStyles.formActions}><Button type="submit" variant="secondary" disabled={item.id === access.account.id}>ذخیره وضعیت</Button></div></form>
     <p className={adminStyles.subtitle}>نقش فعلی: {roles[item.role]}. حذف دائمی حساب در این سامانه انجام نمی‌شود.</p>
-  </section></div></main>;
+  </section></div></div>;
 }

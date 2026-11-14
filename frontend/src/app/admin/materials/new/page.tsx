@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { Button } from "@/components/ui";
 import { createMaterialAction } from "@/features/admin-content/material";
 import { MaterialFields } from "../MaterialFields";
-import styles from "../../Admin.module.css";
+import { AdminForm, AdminFormAlert, AdminPage } from "@/components/admin/AdminContent";
 
 export const metadata: Metadata = { title: "ماده جدید", robots: { index: false, follow: false } };
 export const instant = false;
@@ -17,21 +16,11 @@ export default async function NewMaterialPage({ searchParams }: { searchParams: 
   const { error } = await searchParams;
 
   return (
-    <main className={styles.main}>
-      <div className={styles.shell}>
-        <section className={styles.card}>
-          <div className={styles.header}>
-            <h1>ماده جدید</h1>
-          </div>
-          {error ? <p className={styles.feedback} role="alert">{errorMessages[error] ?? errorMessages.failed}</p> : null}
-          <form action={createMaterialAction} className={styles.form}>
-            <MaterialFields />
-            <div className={styles.formActions}>
-              <Button type="submit">ایجاد ماده</Button>
-            </div>
-          </form>
-        </section>
-      </div>
-    </main>
+    <AdminPage title="ماده جدید">
+      {error ? <AdminFormAlert message={errorMessages[error] ?? errorMessages.failed} /> : null}
+      <AdminForm action={createMaterialAction} submitLabel="ایجاد ماده">
+        <MaterialFields />
+      </AdminForm>
+    </AdminPage>
   );
 }

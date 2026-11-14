@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Button } from "@/components/ui";
 import { AdminContentError, archiveArticleAction, getArticle, publishArticleAction, updateArticleAction } from "@/features/admin-content/article";
 import { listMedia } from "@/features/admin-media";
 import { ArticleFields } from "../ArticleFields";
-import { StatusBadge } from "../../content/StatusBadge";
-import styles from "../../Admin.module.css";
+import { AdminForm, AdminFormAlert, AdminPage, AdminStatusActions, ContentStatusBadge } from "@/components/admin/AdminContent";
 
 export const metadata: Metadata = { title: "ویرایش مقاله", robots: { index: false, follow: false } };
 export const instant = false;
@@ -36,47 +33,13 @@ export default async function EditArticlePage({ params, searchParams }: { params
   const archiveAction = archiveArticleAction.bind(null, id);
 
   return (
-    <main className={styles.main}>
-      <div className={styles.shell}>
-        <section className={styles.card}>
-          <div className={styles.header}>
-            <h1>ویرایش مقاله</h1>
-            <StatusBadge status={article.status} />
-          </div>
-          {error ? (
-            <div className={styles.feedback} role="alert">
-              <p>{errorMessages[error] ?? errorMessages.failed}</p>
-              {error === 'CONTENT_VERSION_CONFLICT' ? (
-                <div style={{ marginTop: '0.5rem' }}>
-                  <Link href={`/admin/articles/${id}`} className={styles.backLink}>
-                    تازه‌سازی و بارگذاری آخرین اطلاعات
-                  </Link>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
+    <AdminPage title="ویرایش مقاله" badge={<ContentStatusBadge status={article.status} />}>
+      {error ? <AdminFormAlert message={errorMessages[error] ?? errorMessages.failed} refreshHref={error === "CONTENT_VERSION_CONFLICT" ? `/admin/articles/${id}` : undefined} /> : null}
+      <AdminStatusActions status={article.status} publishAction={publishAction} archiveAction={archiveAction} />
 
-          <div className={styles.statusActions}>
-            {article.status === "PUBLISHED" ? (
-              <span className={styles.statusLabel}>منتشرشده</span>
-            ) : (
-              <form action={publishAction}><Button type="submit">انتشار</Button></form>
-            )}
-            {article.status === "ARCHIVED" ? (
-              <span className={styles.statusLabel}>آرشیوشده</span>
-            ) : (
-              <form action={archiveAction}><Button type="submit" variant="danger">آرشیو</Button></form>
-            )}
-          </div>
-
-          <form action={updateAction} className={styles.form}>
-            <ArticleFields article={article} mediaAssets={mediaPage.items} />
-            <div className={styles.formActions}>
-              <Button type="submit">ذخیره تغییرات</Button>
-            </div>
-          </form>
-        </section>
-      </div>
-    </main>
+      <AdminForm action={updateAction} submitLabel="ذخیره تغییرات">
+        <ArticleFields article={article} mediaAssets={mediaPage.items} />
+      </AdminForm>
+    </AdminPage>
   );
 }

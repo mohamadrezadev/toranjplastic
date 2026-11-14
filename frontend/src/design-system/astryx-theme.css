@@ -76,6 +76,9 @@
   --color-on-warning-muted: var(--color-status-warning);
   --color-on-error-muted: var(--color-status-danger);
   --color-on-info-muted: var(--color-status-info);
+  /* Solid warning badges: Astryx's own dark text (#0A1317) on the light-theme warning #805411 is 2.87:1.
+     White gives about 6:1 there; the dark theme keeps the dark text on its light warning. */
+  --color-on-warning: light-dark(#ffffff, #0a1317);
 }
 
 /*

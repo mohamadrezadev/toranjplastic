@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
+import { LoadingState } from "@/components/feedback";
 import { Button } from "@/components/ui";
 import { AdminPortalShell } from "@/components/admin/AdminPortalShell";
 import { getAdminAccess } from "@/lib/auth";
@@ -30,7 +31,7 @@ async function AdminGate({ children }: { children: ReactNode }) {
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <Suspense fallback={<p role="status">در حال بررسی دسترسی…</p>}>
+    <Suspense fallback={<LoadingState label="در حال بررسی دسترسی…" />}>
       <AdminGate>{children}</AdminGate>
     </Suspense>
   );
