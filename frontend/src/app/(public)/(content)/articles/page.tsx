@@ -17,6 +17,7 @@ export const metadata = publicCollectionMetadata("مقالات", description, "/
  * The shared frame convention: an Astryx VStack page frame and a Center for
  * the honest empty state. The category strip marks this view ("/articles")
  * as current; each card links its category through the shared ArticleMeta.
+ * An upstream failure of the article list renders the shared error screen.
  */
 export default async function ArticlesPage({
   searchParams,
@@ -25,17 +26,13 @@ export default async function ArticlesPage({
 }) {
   const page = parsePageNumber((await searchParams).page);
 
-  let result;
-  let categories: Awaited<ReturnType<typeof listStrapiCategories>> = [];
-
-  try {
-    [result, categories] = await Promise.all([
-      listStrapiArticles({ page }),
-      listStrapiCategories().catch(() => []),
-    ]);
-  } catch {
-    result = { items: [], pageInfo: { page: 1, pageSize: 12, total: 0, totalPages: 0 } };
-  }
+  // A failed article list reaches the route error boundary instead of reading
+  // as an empty catalog (owner decision OD-3); only the optional category
+  // strip tolerates its own failure.
+  const [result, categories] = await Promise.all([
+    listStrapiArticles({ page }),
+    listStrapiCategories().catch(() => []),
+  ]);
 
   return (
     <main className={contentStyles.main}>

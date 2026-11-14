@@ -87,7 +87,7 @@ const keyboardRoutes: ReadonlyArray<{ path: string; stops: ReadonlyArray<string>
   { path: "/articles/material-selection", stops: ["/", "/articles", "/articles/category/materials-selection-category", "/articles/category/materials-selection-category"] },
   { path: "/about", stops: ["/", "/inquiry", "/inquiry", "/contact"] },
   { path: "/contact", stops: ["/", "/inquiry", "tel:+989132075925", "tel:+989122009515", "tel:+989104500086", "mailto:info@toranjplastic.com", "/inquiry"] },
-  { path: "/injection-molding", stops: ["/", "/inquiry/injection"] },
+  { path: "/injection-molding", stops: ["/", "#service-catalog", "/inquiry/injection"] },
   { path: "/materials", stops: ["button:تلاش دوباره"] },
   { path: "/products/unknown-product", stops: ["/", "/"] },
   // Privacy and terms render through ManagedPage: the breadcrumb is their only control.
@@ -446,9 +446,25 @@ test("an empty collection keeps its landing hierarchy and an honest empty state"
   await expect(page.getByText("اطلاعات خدمات پس از بررسی فنی و انتشار رسمی در این بخش قرار می‌گیرد.", { exact: true })).toBeVisible();
   await expect(page.getByRole("article")).toHaveCount(0);
   await expect(page.getByRole("navigation", { name: "صفحه‌بندی" })).toHaveCount(0);
-  await expect(page.getByTestId("injection-campaign")).toHaveAttribute("href", "/inquiry/injection");
+  // OD-2: the structured landing hero keeps its two actions even when the collection is empty.
+  await expect(page.getByRole("link", { name: "مشاهده خدمات" })).toHaveAttribute("href", "#service-catalog");
+  await expect(page.getByRole("link", { name: "ثبت درخواست خدمات تزریق پلاستیک" })).toHaveAttribute("href", "/inquiry/injection");
   await expect(page.locator("main")).toHaveCount(1);
   await expectNoHorizontalOverflow(page, "/injection-molding");
+});
+
+test("an unmatched URL shows the Persian not-found screen inside the public shell with noindex", async ({ page }) => {
+  const response = await page.goto("/this-route-does-not-exist");
+  expect(response?.status()).toBe(404);
+  await expect(page.getByRole("heading", { level: 1, name: "محتوای موردنظر پیدا نشد", exact: true })).toBeVisible();
+  await expect(page.locator("header").first()).toBeVisible();
+  await expect(page.locator("footer").first()).toBeVisible();
+  // The root layout and Next both restrict indexing here; no robots directive allows it.
+  const robots = await page.locator('meta[name="robots"]').evaluateAll((nodes) => nodes.map((node) => (node as HTMLMetaElement).content));
+  expect(robots.length).toBeGreaterThan(0);
+  for (const content of robots) expect(content).toMatch(/noindex/);
+  await expect(page.getByRole("link", { name: "بازگشت به خانه" })).toHaveAttribute("href", "/");
+  await expectNoHorizontalOverflow(page, "/this-route-does-not-exist");
 });
 
 test("an unavailable collection shows a bounded error with keyboard retry", async ({ page }) => {
@@ -473,6 +489,8 @@ test("an unavailable collection shows a bounded error with keyboard retry", asyn
   });
   expect(title.heading, "the heading takes the Banner title's type and colour").toEqual(title.banner);
   expect(title.margins, "the heading adds no margin").toEqual(["0px", "0px"]);
+  // OD-7: the error screen is not indexable.
+  await expect(page.locator('meta[name="robots"][content="noindex, nofollow"]')).toHaveCount(1);
   // An outage is never presented as an empty catalog.
   await expect(page.getByRole("article")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "ماده منتشرشده‌ای وجود ندارد" })).toHaveCount(0);

@@ -147,9 +147,6 @@ export default async function ContactPage() {
                 <VStack gap={3}>
                   <Heading level={3} color="inherit" className={styles.title}>نشانی کارخانه و انبار مرکزی</Heading>
                   <Text as="p">تهران، کهریزک، مجتمع تولیدی صنایع پلاستیک ترنج</Text>
-                  <Text as="p" type="supporting">
-                    دسترسی مستقیم ناوگان حمل‌ونقل و باربری‌های صنعتی جهت بارگیری و ارسال ایمن به سراسر کشور.
-                  </Text>
                 </VStack>
               </Card>
             </Grid>
@@ -162,7 +159,7 @@ export default async function ContactPage() {
               <VStack gap={4}>
                 <Heading level={2} id="fast-inquiry-box-title" color="inherit" className={styles.title}>سریع‌ترین مسیر: ثبت استعلام در سامانه آنلاین</Heading>
                 <Text as="p" color="secondary">
-                  برای بررسی دقیق ابعاد فنی پروژه، آپلود مدارک و صدور پیش‌فاکتور مکتوب، سامانه استعلام آنلاین ترنج پلاستیک در دسترس شماست. کارشناسان ما اطلاعات را بررسی کرده و پاسخ رسمی را ظرف ۲۴ الی ۴۸ ساعت در کارتابل سازمانی شما بارگذاری می‌کنند.
+                  برای بررسی دقیق ابعاد فنی پروژه، آپلود مدارک و صدور پیش‌فاکتور مکتوب، سامانه استعلام آنلاین ترنج پلاستیک در دسترس شماست. کارشناسان ما اطلاعات را بررسی کرده و پاسخ رسمی را در کارتابل سازمانی شما بارگذاری می‌کنند.
                 </Text>
                 <HStack gap={3} wrap="wrap">
                   <Button href="/inquiry" wrapLabel className={styles.calloutAction}>ورود به فرم استعلام و ثبت مشخصات قطعه</Button>

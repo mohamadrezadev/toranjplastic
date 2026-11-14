@@ -27,6 +27,14 @@ describe("public content route error", () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
+  it("asks crawlers not to index the error screen (OD-7)", () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    render(<ContentError error={new Error("x")} retry={vi.fn()} />);
+    const robots = document.querySelector('meta[name="robots"]');
+    expect(robots).not.toBeNull();
+    expect(robots?.getAttribute("content")).toBe("noindex, nofollow");
+  });
+
   it("shows privacy-safe feedback and retries the idempotent read", async () => {
     const retry = vi.fn();
     const error = Object.assign(new Error("postgres://internal-host/private"), { digest: "fixture" });

@@ -371,7 +371,9 @@ describe("public content presentation", () => {
     );
     expect(screen.getByRole("heading", { name: "سفارش مستقیم و تیراژ تولید این محصول" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "استعلام این محصول" })).toHaveAttribute("href", "/inquiry/product?slug=industrial-basket");
-    expect(screen.getByText("صدور پیش‌فاکتور رسمی ظرف ۲۴ الی ۴۸ ساعت کاری")).toBeInTheDocument();
+    expect(screen.getByText("ثبت استعلام به معنی تأیید قیمت یا موجودی نیست")).toBeInTheDocument();
+    // No unsourced capacity, lead-time, certificate or delivery promise (OD-4).
+    expect(container.textContent).not.toMatch(/ساعت|CoA|MFI|تحویل مستقیم|برنامه تحویل/);
     expect(await axe(container)).toHaveNoViolations();
   });
 

@@ -36,7 +36,7 @@
 
 - [x] 5.1 Migrate the public header, mobile navigation, breadcrumbs, content container, footer, theme control, and campaign banner as one coherent responsive shell.
 - [x] 5.2 Migrate the public home composition using Astryx-discovered layout, card, typography, action, and media patterns without adding unverified claims or commerce behavior.
-- [ ] 5.3 Migrate product, injection-service, material, article, category, and institutional collection/detail surfaces while preserving CMS data, metadata, JSON-LD, pagination, and factual empty/error states.
+- [x] 5.3 Migrate product, injection-service, material, article, category, and institutional collection/detail surfaces while preserving CMS data, metadata, JSON-LD, pagination, and factual empty/error states.
 - [x] 5.4 Update public component and Playwright tests for keyboard navigation, RTL order, media bounds, theme behavior, and continuous responsive transitions at and around required breakpoints.
 
 ## 6. Authentication and inquiry migration

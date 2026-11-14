@@ -73,7 +73,7 @@ function PersianAstryx({ children }: { children: ReactNode }) {
 const renderPage = (ui: ReactNode) => render(ui, { wrapper: PersianAstryx });
 
 describe("Institutional pages presentation & SEO", () => {
-  it("renders AboutPage with plant fleet, QC assurance, and accessible JSON-LD", async () => {
+  it("renders AboutPage with its overview, activities and accessible JSON-LD (no quality-standards section until approved content exists)", async () => {
     const pageComponent = await AboutPage();
     const { container } = renderPage(pageComponent);
 
@@ -99,7 +99,7 @@ describe("Institutional pages presentation & SEO", () => {
 
     expect(screen.getByRole("heading", { level: 1, name: "درباره صنایع پلاستیک ترنج" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "کارخانه ترنج" })).toHaveAttribute("src", "/branding/banners/about.png");
-    expect(screen.getByText("کارخانه و خطوط تولید: تهران، کهریزک — مجهز به ناوگان ماشین‌آلات تزریق هیدرولیک و سروو.")).toBeInTheDocument();
+    expect(screen.getByText("کارخانه و خطوط تولید: تهران، کهریزک.")).toBeInTheDocument();
 
     const overview = screen.getByRole("region", { name: "معرفی کارخانه و خطوط تولید" });
     expect(within(overview).getByText("متن معرفی کارخانه ترنج پلاستیک").tagName).toBe("P");
@@ -112,10 +112,11 @@ describe("Institutional pages presentation & SEO", () => {
     ]);
     // The three activity cards use the shared balanced steps (no third card beside an empty track).
     expect(activities.querySelector('[data-layout="balanced"]')?.children).toHaveLength(3);
-    // Latin grade and certificate codes keep an isolated LTR run inside the Persian text.
+    // Latin grade codes keep an isolated LTR run inside the Persian text.
     expect(within(activities).getByText("PP, PE")).toHaveAttribute("dir", "ltr");
-    expect(within(activities).getByText("CoA")).toHaveAttribute("dir", "ltr");
-    expect(within(activities).getByText(/تأمین و توزیع مستقیم/)).toHaveTextContent("تأمین و توزیع مستقیم انواع گریدهای پلیمری (PP, PE و...) همراه با برگه معتبر آنالیز پتروشیمی (CoA) و مشاوره انتخاب گرید متناسب با قطعه.");
+    // No certificate claim without an approved source (OD-4).
+    expect(activities.textContent).not.toMatch(/CoA|آنالیز/);
+    expect(within(activities).getByText(/تأمین و توزیع مستقیم/)).toHaveTextContent("تأمین و توزیع مستقیم انواع گریدهای پلیمری (PP, PE و...) و مشاوره انتخاب گرید متناسب با قطعه.");
 
     const callToAction = screen.getByRole("region", { name: "آماده همکاری و پاسخگویی به پروژه‌های صنعتی شما" });
     expect(within(callToAction).getByRole("link", { name: "ثبت استعلام آنلاین" })).toHaveAttribute("href", "/inquiry");

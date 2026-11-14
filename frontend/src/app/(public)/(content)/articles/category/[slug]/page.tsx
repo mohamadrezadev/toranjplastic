@@ -7,8 +7,8 @@ import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/navigation";
 import { EmptyState } from "@/components/feedback";
 import { ArticleMeta, ContentCard, ContentGrid, ContentPageHeading, Pagination, contentStyles } from "@/components/content";
-import { parsePageNumber, type PageResult } from "@/lib/public-content";
-import { listStrapiArticles, listStrapiCategories, getStrapiCategory, isStrapiNotFoundError, type StrapiArticle, type StrapiCategory } from "@/lib/strapi";
+import { parsePageNumber } from "@/lib/public-content";
+import { listStrapiArticles, listStrapiCategories, getStrapiCategory, isStrapiNotFoundError, type StrapiCategory } from "@/lib/strapi";
 import { publicCollectionMetadata } from "@/lib/content-metadata";
 import { ArticleCategoryTabs } from "../../ArticleCategoryTabs";
 import styles from "../../articles.module.css";
@@ -35,14 +35,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
-const emptyResult: PageResult<StrapiArticle> = { items: [], pageInfo: { page: 1, pageSize: 12, total: 0, totalPages: 0 } };
-
 /*
  * Article category collection (OpenSpec change rebuild-ui-with-astryx,
  * task 5.3). The shared frame convention: an Astryx VStack page frame and a
  * Center for the honest empty state. The category strip persists from the
  * article index and marks this category as the current view; the strip, like
- * the index, is omitted when the category list is unavailable.
+ * the index, is omitted when the category list is unavailable. A failed
+ * article list reaches the route error boundary, not the empty state (OD-3).
  */
 export default async function ArticleCategoryPage({ params, searchParams }: Props) {
   const { slug } = await params;
@@ -59,7 +58,7 @@ export default async function ArticleCategoryPage({ params, searchParams }: Prop
   }
 
   const [result, categories] = await Promise.all([
-    listStrapiArticles({ page, categorySlug: category.slug }).catch(() => emptyResult),
+    listStrapiArticles({ page, categorySlug: category.slug }),
     listStrapiCategories().catch(() => []),
   ]);
   const currentPath = `/articles/category/${category.slug}`;

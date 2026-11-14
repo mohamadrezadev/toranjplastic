@@ -13,10 +13,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> { t
 /*
  * Material detail (OpenSpec change rebuild-ui-with-astryx, task 5.3).
  * The record is an Astryx VStack rendered as <article>; grades stay LTR inside
- * the tags. Every inquiry path follows the API's `inquiryAvailable` flag (the
- * editor's "inquiry enabled for this material" setting): the hero action and
- * the material inquiry card, whose copy and action offer supply of this grade,
- * appear only when the material is open to inquiry.
+ * the tags. Only the hero action follows the API's `inquiryAvailable` flag (the
+ * editor's "inquiry enabled for this material" setting). The material inquiry
+ * card is always shown, as before the migration and as public-visual-experience
+ * requires on every catalog item detail page (owner decision OD-1, option B).
  */
 export default async function MaterialDetailPage({ params }: Props) {
   let item; try { item = await getMaterial((await params).slug); } catch (error) { if (isNotFoundError(error)) notFound(); throw error; }
@@ -41,16 +41,14 @@ export default async function MaterialDetailPage({ params }: Props) {
           <PreservedText body={item.description} />
           <Specifications items={item.specifications} />
           <ImageGallery images={item.images} />
-          {item.inquiryAvailable ? (
-            <DetailInquiryCard
-              eyebrow="تأمین رسمی پلیمر"
-              title="نیاز به تأمین تناژ یا فرمولاسیون این گرید دارید؟"
-              description="ترنج پلاستیک انواع گریدهای مهندسی و تجاری پلیمر را همراه با برگه آنالیز معتبر (CoA) تأمین کرده و پیش‌فاکتور رسمی صادر می‌نماید."
-              actionHref={inquiryHref}
-              actionLabel="ثبت استعلام مستقیم این ماده"
-              trustPoints={["ارائه برگه فنی و دیتاشیت مهندسی معتبر", "تضمین یکنواختی MFI و شاخص‌های فیزیکی", "صدور پیش‌فاکتور رسمی متناسب با تناژ درخواستی"]}
-            />
-          ) : null}
+          <DetailInquiryCard
+            eyebrow="استعلام ماده اولیه"
+            title="نیاز به تأمین تناژ یا فرمولاسیون این گرید دارید؟"
+            description="گرید، تناژ و مشخصات موردنیاز را ثبت کنید تا درخواست شما بررسی شود و در صورت نیاز برای تکمیل اطلاعات با شما هماهنگ شود."
+            actionHref={inquiryHref}
+            actionLabel="ثبت استعلام مستقیم این ماده"
+            trustPoints={["ثبت درخواست همراه با گرید و تناژ موردنیاز", "پیگیری وضعیت درخواست از حساب کاربری", "ثبت استعلام به معنی تأیید قیمت یا موجودی نیست"]}
+          />
         </VStack>
       </VStack>
     </main>

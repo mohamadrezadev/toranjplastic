@@ -1259,3 +1259,35 @@ the readable line length and the missing contact campaign banner.
   evidence.
 - `ManagedPage` keeps raw `div` frames, so privacy and terms do not use the
   `VStack` frame convention of the other routes.
+
+## Owner decisions applied on 2026-11-14
+
+The owner answered OD-1 to OD-4 (recorded in `design.md`). Statements elsewhere in this
+document that describe the earlier behaviour (the gated material card, the campaign banners
+on `/materials` and `/injection-molding`, failure-as-empty on the article routes and the
+quoted claims) are superseded by this section.
+
+| Decision | Applied change | Evidence |
+|---|---|---|
+| OD-1, option B | The material inquiry card is always shown; only the hero action follows `inquiryAvailable`. | `material-pages.test.tsx`; e2e "a material's hero action follows inquiryAvailable and its inquiry card is always shown" (4 projects). |
+| OD-2, add the hero | `/materials` and `/injection-molding` open with `CatalogLandingHero` (explore anchor plus the existing inquiry route, no stamp). The lead sentences and explore labels are derived copy awaiting approval. | Unit tests of both routes; keyboard walks (stops now include the catalog anchor); `public-shell` artwork test. |
+| OD-3, option A | A failed article list reaches the error boundary on `/articles` and category pages. | Two unit tests in `article-pages.test.tsx`. No browser fixture for a failing article list exists yet. |
+| OD-4, remove until sourced | Capacity range, lead time, CoA, MFI guarantee, factory-direct delivery, fleet and shipping statements removed (scope in `design.md`); the range stays on the about page only. | `ContentPage.test.tsx`, `institutional-pages.test.tsx`, `page.test.tsx`. |
+
+| OD-7, option A | The route error screen renders a `noindex, nofollow` robots meta element. | Unit test; e2e on the `/materials` 503 fixture (4 projects). |
+| OD-8, option B | `app/not-found.tsx` shows the Persian not-found content inside the shell (status 404, `noindex`). | e2e "an unmatched URL shows the Persian not-found screen ..." (4 projects). |
+| OD-9, option B | Delta spec makes quality standards, the quality commitment and location links conditional on approved content. No code. | `specs/public-content-pages/spec.md`; about test renamed. |
+
+Verification after these changes: lint and typecheck clean; 282 unit tests pass; the six
+public specs on all four projects gave 965 passed, 13 failed, 230 skipped before the test
+expectations were updated for the decisions (12 failures were the old expectations; one was
+a theme-attribute timing failure in the 360 to 1280 sweep). The affected tests were rerun and
+passed (14 of 14). The complete public run was not repeated after that edit.
+
+Final run after OD-1 to OD-9 were applied (2026-11-14): lint and typecheck clean, 283 unit
+tests pass, architecture 10 of 10, and the full Playwright suite on all four projects gave
+1082 passed, 242 skipped and 4 failed; the four failures are the known baseline
+`e2e/inquiries.spec.ts:27` (admin-session fixture). Open items that do not block 5.3: the
+owner's approval of the two derived landing lead sentences and explore labels (OD-2), a
+browser fixture for a failing article list (OD-3, covered by unit tests), and the OD-5, OD-6
+and OD-10 confirmations, which belong to later tasks.

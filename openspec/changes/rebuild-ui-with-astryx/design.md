@@ -116,15 +116,15 @@ Differences from earlier notes, found while verifying:
 
 | ID | Decision | Status | Blocks |
 | --- | --- | --- | --- |
-| OD-1 | Material detail: inquiry card and hero action follow `inquiryAvailable` | Owner decision required | 5.3, 9.6 |
-| OD-2 | Landing hero for `/materials` and `/injection-molding` | Owner decision required | 5.3, 9.6 |
-| OD-3 | Article collections show an upstream failure as an empty state | Owner decision required | 5.3, 9.6 |
-| OD-4 | Claims that already existed in the copy | Owner decision required | 5.2, 5.3, 9.6 |
+| OD-1 | Material detail: inquiry card and hero action follow `inquiryAvailable` | Decided 2026-11-14, option B applied: the card is always shown, only the hero action follows the flag | 5.3, 9.6 |
+| OD-2 | Landing hero for `/materials` and `/injection-molding` | Decided 2026-11-14: add the hero (option B applied with minimal derived copy; wording awaits the owner's approval) | 5.3, 9.6 |
+| OD-3 | Article collections show an upstream failure as an empty state | Decided 2026-11-14, option A applied: a failed list reaches the error boundary | 5.3, 9.6 |
+| OD-4 | Claims that already existed in the copy | Decided 2026-11-14: remove until a source exists (applied per the scope note in the entry) | 5.2, 5.3, 9.6 |
 | OD-5 | `html, body { overflow-x: hidden }` makes sticky headers inert | Owner decision required | 9.4, 9.5 |
 | OD-6 | Timing of the public-home visual re-baseline | Owner decision required | 9.5 |
-| OD-7 | Error states and the indexing boundary | Owner decision required; the error heading is applied in code (`headingLevel`), the indexing part is open | 5.3, 5.4, 9.6 |
-| OD-8 | Unmatched URLs get Next's default English 404 without the shell | Owner decision required | 9.6 (5.3 if the scope is extended) |
-| OD-9 | Managed-page spec items without a section | Owner decision required | 5.3, 9.6 |
+| OD-7 | Error states and the indexing boundary | Decided 2026-11-14, option A applied (heading and `noindex, nofollow` meta element; browser-proven) | 5.3, 5.4, 9.6 |
+| OD-8 | Unmatched URLs get Next's default English 404 without the shell | Decided 2026-11-14, option B applied (`app/not-found.tsx`; delta spec added) | 9.6 |
+| OD-9 | Managed-page spec items without a section | Decided 2026-11-14, option B recorded (delta spec; no code; sections follow approved content) | 9.6 |
 | OD-10 | `safeCta` accepts protocol-relative `//host` | Applied in code, option A (owner confirmation of the internal-only policy pending) | 5.3, 9.6 |
 | OD-11 | Badge used for category tags | Exception recorded | none; confirmed at 9.6 |
 | OD-12 | Astryx extension points that the CLI docs do not list | Exception recorded | none; confirmed at 9.2 and 9.6 |
@@ -142,6 +142,8 @@ Differences from earlier notes, found while verifying:
 - **Recommended:** A. It follows the editor's explicit switch and the "when those values exist" rule without new copy, and if the reading is wrong the cost is a missing card rather than an offer the editor closed. Record the scenario change as a MODIFIED requirement in a delta spec for `public-visual-experience`. If the flag is meant to be a business rule rather than a display switch, specify server enforcement in a separate backend change; it is not in scope here.
 - **If accepted:** A needs no behaviour change: add the delta spec and rename the test at `material-pages.test.tsx:89` so it names the card too. B (the revert): in `materials/[slug]/page.tsx` remove the conditional around `DetailInquiryCard` (`:44-53`, restoring `HEAD:13`) and fix the comment at `:13-20`; in `material-pages.test.tsx` replace `:110-114` with assertions that the card, its region and its link are present for a closed material while the hero link is absent; update `evidence/public-content.md` at `:139`, `:209`, `:558` and `:593-598`. `git diff HEAD -- "frontend/src/app/(public)/(content)/materials/[slug]/page.tsx"` shows the exact change.
 
+- **Decision (owner, 2026-11-14):** option B, revert to HEAD. `DetailInquiryCard` is shown for every material; only the hero action stays gated by `inquiryAvailable`. Applied in `content/materials/[slug]/page.tsx`; `material-pages.test.tsx` now asserts the card, its region and its link for a closed material. The card's copy was also reduced to claim-free wording (see OD-4). A closed material still offers the card action while the hero action is hidden; the server does not check the flag (see "Current behaviour").
+
 #### OD-2: Landing hero for `/materials` and `/injection-molding`
 
 - **Status:** Owner decision required (copy approval by the product owner).
@@ -155,6 +157,8 @@ Differences from earlier notes, found while verifying:
 - **Recommended:** C, then B. The scenario is normative for all three pages, the component already exists, is Astryx-based and is tested on `/products`, and only the approved copy is missing. A leaves a normative scenario unmet, and B alone would invent the label and the description.
 - **If accepted:** C and B: replace `CampaignBanner` and `ContentPageHeading` on both pages with `CatalogLandingHero`, using the native-anchor target pattern of `content/products/page.tsx:46-52` for the explore action, and make the stamp an optional prop at `ContentPage.tsx:74`. Tests to change: `material-pages.test.tsx:53-69` and `service-pages.test.tsx:56` (banner test ids); in `e2e/public-content.spec.ts` the test "an empty collection keeps its landing hierarchy and an honest empty state" (it asserts the `injection-campaign` link); and in `e2e/public-shell.spec.ts` the test "campaign artwork stays responsive and exposes real actions" (injection banner name, href and 1122 by 1402 image). Add both routes to the keyboard walks, the RTL-order checks and the breakpoint sweeps. The e2e files are being edited by other work items, so locate these tests by title. A: record the exception here and in `evidence/public-content.md`; no code change.
 
+- **Decision (owner, 2026-11-14):** add the dual-action hero to both landings (option B). Applied with copy derived only from existing strings and the `/products` pattern: eyebrows "تأمین مواد" and "خدمات صنعتی", the page titles as the h1, a lead sentence built on the `/products` template without any claim, the actions "مشاهده مواد اولیه" / "مشاهده خدمات" (in-page anchors to the catalog section) plus the existing inquiry labels, and the approved 1122 by 1402 artwork. `CatalogLandingHero` takes an optional `stamp` (default unchanged for `/products`); both new heroes pass `null` because the stamp text would be new copy. **Still open for the owner:** approve or replace the two lead sentences and the two explore-action labels.
+
 #### OD-3: Article collections show an upstream failure as an empty state
 
 - **Status:** Owner decision required (spec owner).
@@ -167,6 +171,8 @@ Differences from earlier notes, found while verifying:
   - C. Hybrid: keep the page frame and show the shared `ErrorState` with a retry in place of the grid. It needs a small client component for the retry, which is a new interaction.
 - **Recommended:** A. It matches both requirements, gives every collection one failure behaviour and never says that nothing is published while the service is down. Home and related articles keep omission (the home by spec; related articles are an optional enhancement) unless the owner wants a section-level retry.
 - **If accepted:** A: remove the catch around `listStrapiArticles` in `content/articles/page.tsx:28-38` (keep `listStrapiCategories().catch(() => [])`) and the `.catch(() => emptyResult)` at `content/articles/category/[slug]/page.tsx:62` (drop `emptyResult`, `:38`). Add "rejects" cases to `article-pages.test.tsx` modelled on `material-pages.test.tsx:82-85`. Add an e2e case with a failing articles list that checks the boundary, the keyboard retry and the absence of the empty-state text; it needs a failing-list fixture in `e2e/mock-content-server.mjs`, which another work item is extending (check whether it already offers one). Update `evidence/public-content.md` item 6 and the "Data behaviour" bullet (`:235-238`).
+
+- **Decision (owner, 2026-11-14):** option A. `/articles` and `/articles/category/[slug]` no longer catch a failed article list: it reaches `error.tsx`. The category strip still tolerates its own failure. Unit tests cover both routes; a browser fixture for a failing article list does not exist yet (the mock has none), so the browser proof of this path is still a gap.
 
 #### OD-4: Claims that already existed in the copy
 
@@ -190,6 +196,8 @@ Differences from earlier notes, found while verifying:
   - C. Decide per family. "۸۰ تا ۴۵۰ تن" stays on about and contact, where the spec approves it, and the owner decides explicitly for the home, footer, metadata, JSON-LD and service detail. The lead-time figure, CoA, the MFI guarantee, quality-supervised delivery, nationwide shipping and the plant-type statements stay out until a source is recorded.
 - **Recommended:** C. `AGENTS.md:34` forbids showing these without a source, and the specs approve only the tonnage range for managed pages and the verified hours. Removal is the safe default but is a content change, so the owner confirms it per family.
 - **If accepted:** A: add the register to this file and add a unit test that pins the approved set, as the contact links are already pinned in `institutional-pages.test.tsx`. B or C: edit the lines above and the tests that pin them (`ContentPage.test.tsx:374`, `page.test.tsx:62`, `institutional-pages.test.tsx:102` and `:117-118`); no e2e spec contains these strings. Update `evidence/public-content.md` item 7 and its "Content" bullet. Footer, layout and JSON-LD edits also need a new 5.1 evidence line.
+
+- **Decision (owner, 2026-11-14):** remove the unsourced statements until a source exists. Applied scope: the "۸۰ تا ۴۵۰ تن" range is removed from the home page, root metadata, footer, Organization JSON-LD and the service detail card, and stays only on the about page, where `public-content-pages` approves it. Removed everywhere: the "۲۴ الی ۴۸ ساعت" lead time and "برآورد زمان تحویل بار"/"برنامه تحویل بار" (home, product card defaults, contact), CoA and "برگه معتبر آنالیز" (material card, about), the MFI guarantee and "تأمین رسمی پلیمر", "تحویل مستقیم از کارخانه با نظارت و کنترل کیفیت", the dedicated-mold and colour/masterbatch customisation trust points of the shared card, the contact fleet and nationwide-shipping text, and the about hero's "ناوگان ماشین‌آلات تزریق هیدرولیک و سروو". The shared inquiry card now uses process-only wording (request with specifications, status tracking from the account, and the existing disclaimer). **Left in place, still unsourced and now open for a follow-up decision:** the dedicated-mold statements at the about page and the home capability card, the CMS seed content and `README.md` that repeat the range, and the contact values listed as item 8 of the inventory.
 
 #### OD-5: `html, body { overflow-x: hidden }` makes sticky headers inert
 
@@ -230,6 +238,8 @@ Differences from earlier notes, found while verifying:
 - **Recommended:** A, subject to the proof; fall back to C as a recorded exception if the proof fails. It follows the spec at the cost of one element and no new copy. Separately, add an optional `headingLevel` to `ErrorState` so the boundary can pass level 1; that change is additive and affects no other surface until a caller opts in.
 - **If accepted:** A: add the meta element to `content/error.tsx`; extend `content/error.test.tsx`; assert it in the `/materials` 503 e2e test "an unavailable collection shows a bounded error with keyboard retry"; tighten the two `/index/` assertions in `e2e/public-shell.spec.ts` so they cannot pass on "noindex". Add `headingLevel` to `components/feedback/ErrorState.tsx` and pass 1 from `error.tsx`. C: record the exception text and add nothing.
 
+- **Decision (owner, 2026-11-14):** option A. `content/error.tsx` renders `<meta name="robots" content="noindex, nofollow">` (hoisted by React into the head). Proven in a browser on the `/materials` 503 fixture (e2e "an unavailable collection shows a bounded error with keyboard retry", 4 projects) and in a unit test. The inherited `index, follow` of the public layout is still present beside it, so crawlers see conflicting directives and the restrictive one governs; the HTTP status of an outage render stays 200 (streaming), which this option does not change.
+
 #### OD-8: Unmatched URLs get Next's default English 404 without the shell
 
 - **Status:** Owner decision required (spec scope and UX).
@@ -243,6 +253,8 @@ Differences from earlier notes, found while verifying:
 - **Recommended:** B. Visitors who mistype a URL now leave a Persian site on an English dead end, and the existing strings already cover the case ("محتوای موردنظر پیدا نشد", "این محتوا وجود ندارد یا هنوز برای نمایش عمومی منتشر نشده است."), so no new copy is needed. Record the scenario as a delta to `public-content-pages`.
 - **If accepted:** B: add `app/not-found.tsx` as a Server Component; add a unit test and an e2e that requests an unmatched path and expects status 404, the Persian h1, header and footer, and `noindex`; confirm that `next build` still prerenders `_not-found`. A: record the exception only.
 
+- **Decision (owner, 2026-11-14):** option B. `app/not-found.tsx` composes the shared Persian not-found content inside the public header and footer. The response is 404 with `noindex` (the root layout's `noindex, nofollow` and Next's own `noindex`). Covered by the e2e "an unmatched URL shows the Persian not-found screen inside the public shell with noindex" (4 projects); `next build` still prerenders `_not-found`. The delta spec `specs/public-content-pages/spec.md` adds the requirement "Unmatched public URLs".
+
 #### OD-9: Managed-page spec items without a section
 
 - **Status:** Owner decision required (product and spec owner).
@@ -255,6 +267,8 @@ Differences from earlier notes, found while verifying:
   - C. Drop the three items from the spec for v1.
 - **Recommended:** B now, and A when the owner supplies content. Inventing a quality commitment, a standards list or a map destination would breach `AGENTS.md:34` and the requirement's own "without inventing unverified claims". Rename the test at `institutional-pages.test.tsx:76` regardless, since its title promises coverage it does not have.
 - **If accepted:** B: add the delta spec, rename the test and note the exception in `evidence/public-content.md`; no code. A: add the sections or links to `content/about/page.tsx` and `content/contact/page.tsx`, extend `institutional-pages.test.tsx`, and cover the external link (`rel`, the 44px target and direction) in e2e.
+
+- **Decision (owner, 2026-11-14):** option B. The delta spec `specs/public-content-pages/spec.md` modifies "Managed public pages": quality standards, the quality control commitment and location links apply only once approved content or a verified location URL exists. No code. The about test was renamed so its title no longer promises quality coverage. Option A stays available when the owner supplies content.
 
 #### OD-10: `safeCta` accepts protocol-relative `//host`
 

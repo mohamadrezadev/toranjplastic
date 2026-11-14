@@ -28,7 +28,7 @@ const activityLines: ReadonlyArray<{ title: string; description: ReactNode }> = 
     title: "۳. تأمین مواد اولیه پلیمری",
     description: (
       <>
-        تأمین و توزیع مستقیم انواع گریدهای پلیمری (<DirectionalData>PP, PE</DirectionalData> و...) همراه با برگه معتبر آنالیز پتروشیمی (<DirectionalData>CoA</DirectionalData>) و مشاوره انتخاب گرید متناسب با قطعه.
+        تأمین و توزیع مستقیم انواع گریدهای پلیمری (<DirectionalData>PP, PE</DirectionalData> و...) و مشاوره انتخاب گرید متناسب با قطعه.
       </>
     ),
   },
@@ -86,7 +86,7 @@ export default async function AboutPage() {
           summary={page.summary}
           image={page.images[0]}
           action={<Button href="/inquiry" wrapLabel>ثبت استعلام مستقیم پروژه</Button>}
-          note="کارخانه و خطوط تولید: تهران، کهریزک — مجهز به ناوگان ماشین‌آلات تزریق هیدرولیک و سروو."
+          note="کارخانه و خطوط تولید: تهران، کهریزک."
         />
 
         <VStack gap={0} className={contentStyles.detailContent}>

@@ -263,17 +263,17 @@ test("campaign artwork stays responsive and exposes real actions", async ({ page
   await page.screenshot({ path: testInfo.outputPath("catalog-product-detail.png"), fullPage: true });
 
   const routes = [
-    ["/injection-molding", "injection-campaign", "ثبت درخواست خدمات تزریق پلاستیک", "/inquiry/injection"],
+    ["/injection-molding", "معرفی خدمات تزریق پلاستیک ترنج", "ثبت درخواست خدمات تزریق پلاستیک", "/inquiry/injection"],
   ] as const;
 
-  for (const [path, testId, label, href] of routes) {
+  for (const [path, alt, label, href] of routes) {
     await page.goto(path);
-    const banner = page.getByTestId(testId);
-    await banner.scrollIntoViewIfNeeded();
-    await expect(banner).toBeVisible();
-    await expect(banner).toHaveAccessibleName(label);
-    await expect(banner).toHaveAttribute("href", href);
-    const image = banner.locator("img");
+    // OD-2: the landing is the structured hero, so the inquiry action is a button-styled link in it.
+    const action = page.getByRole("link", { name: label });
+    await action.scrollIntoViewIfNeeded();
+    await expect(action).toBeVisible();
+    await expect(action).toHaveAttribute("href", href);
+    const image = page.getByRole("img", { name: alt });
     await expect(image).toBeVisible();
     await expect(image).toHaveAttribute("width", "1122");
     await expect(image).toHaveAttribute("height", "1402");

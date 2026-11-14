@@ -50,15 +50,18 @@ beforeEach(() => {
 });
 
 describe("materials collection route", () => {
-  it("keeps the campaign banner, heading and LTR grade tags around the Astryx card grid", async () => {
+  it("opens with the structured landing hero and keeps LTR grade tags in the Astryx card grid", async () => {
     vi.mocked(listMaterials).mockResolvedValue(collection([material]));
     const { container } = renderPage(await listPage());
 
     expect(container.querySelectorAll("main")).toHaveLength(1);
-    const banner = screen.getByTestId("materials-campaign");
-    expect(banner).toHaveAccessibleName("ثبت استعلام مواد اولیه");
-    expect(banner).toHaveAttribute("href", "/inquiry/material");
-    expect(within(banner).getByRole("img", { name: "معرفی تأمین مواد اولیه ترنج پلاستیک" })).toHaveAttribute("width", "1122");
+    // OD-2: the same dual-action hero as /products, with no decorative stamp.
+    const hero = screen.getByRole("heading", { level: 1, name: "مواد اولیه" }).closest("section") as HTMLElement;
+    expect(within(hero).getByRole("link", { name: "مشاهده مواد اولیه" })).toHaveAttribute("href", "#material-catalog");
+    expect(within(hero).getByRole("link", { name: "ثبت استعلام مواد اولیه" })).toHaveAttribute("href", "/inquiry/material");
+    expect(within(hero).getByRole("img", { name: "معرفی تأمین مواد اولیه ترنج پلاستیک" })).toHaveAttribute("width", "1122");
+    expect(hero.textContent).not.toContain("PRODUCT CATALOG");
+    expect(container.querySelector("#material-catalog")).not.toBeNull();
     expect(screen.getByRole("heading", { level: 1, name: "مواد اولیه" })).toBeInTheDocument();
     expect(container.querySelector('[data-layout="single"]')).not.toBeNull();
     const card = screen.getByRole("article");
@@ -86,7 +89,7 @@ describe("materials collection route", () => {
 });
 
 describe("material detail route", () => {
-  it("offers the hero inquiry action only for materials open to inquiry", async () => {
+  it("offers the hero action only for open materials and always shows the inquiry card", async () => {
     vi.mocked(getMaterial).mockResolvedValue(material);
     const { container, unmount } = renderPage(await detailPage("pp-homopolymer"));
 
@@ -107,11 +110,11 @@ describe("material detail route", () => {
     const { container: closed } = renderPage(await detailPage("pp-homopolymer"));
     expect(screen.queryByRole("link", { name: "ثبت استعلام ماده" })).not.toBeInTheDocument();
     expect(screen.queryByText("PP-H012")).not.toBeInTheDocument();
-    // A material closed to inquiry offers no inquiry path anywhere: neither the
-    // card action nor the card that promises supply of this grade.
-    expect(screen.queryByRole("link", { name: "ثبت استعلام مستقیم این ماده" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("region", { name: "نیاز به تأمین تناژ یا فرمولاسیون این گرید دارید؟" })).not.toBeInTheDocument();
-    expect(closed.querySelector('a[href^="/inquiry"]')).toBeNull();
+    // OD-1 option B: the card is shown for every material (as before the
+    // migration); only the hero action follows the editor's switch.
+    expect(screen.getByRole("link", { name: "ثبت استعلام مستقیم این ماده" })).toHaveAttribute("href", "/inquiry/material?slug=pp-homopolymer");
+    expect(screen.getByRole("region", { name: "نیاز به تأمین تناژ یا فرمولاسیون این گرید دارید؟" })).toBeInTheDocument();
+    expect(closed.querySelectorAll('a[href^="/inquiry"]')).toHaveLength(1);
     // The approved record itself stays.
     expect(screen.getByRole("heading", { level: 1, name: "پلی‌پروپیلن هموپلیمر" })).toBeInTheDocument();
     expect(screen.getByText("12 g/10min")).toHaveAttribute("dir", "ltr");

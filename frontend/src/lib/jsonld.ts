@@ -14,7 +14,7 @@ export function organizationJsonLd() {
     alternateName: "صنایع پلاستیک ترنج",
     url: absoluteUrl("/"),
     logo: absoluteUrl("/branding/toranj-symbol-dots.svg"),
-    description: "تولید محصولات کاتالوگ اختصاصی، خدمات تزریق کارمزدی در کهریزک (با قالب مشتری) بر روی دستگاه‌های ۸۰ تا ۴۵۰ تن و تأمین مواد اولیه پلیمری.",
+    description: "تولید محصولات کاتالوگ اختصاصی، خدمات تزریق کارمزدی در کهریزک (با قالب مشتری) و تأمین مواد اولیه پلیمری.",
     address: {
       "@type": "PostalAddress",
       addressLocality: "کهریزک",

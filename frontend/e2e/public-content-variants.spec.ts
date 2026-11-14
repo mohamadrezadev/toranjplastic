@@ -575,7 +575,7 @@ test("a bright image sits in an intentional bounded media surface in the dark th
 /* Details: materials                                                       */
 /* ------------------------------------------------------------------------ */
 
-test("a material's inquiry actions follow inquiryAvailable", async ({ page }) => {
+test("a material's hero action follows inquiryAvailable and its inquiry card is always shown", async ({ page }) => {
   await openSettled(page, "/materials/fixture-material-open");
   const inquiryHref = "/inquiry/material?slug=fixture-material-open";
   const action = page.locator(heroSelector).getByRole("link", { name: "ثبت استعلام ماده", exact: true });
@@ -587,9 +587,10 @@ test("a material's inquiry actions follow inquiryAvailable", async ({ page }) =>
 
   await openSettled(page, "/materials/fixture-material-closed");
   await expect(page.getByRole("heading", { level: 1, name: "ماده آزمایشی بدون استعلام" })).toBeVisible();
-  // Closed to inquiry: neither the hero action nor the material inquiry card is offered anywhere in the page content.
-  await expect(page.locator('main a[href^="/inquiry"]')).toHaveCount(0);
-  await expect(page.locator(inquiryCardSelector)).toHaveCount(0);
+  // Closed to inquiry (OD-1, option B): the hero action is hidden, but the material inquiry card stays, as before the migration.
+  await expect(page.locator(heroSelector).getByRole("link")).toHaveCount(0);
+  await expect(page.locator('main a[href^="/inquiry"]')).toHaveCount(1);
+  await expect(page.locator(inquiryCardSelector).getByRole("link", { name: "ثبت استعلام مستقیم این ماده", exact: true })).toHaveAttribute("href", "/inquiry/material?slug=fixture-material-closed");
   await expect(page.getByRole("heading", { level: 2, name: "مشخصات تأییدشده" })).toBeVisible();
   await expect(page.getByText("TRJ-GR-1008", { exact: true }).first()).toBeVisible();
   await expect(page.locator(heroSelector).getByRole("link")).toHaveCount(0);

@@ -309,6 +309,23 @@ describe("article public pages and draft isolation", () => {
   });
 });
 
+describe("article collection failures (OD-3)", () => {
+  it("sends a failed article list to the error boundary instead of an empty catalog", async () => {
+    vi.spyOn(strapiClient, "listStrapiArticles").mockRejectedValue(new strapiClient.StrapiContentError("upstream", 503));
+    vi.spyOn(strapiClient, "listStrapiCategories").mockResolvedValue([engineering]);
+
+    await expect(ArticlesIndexPage({ searchParams: Promise.resolve({}) })).rejects.toMatchObject({ kind: "upstream" });
+  });
+
+  it("sends a failed category article list to the error boundary", async () => {
+    vi.spyOn(strapiClient, "getStrapiCategory").mockResolvedValue(engineering);
+    vi.spyOn(strapiClient, "listStrapiCategories").mockResolvedValue([engineering]);
+    vi.spyOn(strapiClient, "listStrapiArticles").mockRejectedValue(new strapiClient.StrapiContentError("upstream", 503));
+
+    await expect(ArticleCategoryPage({ params: Promise.resolve({ slug: "engineering" }), searchParams: Promise.resolve({}) })).rejects.toMatchObject({ kind: "upstream" });
+  });
+});
+
 describe("article category pages", () => {
   it("keeps the category strip and marks the open category as the current view", async () => {
     const materials: strapiClient.StrapiCategory = { id: "cat-2", name: "انتخاب مواد", slug: "materials-selection", description: null };

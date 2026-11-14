@@ -48,15 +48,16 @@ beforeEach(() => {
 });
 
 describe("injection-service collection route", () => {
-  it("shows the campaign banner and the honest empty state for an empty catalog", async () => {
+  it("shows the landing hero and the honest empty state for an empty catalog", async () => {
     vi.mocked(listServices).mockResolvedValue(collection([]));
     const { container } = renderPage(await listPage());
 
     expect(container.querySelectorAll("main")).toHaveLength(1);
-    const banner = screen.getByTestId("injection-campaign");
-    expect(banner).toHaveAccessibleName("ثبت درخواست خدمات تزریق پلاستیک");
-    expect(banner).toHaveAttribute("href", "/inquiry/injection");
-    expect(screen.getByRole("heading", { level: 1, name: "خدمات تزریق پلاستیک" })).toBeInTheDocument();
+    // OD-2: the same dual-action hero as /products, with no decorative stamp.
+    const hero = screen.getByRole("heading", { level: 1, name: "خدمات تزریق پلاستیک" }).closest("section") as HTMLElement;
+    expect(within(hero).getByRole("link", { name: "مشاهده خدمات" })).toHaveAttribute("href", "#service-catalog");
+    expect(within(hero).getByRole("link", { name: "ثبت درخواست خدمات تزریق پلاستیک" })).toHaveAttribute("href", "/inquiry/injection");
+    expect(hero.textContent).not.toContain("PRODUCT CATALOG");
     expect(screen.getByRole("heading", { level: 2, name: "خدمت منتشرشده‌ای وجود ندارد" })).toBeInTheDocument();
     expect(screen.getByText("اطلاعات خدمات پس از بررسی فنی و انتشار رسمی در این بخش قرار می‌گیرد.")).toBeInTheDocument();
     expect(screen.queryByRole("article")).not.toBeInTheDocument();

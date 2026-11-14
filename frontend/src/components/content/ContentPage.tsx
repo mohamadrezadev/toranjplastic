@@ -54,7 +54,7 @@ export function ContentPageHeading({ eyebrow, title, description }: { eyebrow: s
   );
 }
 
-export function CatalogLandingHero({ eyebrow, title, description, imageSrc, mobileImageSrc, imageAlt, imagePosition = "center", actions }: { eyebrow: string; title: string; description: string; imageSrc: string; mobileImageSrc?: string; imageAlt: string; imagePosition?: string; actions: ReactNode }) {
+export function CatalogLandingHero({ eyebrow, title, description, imageSrc, mobileImageSrc, imageAlt, imagePosition = "center", stamp = "TORANJ / PRODUCT CATALOG", actions }: { eyebrow: string; title: string; description: string; imageSrc: string; mobileImageSrc?: string; imageAlt: string; imagePosition?: string; stamp?: string | null; actions: ReactNode }) {
   return (
     <section aria-labelledby="catalog-landing-title">
       <Card padding={0} elevation="med" className={styles.landingHero}>
@@ -71,7 +71,7 @@ export function CatalogLandingHero({ eyebrow, title, description, imageSrc, mobi
             <img src={imageSrc} alt={imageAlt} width={1122} height={1402} fetchPriority="high" style={{ objectPosition: imagePosition }} />
           </picture>
           {/* A decorative brand stamp: the image alt text and the h1 carry the meaning, so assistive technology skips it. */}
-          <Text type="supporting" size="xsm" weight="bold" color="primary" aria-hidden="true" className={styles.landingMediaLabel}><DirectionalData>TORANJ / PRODUCT CATALOG</DirectionalData></Text>
+          {stamp ? <Text type="supporting" size="xsm" weight="bold" color="primary" aria-hidden="true" className={styles.landingMediaLabel}><DirectionalData>{stamp}</DirectionalData></Text> : null}
         </div>
       </Card>
     </section>
@@ -271,14 +271,13 @@ export function Specifications({ items }: { items: PublicSpecification[] }) {
 export function DetailInquiryCard({
   eyebrow = "استعلام سفارش عمده و تیراژ",
   title = "سفارش مستقیم و تیراژ تولید این محصول",
-  description = "این محصول تولید مستقیم خطوط ترنج پلاستیک است (قالب آماده). تیراژ مورد نیاز و مشخصات درخواستی را ثبت کنید تا پیش‌فاکتور رسمی و برنامه تحویل بار برای شما صادر شود.",
+  description = "تیراژ مورد نیاز و مشخصات درخواستی را ثبت کنید تا درخواست شما بررسی شود و در صورت نیاز برای تکمیل اطلاعات با شما هماهنگ شود.",
   actionHref,
   actionLabel = "ثبت استعلام مستقیم",
   trustPoints = [
-    "تولید با قالب اختصاصی ترنج پلاستیک (بدون نیاز به ساخت قالب)",
-    "امکان سفارشی‌سازی رنگ، مستربچ و گرید متریال",
-    "صدور پیش‌فاکتور رسمی ظرف ۲۴ الی ۴۸ ساعت کاری",
-    "تحویل مستقیم از کارخانه با نظارت و کنترل کیفیت",
+    "ثبت درخواست همراه با مشخصات و تیراژ موردنیاز",
+    "پیگیری وضعیت درخواست از حساب کاربری",
+    "ثبت استعلام به معنی تأیید قیمت یا موجودی نیست",
   ],
 }: {
   eyebrow?: string;
