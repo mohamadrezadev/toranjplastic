@@ -41,7 +41,7 @@
 
 ## 6. Authentication and inquiry migration
 
-- [ ] 6.1 Migrate registration, login, authorization failure, and secure logout presentation while preserving noindex/no-store and server-derived role behavior.
+- [x] 6.1 Migrate registration, login, authorization failure, and secure logout presentation while preserving noindex/no-store and server-derived role behavior.
 - [ ] 6.2 Migrate inquiry type selection and the guided multi-step inquiry form with preserved values, validation, pending/disabled behavior, RTL step semantics, and no automatic retry.
 - [ ] 6.3 Verify auth and inquiry flows with component and E2E tests in both themes and required widths, including keyboard-only submission and service/validation failures.
 

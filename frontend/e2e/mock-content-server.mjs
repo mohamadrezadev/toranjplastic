@@ -983,6 +983,40 @@ const serveFixture = (url, response) => {
   return false;
 };
 
+const loginAttempts = new Map();
+
+function readRequestText(request) {
+  return new Promise((resolve) => {
+    let raw = "";
+    request.on("data", (chunk) => { raw += chunk; });
+    request.on("end", () => resolve(raw));
+  });
+}
+
+function sendFixtureLogin(response) {
+  response.writeHead(200, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Set-Cookie": [
+      "toranj_session=fixture-session; HttpOnly; Path=/; SameSite=Lax",
+      "toranj_csrf=fixture-csrf; Path=/; SameSite=Lax",
+    ],
+  });
+  return response.end(
+    JSON.stringify({
+      id: "admin-1",
+      mobile: "+989123456789",
+      displayName: "مدیر آزمون",
+      email: null,
+      companyName: null,
+      role: "ADMIN",
+      status: "ACTIVE",
+      createdAt: publishedAt,
+      lastLoginAt: publishedAt,
+      capabilities: adminCapabilities,
+    }),
+  );
+}
+
 createServer((request, response) => {
   const url = new URL(request.url ?? "/", `http://127.0.0.1:${port}`);
   if (
@@ -1194,27 +1228,28 @@ createServer((request, response) => {
     url.pathname === "/api/v1/auth/login/password" &&
     request.method === "POST"
   ) {
-    response.writeHead(200, {
-      "Content-Type": "application/json; charset=utf-8",
-      "Set-Cookie": [
-        "toranj_session=fixture-session; HttpOnly; Path=/; SameSite=Lax",
-        "toranj_csrf=fixture-csrf; Path=/; SameSite=Lax",
-      ],
+    // Credential fixtures (auth presentation, task 6.3): a mobile starting
+    // with 0900000 is rejected (401), one starting with 0911111 simulates an
+    // unavailable service (503), and every other mobile signs in as before.
+    // Attempts are counted per mobile so a test can prove that a failed
+    // sign-in is never retried automatically, even with parallel workers.
+    return readRequestText(request).then((raw) => {
+      const mobile = (raw.match(/"mobile"s*:s*"([^"]*)"/) ?? [])[1] ?? "";
+      loginAttempts.set(mobile, (loginAttempts.get(mobile) ?? 0) + 1);
+      if (mobile.startsWith("0900000")) {
+        response.writeHead(401, { "Content-Type": "application/json; charset=utf-8" });
+        return response.end(JSON.stringify({ message: "Unauthorized" }));
+      }
+      if (mobile.startsWith("0911111")) {
+        response.writeHead(503, { "Content-Type": "application/json; charset=utf-8" });
+        return response.end(JSON.stringify({ message: "Service unavailable" }));
+      }
+      return sendFixtureLogin(response);
     });
-    return response.end(
-      JSON.stringify({
-        id: "admin-1",
-        mobile: "+989123456789",
-        displayName: "مدیر آزمون",
-        email: null,
-        companyName: null,
-        role: "ADMIN",
-        status: "ACTIVE",
-        createdAt: publishedAt,
-        lastLoginAt: publishedAt,
-        capabilities: adminCapabilities,
-      }),
-    );
+  }
+  if (url.pathname === "/__fixtures/login-attempts") {
+    response.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+    return response.end(JSON.stringify({ attempts: loginAttempts.get(url.searchParams.get("mobile") ?? "") ?? 0 }));
   }
   if (url.pathname === "/api/v1/auth/register" && request.method === "POST") {
     response.writeHead(201, {

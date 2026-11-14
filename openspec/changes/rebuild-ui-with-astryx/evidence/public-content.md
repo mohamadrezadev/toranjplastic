@@ -1288,6 +1288,7 @@ Final run after OD-1 to OD-9 were applied (2026-11-14): lint and typecheck clean
 tests pass, architecture 10 of 10, and the full Playwright suite on all four projects gave
 1082 passed, 242 skipped and 4 failed; the four failures are the known baseline
 `e2e/inquiries.spec.ts:27` (admin-session fixture). Open items that do not block 5.3: the
-owner's approval of the two derived landing lead sentences and explore labels (OD-2), a
-browser fixture for a failing article list (OD-3, covered by unit tests), and the OD-5, OD-6
-and OD-10 confirmations, which belong to later tasks.
+browser fixture for a failing article list (OD-3, covered by unit tests), and the OD-5 and OD-6
+decisions, which belong to later tasks.
+
+Update 2026-11-14: the owner approved the derived landing copy (OD-2) and confirmed the internal-only call-to-action policy (OD-10).

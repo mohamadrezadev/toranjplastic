@@ -117,7 +117,7 @@ Differences from earlier notes, found while verifying:
 | ID | Decision | Status | Blocks |
 | --- | --- | --- | --- |
 | OD-1 | Material detail: inquiry card and hero action follow `inquiryAvailable` | Decided 2026-11-14, option B applied: the card is always shown, only the hero action follows the flag | 5.3, 9.6 |
-| OD-2 | Landing hero for `/materials` and `/injection-molding` | Decided 2026-11-14: add the hero (option B applied with minimal derived copy; wording awaits the owner's approval) | 5.3, 9.6 |
+| OD-2 | Landing hero for `/materials` and `/injection-molding` | Decided 2026-11-14, option B applied; the derived copy was approved by the owner | 5.3, 9.6 |
 | OD-3 | Article collections show an upstream failure as an empty state | Decided 2026-11-14, option A applied: a failed list reaches the error boundary | 5.3, 9.6 |
 | OD-4 | Claims that already existed in the copy | Decided 2026-11-14: remove until a source exists (applied per the scope note in the entry) | 5.2, 5.3, 9.6 |
 | OD-5 | `html, body { overflow-x: hidden }` makes sticky headers inert | Owner decision required | 9.4, 9.5 |
@@ -125,7 +125,7 @@ Differences from earlier notes, found while verifying:
 | OD-7 | Error states and the indexing boundary | Decided 2026-11-14, option A applied (heading and `noindex, nofollow` meta element; browser-proven) | 5.3, 5.4, 9.6 |
 | OD-8 | Unmatched URLs get Next's default English 404 without the shell | Decided 2026-11-14, option B applied (`app/not-found.tsx`; delta spec added) | 9.6 |
 | OD-9 | Managed-page spec items without a section | Decided 2026-11-14, option B recorded (delta spec; no code; sections follow approved content) | 9.6 |
-| OD-10 | `safeCta` accepts protocol-relative `//host` | Applied in code, option A (owner confirmation of the internal-only policy pending) | 5.3, 9.6 |
+| OD-10 | `safeCta` accepts protocol-relative `//host` | Decided 2026-11-14: internal-only policy confirmed by the owner, option A applied | 5.3, 9.6 |
 | OD-11 | Badge used for category tags | Exception recorded | none; confirmed at 9.6 |
 | OD-12 | Astryx extension points that the CLI docs do not list | Exception recorded | none; confirmed at 9.2 and 9.6 |
 
@@ -158,6 +158,8 @@ Differences from earlier notes, found while verifying:
 - **If accepted:** C and B: replace `CampaignBanner` and `ContentPageHeading` on both pages with `CatalogLandingHero`, using the native-anchor target pattern of `content/products/page.tsx:46-52` for the explore action, and make the stamp an optional prop at `ContentPage.tsx:74`. Tests to change: `material-pages.test.tsx:53-69` and `service-pages.test.tsx:56` (banner test ids); in `e2e/public-content.spec.ts` the test "an empty collection keeps its landing hierarchy and an honest empty state" (it asserts the `injection-campaign` link); and in `e2e/public-shell.spec.ts` the test "campaign artwork stays responsive and exposes real actions" (injection banner name, href and 1122 by 1402 image). Add both routes to the keyboard walks, the RTL-order checks and the breakpoint sweeps. The e2e files are being edited by other work items, so locate these tests by title. A: record the exception here and in `evidence/public-content.md`; no code change.
 
 - **Decision (owner, 2026-11-14):** add the dual-action hero to both landings (option B). Applied with copy derived only from existing strings and the `/products` pattern: eyebrows "تأمین مواد" and "خدمات صنعتی", the page titles as the h1, a lead sentence built on the `/products` template without any claim, the actions "مشاهده مواد اولیه" / "مشاهده خدمات" (in-page anchors to the catalog section) plus the existing inquiry labels, and the approved 1122 by 1402 artwork. `CatalogLandingHero` takes an optional `stamp` (default unchanged for `/products`); both new heroes pass `null` because the stamp text would be new copy. **Still open for the owner:** approve or replace the two lead sentences and the two explore-action labels.
+
+- **Approval (owner, 2026-11-14):** the derived lead sentences and explore-action labels for `/materials` and `/injection-molding` are approved as written. The "still open for the owner" note above is closed.
 
 #### OD-3: Article collections show an upstream failure as an empty state
 
@@ -282,6 +284,8 @@ Differences from earlier notes, found while verifying:
   - C. Decide that external call-to-action links are a product requirement: change the backend contract and specs first (`assertSafeHref`, `safeInternalHref`), then allow `https:` with `rel="noopener noreferrer"` and still reject `//`.
 - **Recommended:** A. It matches the backend at both boundaries and needs no product input; `//host` is an off-site link if the backend guard is ever bypassed or changed. Choose C only if the owner wants external call-to-action links, as a separate backend change.
 - **If accepted:** A: in `content/injection-molding/[slug]/page.tsx:12` use `href && href.startsWith("/") && !href.startsWith("//")`, and add `//evil.example` and `https://example.com` cases to `service-pages.test.tsx` (both render the fallback "ثبت درخواست بررسی" action). Correct `evidence/public-content.md` item 8 (`:634-638`).
+
+- **Confirmation (owner, 2026-11-14):** the internal-only policy is confirmed: a service call-to-action link must be a path starting with a single `/`; external addresses stay excluded, in line with the backend. No code change.
 
 #### OD-11: Badge used for category tags
 
