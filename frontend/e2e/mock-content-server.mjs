@@ -984,6 +984,7 @@ const serveFixture = (url, response) => {
 };
 
 const loginAttempts = new Map();
+const inquiryAttempts = new Map();
 
 function readRequestText(request) {
   return new Promise((resolve) => {
@@ -1112,15 +1113,39 @@ createServer((request, response) => {
       "toranj_session=",
     );
     const csrf = request.headers["x-csrf-token"] === "fixture-csrf";
-    response.writeHead(authenticated && csrf ? 201 : 401, {
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "no-store",
+    // Failure fixtures (inquiry presentation, task 6.3): a description holding
+    // FIXTURE_INVALID answers 400, FIXTURE_UNAVAILABLE answers 503 and FIXTURE_SLOW answers after 1.5 s. The
+    // whole description is the counter key, so a test can prove that a failed
+    // submission is made exactly once even with parallel workers.
+    return readRequestText(request).then((raw) => {
+      const description = (raw.match(/"description"s*:s*"([^"]*)"/) ?? [])[1] ?? "";
+      if (description) inquiryAttempts.set(description, (inquiryAttempts.get(description) ?? 0) + 1);
+      if (authenticated && csrf && description.includes("FIXTURE_INVALID")) {
+        response.writeHead(400, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+        return response.end(JSON.stringify({ message: "Bad request" }));
+      }
+      if (authenticated && csrf && description.includes("FIXTURE_UNAVAILABLE")) {
+        response.writeHead(503, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+        return response.end(JSON.stringify({ message: "Service unavailable" }));
+      }
+      const respond = () => {
+        response.writeHead(authenticated && csrf ? 201 : 401, {
+          "Content-Type": "application/json; charset=utf-8",
+          "Cache-Control": "no-store",
+        });
+        return response.end(
+          JSON.stringify(
+            authenticated && csrf ? inquiry : { message: "Unauthorized" },
+          ),
+        );
+      };
+      // FIXTURE_SLOW keeps the submission pending long enough to observe the disabled state.
+      return description.includes("FIXTURE_SLOW") ? new Promise((resolve) => setTimeout(() => resolve(respond()), 1500)) : respond();
     });
-    return response.end(
-      JSON.stringify(
-        authenticated && csrf ? inquiry : { message: "Unauthorized" },
-      ),
-    );
+  }
+  if (url.pathname === "/__fixtures/inquiry-attempts") {
+    response.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+    return response.end(JSON.stringify({ attempts: inquiryAttempts.get(url.searchParams.get("description") ?? "") ?? 0 }));
   }
   if (
     url.pathname === "/api/v1/inquiries/inquiry-1" &&

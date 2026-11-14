@@ -1,7 +1,11 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import { Card } from "@astryxdesign/core/Card";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
+import { Button } from "@/components/ui";
 import { getMaterial, getProduct, getService, listMaterials, listProducts, listServices } from "@/lib/public-content";
 import { InquiryForm } from "../InquiryForm";
+import { InquiryHeader } from "../InquiryHeader";
 import styles from "../Inquiry.module.css";
 
 const titles = { product: "استعلام محصول", injection: "درخواست خدمات تزریق", material: "درخواست مواد اولیه", contact: "تماس عمومی" } as const;
@@ -20,5 +24,17 @@ export default async function InquiryTypePage({ params, searchParams }: { params
   if (slug && kind === "product") selectedId = (await getProduct(slug)).id;
   if (slug && kind === "injection") selectedId = (await getService(slug)).id;
   if (slug && kind === "material") selectedId = (await getMaterial(slug)).id;
-  return <section className={styles.page}><div><Link className={styles.backLink} href="/inquiry">بازگشت به انتخاب نوع درخواست</Link></div><header className={styles.pageHeader}><p className={styles.eyebrow}>پنل مشتری / فرم درخواست</p><h1>{titles[kind]}</h1><p className={styles.lead}>فقط اطلاعاتی را وارد کنید که از آن مطمئن هستید؛ فیلدهای اختیاری را می‌توانید خالی بگذارید.</p></header><div className={styles.formIntro}><strong>پیش از ثبت درخواست</strong><p>اطلاعات هر بخش را مرور کنید. پس از ثبت، درخواست در وضعیت «ثبت‌شده» قرار می‌گیرد و از بخش درخواست‌های من قابل پیگیری است.</p></div><InquiryForm kind={kind} options={options} selectedId={selectedId}/></section>;
+  return (
+    <VStack as="section" gap={5} className={styles.page}>
+      <div><Button href="/inquiry" variant="secondary">بازگشت به انتخاب نوع درخواست</Button></div>
+      <InquiryHeader eyebrow="پنل مشتری / فرم درخواست" title={titles[kind]} lead="فقط اطلاعاتی را وارد کنید که از آن مطمئن هستید؛ فیلدهای اختیاری را می‌توانید خالی بگذارید." />
+      <Card variant="muted" className={styles.formIntro}>
+        <VStack gap={2} hAlign="start">
+          <Text as="span" weight="bold" color="inherit">پیش از ثبت درخواست</Text>
+          <Text as="p" color="secondary">اطلاعات هر بخش را مرور کنید. پس از ثبت، درخواست در وضعیت «ثبت‌شده» قرار می‌گیرد و از بخش درخواست‌های من قابل پیگیری است.</Text>
+        </VStack>
+      </Card>
+      <InquiryForm kind={kind} options={options} selectedId={selectedId}/>
+    </VStack>
+  );
 }

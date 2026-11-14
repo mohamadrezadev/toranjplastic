@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { CustomerPortalShell } from "@/components/account/CustomerPortalShell";
+import { LoadingState } from "@/components/feedback";
 import { getAccountAccess } from "@/lib/auth";
 import { logoutAction } from "../auth/actions";
 
@@ -15,5 +16,5 @@ async function InquiryGate({ children }: { children: ReactNode }) {
 }
 
 export default function InquiryLayout({ children }: { children: ReactNode }) {
-  return <Suspense fallback={<p role="status">در حال بررسی حساب…</p>}><InquiryGate>{children}</InquiryGate></Suspense>;
+  return <Suspense fallback={<LoadingState label="در حال بررسی حساب…" />}><InquiryGate>{children}</InquiryGate></Suspense>;
 }
