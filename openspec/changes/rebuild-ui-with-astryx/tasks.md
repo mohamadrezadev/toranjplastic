@@ -56,7 +56,7 @@
 
 - [x] 8.1 Migrate the admin shell, skip link, identity/account context, capability-aware navigation, secure logout, breadcrumbs, responsive sidebar/menu, and shared page workspace.
 - [x] 8.2 Migrate admin content lists and authoring forms for products, materials, services, articles, categories, and managed pages using shared Astryx-backed patterns.
-- [ ] 8.3 Migrate media library, uploader, picker dialog, gallery editor, progress, failure, deletion-blocked, and conflict states with focus trap/return and keyboard coverage.
+- [x] 8.3 Migrate media library, uploader, picker dialog, gallery editor, progress, failure, deletion-blocked, and conflict states with focus trap/return and keyboard coverage.
 - [ ] 8.4 Migrate inquiry operations, assignment, status transitions, internal notes, customer messages, timelines, conflict handling, and quotation editor panels without changing backend authorization.
 - [ ] 8.5 Migrate staff list/create/detail surfaces with capability-derived UI, validation, forbidden, inactive, and optimistic-conflict states.
 - [ ] 8.6 Verify admin E2E flows at all required widths and themes, including keyboard-only operation, responsive table/card transformations, overlay focus, and negative capability paths.

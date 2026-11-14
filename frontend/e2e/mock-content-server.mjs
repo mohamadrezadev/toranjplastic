@@ -465,13 +465,21 @@ const adminMediaAsset = {
   updatedAt: publishedAt,
 };
 
+// A second asset that content references: deleting it is blocked (MEDIA_IN_USE).
+const adminMediaInUse = {
+  ...adminMediaAsset,
+  id: "admin-media-2",
+  defaultAlt: "تصویر در حال استفاده",
+  referenceCount: 2,
+};
+
 routes.set("/api/v1/admin/media", {
   status: 200,
   body: {
-    items: [adminMediaAsset],
+    items: [adminMediaAsset, adminMediaInUse],
     page: 1,
     pageSize: 50,
-    total: 1,
+    total: 2,
     totalPages: 1,
   },
 });
@@ -487,6 +495,11 @@ routes.set("/api/v1/admin/media/admin-media-1/preview", {
   },
   body: Buffer.from([0x52, 0x49, 0x46, 0x46, 0x1a, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50, 0x56, 0x50, 0x38, 0x4c, 0x0d, 0x00, 0x00, 0x00, 0x2f, 0x00, 0x00, 0x00, 0x10, 0x07, 0x10, 0x11, 0x11, 0x88, 0x88, 0xfe, 0x07, 0x00]),
 });
+
+// The other media fixtures share the preview bytes of the first one.
+for (const id of ["admin-media-2", "admin-media-3"]) {
+  routes.set(`/api/v1/admin/media/${id}/preview`, routes.get("/api/v1/admin/media/admin-media-1/preview"));
+}
 
 const adminRecords = {
   categories: adminCategory,
@@ -1616,6 +1629,35 @@ createServer((request, response) => {
       "Cache-Control": "no-store",
     });
     return response.end(JSON.stringify(adminInquiry));
+  }
+  /*
+   * Media upload and delete. Cookie media_fail makes an upload fail with the
+   * stable code of the backend contract (large, invalid, storage); deleting
+   * admin-media-2 is blocked with MEDIA_IN_USE.
+   */
+  const mediaWrite = url.pathname.match(/^\/api\/v1\/admin\/media(?:\/([^/]+))?$/);
+  if (mediaWrite && ["POST", "DELETE"].includes(request.method ?? "")) {
+    const csrfOk =
+      (request.headers.cookie ?? "").split(";").some((cookie) => cookie.trim() === "toranj_csrf=fixture-csrf") &&
+      request.headers["x-csrf-token"] === "fixture-csrf";
+    const answer = () => {
+      const json = (status, body) => {
+        response.writeHead(status, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+        response.end(JSON.stringify(body));
+      };
+      if (!csrfOk) return json(403, { message: "Invalid CSRF token" });
+      if (request.method === "DELETE") {
+        if (mediaWrite[1] === "admin-media-2") return json(409, { code: "MEDIA_IN_USE" });
+        response.writeHead(204, { "Cache-Control": "no-store" });
+        return response.end();
+      }
+      const failures = { large: [413, "MEDIA_UPLOAD_TOO_LARGE"], invalid: [400, "MEDIA_INVALID_FILE"], storage: [503, "MEDIA_STORAGE_UNAVAILABLE"] };
+      const mode = failures[cookieValue(request, "media_fail")];
+      if (mode) return json(mode[0], { code: mode[1] });
+      return json(201, { ...adminMediaAsset, id: "admin-media-3", defaultAlt: "تصویر بارگذاری‌شده" });
+    };
+    request.on("end", answer);
+    return request.resume();
   }
   const mutation = url.pathname.match(
     /^\/api\/v1\/admin\/content\/(categories|products|services|materials|articles|pages)(?:\/[^/]+(?:\/(publish|archive))?)?$/,

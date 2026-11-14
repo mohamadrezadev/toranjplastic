@@ -1,7 +1,13 @@
 'use client';
 
+import { Card } from '@astryxdesign/core/Card';
+import { HStack } from '@astryxdesign/core/HStack';
+import { ProgressBar } from '@astryxdesign/core/ProgressBar';
+import { Text } from '@astryxdesign/core/Text';
+import { VStack } from '@astryxdesign/core/VStack';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Button, Input } from '@/components/ui';
+import { Alert } from '@/components/feedback';
+import { Button, Input, StatusBadge, type StatusBadgeTone } from '@/components/ui';
 import { uploadMediaItemAction } from './actions';
 import type { AdminMediaAsset } from './types';
 import styles from './MediaComponents.module.css';
@@ -34,6 +40,7 @@ export function MediaUploader({
   const [queue, setQueue] = useState<UploadQueueItem[]>([]);
   const [announcement, setAnnouncement] = useState<string>('');
   const [isDragOver, setIsDragOver] = useState(false);
+  const [rejections, setRejections] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const activeUploadsCount = useRef(0);
 
@@ -44,15 +51,18 @@ export function MediaUploader({
   const addFilesToQueue = useCallback(
     (files: FileList | File[]) => {
       const newItems: UploadQueueItem[] = [];
+      const rejected: string[] = [];
 
       Array.from(files).forEach((file) => {
         if (!allowedTypes.includes(file.type)) {
-          announce(`فایل ${file.name} رد شد: فقط فرمت‌های JPEG، PNG و WebP مجاز هستند.`);
+          const message = `فایل ${file.name} رد شد: فقط فرمت‌های JPEG، PNG و WebP مجاز هستند.`;
+          rejected.push(message);
           return;
         }
 
         if (file.size > maxSizeBytes) {
-          announce(`فایل ${file.name} رد شد: حجم فایل بیش از ۱۰ مگابایت است.`);
+          const message = `فایل ${file.name} رد شد: حجم فایل بیش از ۱۰ مگابایت است.`;
+          rejected.push(message);
           return;
         }
 
@@ -66,6 +76,7 @@ export function MediaUploader({
         });
       });
 
+      setRejections(rejected);
       if (newItems.length > 0) {
         setQueue((prev) => [...prev, ...newItems]);
         announce(`${newItems.length} فایل به صف بارگذاری افزوده شد.`);
@@ -169,8 +180,21 @@ export function MediaUploader({
     }
   };
 
+  const statusLabel: Record<UploadQueueItem['status'], string> = {
+    ready: 'آماده',
+    failed: 'ناموفق',
+    uploading: 'در حال بارگذاری و پردازش…',
+    pending: 'در صف',
+  };
+  const statusTone: Record<UploadQueueItem['status'], StatusBadgeTone> = {
+    ready: 'success',
+    failed: 'error',
+    uploading: 'info',
+    pending: 'neutral',
+  };
+
   return (
-    <div className={styles.uploadQueue}>
+    <VStack gap={3}>
       <div
         className={`${styles.dropzone} ${isDragOver ? styles.dropzoneActive : ''}`}
         onDragOver={(e) => {
@@ -179,92 +203,68 @@ export function MediaUploader({
         }}
         onDragLeave={() => setIsDragOver(false)}
         onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            fileInputRef.current?.click();
-          }
-        }}
-        aria-label="بارگذاری تصویر: فایل را بکشید یا برای انتخاب کلیک کنید"
       >
         <input
           ref={fileInputRef}
           type="file"
           accept={allowedTypes.join(',')}
           multiple
-          style={{ display: 'none' }}
+          hidden
+          tabIndex={-1}
+          aria-hidden="true"
           onChange={(e) => {
             if (e.target.files) addFilesToQueue(e.target.files);
             e.target.value = '';
           }}
         />
-        <span className={styles.dropzoneText}>تصویر را به اینجا بکشید یا برای انتخاب کلیک کنید</span>
-        <span className={styles.dropzoneHint}>فرمت‌های مجاز: JPEG, PNG, WebP (حداکثر ۱۰ مگابایت)</span>
+        <Text as="p" weight="bold" color="inherit">تصویر را به اینجا بکشید یا برای انتخاب کلیک کنید</Text>
+        <Text as="p" type="supporting" color="secondary">فرمت‌های مجاز: JPEG, PNG, WebP (حداکثر ۱۰ مگابایت)</Text>
+        <Button type="button" variant="secondary" onClick={() => fileInputRef.current?.click()} aria-label="بارگذاری تصویر: انتخاب فایل از دستگاه">
+          انتخاب تصویر از دستگاه
+        </Button>
       </div>
+
+      {rejections.map((message) => <Alert key={message} variant="warning" title={message} />)}
 
       {queue.length > 0 ? (
-        <div className={styles.uploadQueue} aria-label="فهرست فایل‌های صف بارگذاری">
+        <VStack gap={3} role="list" aria-label="فهرست فایل‌های صف بارگذاری">
           {queue.map((item) => (
-            <div key={item.id} className={styles.queueItem}>
-              <div className={styles.queueHeader}>
-                <span className={styles.queueFileName} title={item.file.name}>
-                  {item.file.name}
-                </span>
-                <span
-                  className={`${styles.queueStatus} ${
-                    item.status === 'ready'
-                      ? styles.queueStatusReady
-                      : item.status === 'failed'
-                        ? styles.queueStatusFailed
-                        : item.status === 'uploading'
-                          ? styles.queueStatusUploading
-                          : styles.queueStatusPending
-                  }`}
-                >
-                  {item.status === 'ready' && 'آماده'}
-                  {item.status === 'failed' && 'ناموفق'}
-                  {item.status === 'uploading' && 'در حال بارگذاری و پردازش…'}
-                  {item.status === 'pending' && 'در صف'}
-                </span>
-              </div>
+            <Card key={item.id} variant="muted" role="listitem">
+              <VStack gap={2}>
+                <HStack gap={2} hAlign="between" vAlign="center" wrap="wrap">
+                  <Text as="span" weight="bold" color="inherit" className={styles.queueFileName}>{item.file.name}</Text>
+                  <StatusBadge label={statusLabel[item.status]} tone={statusTone[item.status]} />
+                </HStack>
 
-              {item.status !== 'ready' && (
-                <Input
-                  label="متن جایگزین (Alt)"
-                  name={`alt-${item.id}`}
-                  value={item.defaultAlt}
-                  onChange={(e) => handleAltChange(item.id, e.target.value)}
-                  disabled={item.status === 'uploading'}
-                  maxLength={300}
-                />
-              )}
+                {item.status !== 'ready' ? (
+                  <Input
+                    label="متن جایگزین (Alt)"
+                    name={`alt-${item.id}`}
+                    value={item.defaultAlt}
+                    onChange={(e) => handleAltChange(item.id, e.target.value)}
+                    disabled={item.status === 'uploading'}
+                    maxLength={300}
+                  />
+                ) : null}
 
-              {item.status === 'uploading' && (
-                <div className={styles.progressBar} role="progressbar" aria-valuenow={item.progress} aria-valuemin={0} aria-valuemax={100}>
-                  <div className={styles.progressBarFill} style={{ width: `${item.progress}%` }} />
-                </div>
-              )}
+                {item.status === 'uploading' ? (
+                  <ProgressBar label={`بارگذاری ${item.file.name}`} isLabelHidden isIndeterminate />
+                ) : null}
 
-              {item.error && <p className={styles.queueStatusFailed}>{item.error}</p>}
+                {item.error ? <Text as="p" type="supporting" color="inherit" className={styles.queueError} role="alert">{item.error}</Text> : null}
 
-              {item.status === 'failed' && (
-                <div className={styles.queueActions}>
-                  <Button type="button" variant="secondary" onClick={() => handleRetry(item.id)}>
-                    تلاش مجدد
-                  </Button>
-                </div>
-              )}
-            </div>
+                {item.status === 'failed' ? (
+                  <div>
+                    <Button type="button" variant="secondary" onClick={() => handleRetry(item.id)}>تلاش مجدد</Button>
+                  </div>
+                ) : null}
+              </VStack>
+            </Card>
           ))}
-        </div>
+        </VStack>
       ) : null}
 
-      <div className={styles.srOnly} aria-live="polite" aria-atomic="true">
-        {announcement}
-      </div>
-    </div>
+      <div className={styles.srOnly} aria-live="polite" aria-atomic="true">{announcement}</div>
+    </VStack>
   );
 }

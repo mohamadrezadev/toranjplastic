@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import { TableCell, TableRow } from '@astryxdesign/core/Table';
+import { AdminFieldset, AdminListPage } from '@/components/admin/AdminContent';
 import { AdminSubmitButton } from '@/components/admin/AdminSubmitButton';
-import { Button, Input, Select } from '@/components/ui';
+import { Alert } from '@/components/feedback';
+import { Input, Select, StatusBadge, type StatusBadgeTone } from '@/components/ui';
 import { deleteMediaAction, listMedia, uploadMediaAction, type MediaAssetStatus } from '@/features/admin-media';
-import styles from '../Admin.module.css';
 
 export const metadata: Metadata = { title: 'کتابخانه رسانه', robots: { index: false, follow: false } };
 export const instant = false;
@@ -12,6 +13,9 @@ const allowedStatuses: MediaAssetStatus[] = ['PROCESSING', 'READY', 'FAILED', 'D
 const statusLabels: Record<MediaAssetStatus, string> = {
   PROCESSING: 'در حال پردازش', READY: 'آماده', FAILED: 'ناموفق',
   DELETION_PENDING: 'در حال حذف', DELETED: 'حذف‌شده',
+};
+const statusTones: Record<MediaAssetStatus, StatusBadgeTone> = {
+  PROCESSING: 'info', READY: 'success', FAILED: 'error', DELETION_PENDING: 'warning', DELETED: 'neutral',
 };
 const errors: Record<string, string> = {
   MEDIA_IN_USE: 'این رسانه در محتوا استفاده شده و قابل حذف نیست.',
@@ -22,6 +26,12 @@ const errors: Record<string, string> = {
   conflict: 'رسانه قابل حذف نیست.', failed: 'عملیات رسانه انجام نشد.',
 };
 
+/*
+ * Media library (OpenSpec change rebuild-ui-with-astryx, task 8.3): the shared
+ * admin list pattern with an upload form, the status badges of the lifecycle,
+ * the deletion-blocked and failure notices, and per-row delete forms. Data
+ * loading, server actions and the redirect-based result codes are unchanged.
+ */
 export default async function AdminMediaPage({ searchParams }: {
   searchParams: Promise<{ page?: string; status?: string; search?: string; error?: string; uploaded?: string; deleted?: string }>;
 }) {
@@ -33,58 +43,51 @@ export default async function AdminMediaPage({ searchParams }: {
   const query = `${status ? `&status=${status}` : ''}${search ? `&search=${encodeURIComponent(search)}` : ''}`;
 
   return (
-    <div className={styles.main}>
-      <div className={styles.shell}>
-        <section className={styles.card}>
-          <div className={styles.header}><div><h1>کتابخانه رسانه</h1><p className={styles.subtitle}>{result.total} فایل</p></div></div>
-          {params.error ? <p className={styles.feedback} role="alert">{errors[params.error] ?? errors.failed}</p> : null}
-          {params.uploaded ? <p role="status">رسانه با موفقیت بارگذاری و پردازش شد.</p> : null}
-          {params.deleted ? <p role="status">رسانه حذف شد.</p> : null}
-
-          <form action={uploadMediaAction} className={styles.form}>
-            <fieldset className={styles.fieldset}>
-              <legend>بارگذاری تصویر</legend>
-              <Input label="فایل JPEG، PNG یا WebP" name="file" type="file" accept="image/jpeg,image/png,image/webp" required />
-              <Input label="متن جایگزین پیش‌فرض" name="defaultAlt" required maxLength={300} />
-              <div className={styles.formActions}>
-                <AdminSubmitButton pendingText="در حال بارگذاری و پردازش…">بارگذاری</AdminSubmitButton>
-              </div>
-            </fieldset>
-          </form>
-
-          <div className={styles.toolbar}>
-            <form>
-              <Input label="جست‌وجوی متن جایگزین" name="search" defaultValue={search ?? ''} maxLength={100} />
-              <Select label="وضعیت" name="status" defaultValue={status ?? ''}>
-                <option value="">همه</option>
-                {allowedStatuses.map((item) => <option key={item} value={item}>{statusLabels[item]}</option>)}
-              </Select>
-              <Button type="submit" variant="secondary">اعمال فیلتر</Button>
-            </form>
-          </div>
-
-          {result.items.length === 0 ? <p className={styles.empty}>رسانه‌ای با این فیلتر یافت نشد.</p> : (
-            <div className={styles.tableWrap}><table className={styles.table}>
-              <thead><tr><th>متن جایگزین</th><th>وضعیت</th><th>ابعاد</th><th>استفاده</th><th>عملیات</th></tr></thead>
-              <tbody>{result.items.map((asset) => (
-                <tr key={asset.id}>
-                  <td>{asset.defaultAlt ?? '—'}</td><td>{statusLabels[asset.status]}</td>
-                  <td dir="ltr">{asset.sourceWidth && asset.sourceHeight ? `${asset.sourceWidth} × ${asset.sourceHeight}` : '—'}</td>
-                  <td>{asset.referenceCount} مورد</td>
-                  <td>{asset.referenceCount > 0 ? <span>در حال استفاده</span> : (
-                    <form action={deleteMediaAction.bind(null, asset.id)}><Button type="submit" variant="danger">حذف</Button></form>
-                  )}</td>
-                </tr>
-              ))}</tbody>
-            </table></div>
-          )}
-          {result.totalPages > 1 ? <nav className={styles.pagination}>
-            {page > 1 ? <Link href={`/admin/media?page=${page - 1}${query}`}>قبلی</Link> : <span />}
-            <span>صفحه {result.page} از {result.totalPages}</span>
-            {page < result.totalPages ? <Link href={`/admin/media?page=${page + 1}${query}`}>بعدی</Link> : <span />}
-          </nav> : null}
-        </section>
-      </div>
-    </div>
+    <AdminListPage
+      title="کتابخانه رسانه"
+      total={result.total}
+      countLabel="فایل"
+      emptyTitle="رسانه‌ای با این فیلتر یافت نشد."
+      notice={<>
+        {params.error ? <Alert variant={params.error === 'MEDIA_IN_USE' ? 'warning' : 'danger'} title={errors[params.error] ?? errors.failed} /> : null}
+        {params.uploaded ? <Alert variant="success" title="رسانه با موفقیت بارگذاری و پردازش شد." /> : null}
+        {params.deleted ? <Alert variant="success" title="رسانه حذف شد." /> : null}
+      </>}
+      intro={
+        <form action={uploadMediaAction} aria-label="بارگذاری تصویر">
+          <AdminFieldset legend={<>بارگذاری تصویر</>}>
+            <Input label="فایل JPEG، PNG یا WebP" name="file" type="file" accept="image/jpeg,image/png,image/webp" required />
+            <Input label="متن جایگزین پیش‌فرض" name="defaultAlt" required maxLength={300} />
+            <div><AdminSubmitButton pendingText="در حال بارگذاری و پردازش…">بارگذاری</AdminSubmitButton></div>
+          </AdminFieldset>
+        </form>
+      }
+      filters={<>
+        <Input label="جست‌وجوی متن جایگزین" name="search" defaultValue={search ?? ''} maxLength={100} />
+        <Select label="وضعیت" name="status" defaultValue={status ?? ''}>
+          <option value="">همه</option>
+          {allowedStatuses.map((item) => <option key={item} value={item}>{statusLabels[item]}</option>)}
+        </Select>
+      </>}
+      headers={['متن جایگزین', 'وضعیت', 'ابعاد', 'استفاده', 'عملیات']}
+      rows={result.items.map((asset) => (
+        <TableRow key={asset.id}>
+          <TableCell>{asset.defaultAlt ?? '—'}</TableCell>
+          <TableCell><StatusBadge label={statusLabels[asset.status]} tone={statusTones[asset.status]} /></TableCell>
+          <TableCell><span dir="ltr">{asset.sourceWidth && asset.sourceHeight ? `${asset.sourceWidth} × ${asset.sourceHeight}` : '—'}</span></TableCell>
+          <TableCell>{asset.referenceCount.toLocaleString('fa-IR')} مورد</TableCell>
+          <TableCell>
+            {asset.referenceCount > 0 ? (
+              <StatusBadge label="در حال استفاده؛ قابل حذف نیست" tone="info" />
+            ) : (
+              <form action={deleteMediaAction.bind(null, asset.id)}>
+                <AdminSubmitButton variant="danger" pendingText="در حال حذف…">حذف</AdminSubmitButton>
+              </form>
+            )}
+          </TableCell>
+        </TableRow>
+      ))}
+      pagination={{ basePath: '/admin/media', page, totalPages: result.totalPages, query }}
+    />
   );
 }

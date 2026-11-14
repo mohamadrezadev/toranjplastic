@@ -72,12 +72,18 @@ export function AdminContentRow({ href, name, slug, status, updatedAt, featured 
  * the state.
  */
 export function AdminListPage({
-  title, total, createHref, createLabel, filters, headers, rows, emptyTitle, pagination, before,
+  title, total, countLabel = "رکورد", createHref, createLabel, notice, intro, filters, headers, rows, emptyTitle, pagination, before,
 }: {
   title: string;
   total: number;
-  createHref: string;
-  createLabel: string;
+  /** Unit of the count under the title (default "رکورد"). */
+  countLabel?: string;
+  createHref?: string;
+  createLabel?: string;
+  /** Result or failure messages shown first inside the card. */
+  notice?: ReactNode;
+  /** Content between the notices and the filters (for example an upload form). */
+  intro?: ReactNode;
   filters?: ReactNode;
   headers: string[];
   rows: ReactNode[];
@@ -88,7 +94,9 @@ export function AdminListPage({
   return (
     <VStack gap={4}>
       {before}
-      <AdminPage title={title} subtitle={`${total.toLocaleString("fa-IR")} رکورد`} actions={<Button href={createHref}>{createLabel}</Button>}>
+      <AdminPage title={title} subtitle={`${total.toLocaleString("fa-IR")} ${countLabel}`} actions={createHref && createLabel ? <Button href={createHref}>{createLabel}</Button> : undefined}>
+        {notice}
+        {intro}
         {filters ? (
           <form className={styles.filters} aria-label="فیلتر فهرست">
             {filters}

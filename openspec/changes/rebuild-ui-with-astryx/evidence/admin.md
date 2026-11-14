@@ -83,3 +83,53 @@
 - Sorting and bulk selection are not offered (they were not before).
 - A list with more than one page in the browser (the mock returns one page); the links are unit-tested.
 
+## 8.3 Media library, uploader, picker and gallery editors
+
+### What changed
+- `MediaPicker` is now the Astryx `Dialog` (native modal `<dialog>`: focus trap, Escape, close button and focus
+  return are Astryx's) with `DialogHeader`, `TabList` (tablist pattern, library and upload panels), the shared
+  `Input`/`Button`, `LoadingState`, `EmptyState` and `ErrorState`. The images are a list of buttons with
+  `aria-pressed` (they were `role="option"` buttons in a listbox with no arrow-key support).
+- The dialog is mounted only while open and rendered in a portal on `document.body`. It is used inside the product and
+  article forms; inside the form, Enter in the search or alt field submitted the whole content form and the dialog's
+  fields were posted with it (found while reading, fixed, tested).
+- A failed library read used to show an empty library. It now shows an error with a retry (first open, search and
+  paging). The first open also shows the loading state instead of a flash of the empty message.
+- `MediaUploader`: the drop zone keeps drag and drop and gains a real "choose a file" `Button` (it was a `div` with
+  `role="button"`); queue items are Astryx `Card`s with a `StatusBadge`, an `Alert`-style error, and a retry. The
+  progress was a simulated 10 to 50 percent; it is now an indeterminate Astryx `ProgressBar`, because the server
+  action reports no progress. Rejected files (type or size) had only a screen-reader announcement; they now show a visible
+  warning as well (not announced twice).
+- `ProductGalleryEditor`, `ArticleFeaturedImageEditor`: Astryx `Card`, `StatusBadge` (cover or position), shared fields
+  and buttons, an ordered list; same hidden fields (`imageNMediaAssetId`, `imageNUrl`, `imageNAlt`, `featuredImage*`).
+  Keyboard path: after a move focus stays on a move button that is still enabled, after a removal on the neighbour's
+  remove button (or the add button), after clearing the featured image on the pick button; each change is announced in a
+  live region. Enter in the legacy URL fields adds the image instead of submitting the form. A notice shows at the six-image limit.
+- Media page: the shared list pattern (upload form, filters, `Table`, pagination), lifecycle status badges, success,
+  failure and warning alerts, a blocked delete shown as a warning (`MEDIA_IN_USE`) and in the row as "in use; cannot
+  be deleted", and pending-aware delete buttons. `error.tsx` and `loading.tsx` use the shared states.
+- Mock server: a second asset with references, upload and delete handlers (CSRF checked), cookie `media_fail`
+  (`large`, `invalid`, `storage`) and `admin-media-2` delete answers 409 `MEDIA_IN_USE`.
+
+### Verification
+- Unit `MediaComponents.test.tsx` (16 tests): the earlier eight updated, plus load error and retry, upload tab, the
+  dialog outside the form with Enter not submitting, a visible rejection, focus after move and remove, Enter in the
+  legacy fields, the limit, jest-axe. Whole unit suite: 314 passed (44 files).
+- E2E `admin-media-presentation.spec.ts` (all 4 projects): the library in both themes (axe, overflow, rows, in-use
+  row), upload, delete and blocked-delete results, a failed upload with the stable message, the picker in both themes
+  (fits the viewport, axe, focus trapped forwards and backwards, Escape closes and returns focus), the close-button
+  tooltip layer, Enter in the search, choosing by keyboard, the upload tab (success, backend failure with retry, wrong
+  type), the gallery by keyboard, the article featured image. With `admin-media` and `admin-content-mutations`: 92 passed.
+- Lint, typecheck, `check:architecture`, `pnpm build` clean.
+
+### Notes for the owner
+- Astryx layers dismiss one at a time: on the dialog's close button the tooltip is a layer of its own, so the first
+  Escape dismisses the tooltip and the second closes the dialog. Escape from any other control closes it at once.
+- Deleting an unreferenced asset has no confirmation step (as before). Adding one is a product decision, not made here.
+- The uploader still starts uploads inside a state updater (as before); a development double render could start an
+  upload twice. Not changed in this task.
+
+### Not covered
+- Real drag and drop (the keyboard path is tested), real upload progress, upload of a very large file, and a session
+  that expires while the dialog is open.
+

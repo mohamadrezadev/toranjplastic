@@ -1,6 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
+import { HStack } from '@astryxdesign/core/HStack';
+import { Tab, TabList } from '@astryxdesign/core/TabList';
+import { Text } from '@astryxdesign/core/Text';
+import { VStack } from '@astryxdesign/core/VStack';
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
+import { EmptyState, ErrorState, LoadingState } from '@/components/feedback';
 import { Button, Input } from '@/components/ui';
 import { listMediaAction } from './actions';
 import { MediaUploader } from './MediaUploader';
@@ -29,6 +36,21 @@ export interface MediaPickerProps {
   triggerButtonText?: string;
 }
 
+type LoadState = 'idle' | 'done' | 'error';
+
+const noopSubscribe = () => () => undefined;
+
+/*
+ * Media picker dialog (OpenSpec change rebuild-ui-with-astryx, task 8.3).
+ * The overlay is the Astryx Dialog (native modal <dialog>: focus is trapped,
+ * Escape and the close button dismiss it, focus returns to the control that
+ * opened it). It is mounted only while open and rendered in a portal on document.body because it is used
+ * inside the product and article forms: inside the form, Enter in the search
+ * field or an alt field would submit the whole content form and the dialog's
+ * fields would be posted with it. Library, search, pagination and upload keep
+ * their previous behaviour; a failed library read now shows an error with a
+ * retry instead of an empty library.
+ */
 export function MediaPicker({
   name,
   label = 'تصویر',
@@ -51,111 +73,60 @@ export function MediaPicker({
   });
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [initialLoad, setInitialLoad] = useState<LoadState>('idle');
+  const [loadFailed, setLoadFailed] = useState(false);
   const [announcement, setAnnouncement] = useState('');
 
-  const isModalOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
-  const triggerContainerRef = useRef<HTMLDivElement>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const canPortal = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  const isControlled = controlledIsOpen !== undefined;
+  const isModalOpen = isControlled ? controlledIsOpen : internalIsOpen;
 
   const closeModal = useCallback(() => {
-    if (controlledOnClose) {
-      controlledOnClose();
-    } else {
-      setInternalIsOpen(false);
-    }
-    // Restore focus to trigger
-    setTimeout(() => {
-      triggerContainerRef.current?.querySelector<HTMLButtonElement>('button')?.focus();
-    }, 50);
+    if (controlledOnClose) controlledOnClose();
+    else setInternalIsOpen(false);
   }, [controlledOnClose]);
 
-  const openModal = () => {
-    setInternalIsOpen(true);
+  const applyPage = (data: AdminMediaPage) => {
+    setAssets(data.items);
+    setPageInfo({ page: data.page, pageSize: data.pageSize, total: data.total, totalPages: data.totalPages });
   };
 
-  // Fetch media from server action
   const fetchLibrary = useCallback(async (page = 1, searchQuery = '') => {
     setIsLoading(true);
+    setLoadFailed(false);
     try {
-      const res = await listMediaAction({
-        page,
-        pageSize: 20,
-        status: 'READY',
-        search: searchQuery.trim() || undefined,
-      });
+      const res = await listMediaAction({ page, pageSize: 20, status: 'READY', search: searchQuery.trim() || undefined });
       if (res.ok) {
         setAssets(res.data.items);
-        setPageInfo({
-          page: res.data.page,
-          pageSize: res.data.pageSize,
-          total: res.data.total,
-          totalPages: res.data.totalPages,
-        });
+        setPageInfo({ page: res.data.page, pageSize: res.data.pageSize, total: res.data.total, totalPages: res.data.totalPages });
+      } else {
+        setLoadFailed(true);
       }
+    } catch {
+      setLoadFailed(true);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Fetch when modal opens if assets are empty
+  // The first time the dialog opens without any asset, read the library once.
   useEffect(() => {
     let active = true;
-    if (isModalOpen && assets.length === 0) {
-      listMediaAction({
-        page: 1,
-        pageSize: 20,
-        status: 'READY',
-        search: search.trim() || undefined,
-      }).then((res) => {
-        if (!active) return;
-        if (res.ok) {
-          setAssets(res.data.items);
-          setPageInfo({
-            page: res.data.page,
-            pageSize: res.data.pageSize,
-            total: res.data.total,
-            totalPages: res.data.totalPages,
-          });
-        }
-      });
+    if (isModalOpen && assets.length === 0 && initialLoad === 'idle') {
+      listMediaAction({ page: 1, pageSize: 20, status: 'READY' })
+        .then((res) => {
+          if (!active) return;
+          if (res.ok) applyPage(res.data);
+          setInitialLoad(res.ok ? 'done' : 'error');
+        })
+        .catch(() => {
+          if (active) setInitialLoad('error');
+        });
     }
     return () => {
       active = false;
     };
-  }, [isModalOpen, assets.length, search]);
-
-  // Focus trap inside modal
-  useEffect(() => {
-    if (!isModalOpen) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        closeModal();
-        return;
-      }
-
-      if (e.key === 'Tab' && dialogRef.current) {
-        const focusableElements = dialogRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-        );
-        if (focusableElements.length === 0) return;
-
-        const firstElement = focusableElements[0];
-        const lastElement = focusableElements[focusableElements.length - 1];
-
-        if (e.shiftKey && document.activeElement === firstElement) {
-          e.preventDefault();
-          lastElement.focus();
-        } else if (!e.shiftKey && document.activeElement === lastElement) {
-          e.preventDefault();
-          firstElement.focus();
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isModalOpen, closeModal]);
+  }, [isModalOpen, assets.length, initialLoad]);
 
   const handleSelectAsset = (asset: AdminMediaAsset) => {
     setSelectedAssetId(asset.id);
@@ -170,183 +141,126 @@ export function MediaPicker({
   };
 
   const selectedAsset = assets.find((a) => a.id === selectedAssetId);
+  const showLoading = isLoading || (isModalOpen && assets.length === 0 && initialLoad === 'idle');
+  const showError = !showLoading && (loadFailed || (initialLoad === 'error' && assets.length === 0));
+  const retry = () => {
+    setInitialLoad('idle');
+    void fetchLibrary(pageInfo.page, search);
+  };
+  const title = `${label} - انتخاب تصویر`;
+
+  const dialog = (
+    <Dialog isOpen={isModalOpen} onOpenChange={(open) => { if (!open) closeModal(); }} purpose="info" width={832} maxHeight="90dvh" padding={0}>
+      <VStack gap={0} className={styles.dialogFrame}>
+        <DialogHeader title={title} onOpenChange={(open) => { if (!open) closeModal(); }} />
+        <div className={styles.tabsBar}>
+          <TabList role="tablist" value={activeTab} onChange={(value) => setActiveTab(value as 'library' | 'upload')} size="sm" aria-label="بخش‌های انتخاب تصویر">
+            <Tab value="library" label="کتابخانه رسانه" panelId="media-picker-library" />
+            <Tab value="upload" label="بارگذاری تصویر جدید" panelId="media-picker-upload" />
+          </TabList>
+        </div>
+
+        <div className={styles.dialogBody}>
+          {activeTab === 'library' ? (
+            <VStack gap={4} id="media-picker-library" role="tabpanel" aria-label="کتابخانه رسانه">
+              <HStack gap={2} vAlign="end" wrap="wrap" className={styles.searchBar}>
+                <Input
+                  label="جست‌وجو در رسانه‌ها"
+                  name="picker-search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      void fetchLibrary(1, search);
+                    }
+                  }}
+                  placeholder="متن جایگزین را وارد کنید…"
+                />
+                <Button type="button" variant="secondary" onClick={() => void fetchLibrary(1, search)}>جست‌وجو</Button>
+              </HStack>
+
+              {showLoading ? (
+                <LoadingState label="در حال بارگذاری رسانه‌ها…" />
+              ) : showError ? (
+                <ErrorState title="کتابخانه رسانه در دسترس نیست" message="دریافت رسانه‌ها انجام نشد. دوباره تلاش کنید." onRetry={retry} />
+              ) : assets.length === 0 ? (
+                <EmptyState title="هیچ رسانه‌ای یافت نشد" description="می‌توانید از زبانه بارگذاری، تصویر جدید اضافه کنید." />
+              ) : (
+                <ul className={styles.grid} aria-label="فهرست تصاویر">
+                  {assets.map((asset) => {
+                    const isSelected = asset.id === selectedAssetId;
+                    const altText = asset.defaultAlt || 'بدون متن جایگزین';
+                    return (
+                      <li key={asset.id} className={styles.gridCell}>
+                        <button
+                          type="button"
+                          aria-pressed={isSelected}
+                          className={`${styles.gridItem} ${isSelected ? styles.gridItemSelected : ''}`}
+                          onClick={() => handleSelectAsset(asset)}
+                        >
+                          <span className={styles.thumbWrap}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={`/api/admin-media/${encodeURIComponent(asset.id)}/preview?variant=thumb`}
+                              alt=""
+                              className={styles.thumbImg}
+                              loading="lazy"
+                            />
+                          </span>
+                          <span className={styles.gridItemInfo}>
+                            <Text as="span" weight="bold" color="inherit" className={styles.gridItemAlt}>{altText}</Text>
+                            {asset.sourceWidth && asset.sourceHeight ? (
+                              <Text as="span" type="supporting" color="secondary" dir="ltr">{`${asset.sourceWidth}×${asset.sourceHeight}`}</Text>
+                            ) : null}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+
+              {pageInfo.totalPages > 1 ? (
+                <HStack gap={2} hAlign="center" vAlign="center" wrap="wrap">
+                  <Button type="button" variant="secondary" disabled={pageInfo.page <= 1 || isLoading} onClick={() => void fetchLibrary(pageInfo.page - 1, search)}>قبلی</Button>
+                  <Text as="span" type="supporting" color="secondary">صفحه {pageInfo.page.toLocaleString('fa-IR')} از {pageInfo.totalPages.toLocaleString('fa-IR')}</Text>
+                  <Button type="button" variant="secondary" disabled={pageInfo.page >= pageInfo.totalPages || isLoading} onClick={() => void fetchLibrary(pageInfo.page + 1, search)}>بعدی</Button>
+                </HStack>
+              ) : null}
+            </VStack>
+          ) : (
+            <div id="media-picker-upload" role="tabpanel" aria-label="بارگذاری تصویر جدید">
+              <MediaUploader onUploadComplete={handleUploadedAsset} />
+            </div>
+          )}
+        </div>
+
+        <HStack gap={2} hAlign="end" className={styles.dialogFooter}>
+          <Button type="button" variant="secondary" onClick={closeModal}>انصراف</Button>
+        </HStack>
+      </VStack>
+    </Dialog>
+  );
 
   return (
     <div>
-      {name ? (
-        <input type="hidden" name={name} value={selectedAssetId ?? ''} />
-      ) : null}
+      {name ? <input type="hidden" name={name} value={selectedAssetId ?? ''} /> : null}
 
-      {controlledIsOpen === undefined && (
-        <div ref={triggerContainerRef} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={openModal}
-            aria-haspopup="dialog"
-          >
+      {!isControlled ? (
+        <HStack gap={3} vAlign="center" wrap="wrap">
+          <Button type="button" variant="secondary" onClick={() => setInternalIsOpen(true)} aria-haspopup="dialog">
             {triggerButtonText}
           </Button>
-          {selectedAsset && (
-            <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-              انتخاب‌شده: {selectedAsset.defaultAlt ?? selectedAsset.id}
-            </span>
-          )}
-        </div>
-      )}
+          {selectedAsset ? (
+            <Text as="span" type="supporting" color="secondary">انتخاب‌شده: {selectedAsset.defaultAlt ?? selectedAsset.id}</Text>
+          ) : null}
+        </HStack>
+      ) : null}
 
-      {isModalOpen && (
-        <div
-          className={styles.dialogBackdrop}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) closeModal();
-          }}
-        >
-          <div
-            ref={dialogRef}
-            className={styles.dialog}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="media-picker-title"
-          >
-            <div className={styles.dialogHeader}>
-              <h2 id="media-picker-title">{label} - انتخاب تصویر</h2>
-              <button
-                type="button"
-                className={styles.closeButton}
-                onClick={closeModal}
-                aria-label="بستن پنجره"
-              >
-                ✕
-              </button>
-            </div>
+      {canPortal && isModalOpen ? createPortal(dialog, document.body) : null}
 
-            <div className={styles.tabs} role="tablist">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeTab === 'library'}
-                className={`${styles.tab} ${activeTab === 'library' ? styles.tabActive : ''}`}
-                onClick={() => setActiveTab('library')}
-              >
-                کتابخانه رسانه
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeTab === 'upload'}
-                className={`${styles.tab} ${activeTab === 'upload' ? styles.tabActive : ''}`}
-                onClick={() => setActiveTab('upload')}
-              >
-                بارگذاری تصویر جدید
-              </button>
-            </div>
-
-            <div className={styles.dialogBody}>
-              {activeTab === 'library' ? (
-                <>
-                  <div className={styles.searchBar}>
-                    <Input
-                      label="جست‌وجو در رسانه‌ها"
-                      name="picker-search"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder="متن جایگزین را وارد کنید…"
-                    />
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => fetchLibrary(1, search)}
-                    >
-                      جست‌وجو
-                    </Button>
-                  </div>
-
-                  {isLoading ? (
-                    <p style={{ textAlign: 'center', padding: '2rem' }}>در حال بارگذاری رسانه‌ها…</p>
-                  ) : assets.length === 0 ? (
-                    <p style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-secondary)' }}>
-                      هیچ رسانه‌ای یافت نشد. می‌توانید از زبانه بارگذاری، تصویر جدید اضافه کنید.
-                    </p>
-                  ) : (
-                    <div className={styles.grid} role="listbox" aria-label="فهرست تصاویر">
-                      {assets.map((asset) => {
-                        const isSelected = asset.id === selectedAssetId;
-                        return (
-                          <button
-                            key={asset.id}
-                            type="button"
-                            role="option"
-                            aria-selected={isSelected}
-                            className={`${styles.gridItem} ${isSelected ? styles.gridItemSelected : ''}`}
-                            onClick={() => handleSelectAsset(asset)}
-                          >
-                            <div className={styles.thumbWrap}>
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={`/api/admin-media/${encodeURIComponent(asset.id)}/preview?variant=thumb`}
-                                alt={asset.defaultAlt ?? ''}
-                                className={styles.thumbImg}
-                                loading="lazy"
-                              />
-                            </div>
-                            <div className={styles.gridItemInfo}>
-                              <span className={styles.gridItemAlt} title={asset.defaultAlt ?? asset.id}>
-                                {asset.defaultAlt || 'بدون متن جایگزین'}
-                              </span>
-                              <span className={styles.gridItemMeta} dir="ltr">
-                                {asset.sourceWidth && asset.sourceHeight
-                                  ? `${asset.sourceWidth}×${asset.sourceHeight}`
-                                  : ''}
-                              </span>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {pageInfo.totalPages > 1 && (
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1rem' }}>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={pageInfo.page <= 1 || isLoading}
-                        onClick={() => fetchLibrary(pageInfo.page - 1, search)}
-                      >
-                        قبلی
-                      </Button>
-                      <span style={{ alignSelf: 'center', fontSize: '0.88rem' }}>
-                        صفحه {pageInfo.page} از {pageInfo.totalPages}
-                      </span>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={pageInfo.page >= pageInfo.totalPages || isLoading}
-                        onClick={() => fetchLibrary(pageInfo.page + 1, search)}
-                      >
-                        بعدی
-                      </Button>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <MediaUploader onUploadComplete={handleUploadedAsset} />
-              )}
-            </div>
-
-            <div className={styles.dialogFooter}>
-              <Button type="button" variant="secondary" onClick={closeModal}>
-                انصراف
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className={styles.srOnly} aria-live="polite" aria-atomic="true">
-        {announcement}
-      </div>
+      <div className={styles.srOnly} aria-live="polite" aria-atomic="true">{announcement}</div>
     </div>
   );
 }
