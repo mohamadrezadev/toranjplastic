@@ -69,6 +69,13 @@
   --color-border-warning: var(--color-status-warning);
   --color-border-error: var(--color-status-danger);
   --color-border-info: var(--color-status-info);
+  /* Text and icons on the muted status surfaces (Banner, status badges). Neutral
+     ships its own dark tones for these roles; the Toranj status tokens keep at
+     least 4.5:1 on the matching *-surface tokens in both themes. */
+  --color-on-success-muted: var(--color-status-success);
+  --color-on-warning-muted: var(--color-status-warning);
+  --color-on-error-muted: var(--color-status-danger);
+  --color-on-info-muted: var(--color-status-info);
 }
 
 /*

@@ -2,6 +2,7 @@
 
 import { Button as AstryxButton } from "@astryxdesign/core/Button";
 import { Children, type ButtonHTMLAttributes, type ReactNode } from "react";
+import styles from "./Button.module.css";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
@@ -12,6 +13,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   href?: string;
   target?: string;
   rel?: string;
+  /** Lets a long label wrap onto more lines instead of ending in an ellipsis; the 44px minimum target stays. */
+  wrapLabel?: boolean;
 }
 
 function accessibleText(children: ReactNode): string {
@@ -29,6 +32,7 @@ export function Button({
   href,
   target,
   rel,
+  wrapLabel = false,
   children,
   className,
   type = "button",
@@ -37,6 +41,7 @@ export function Button({
   const visibleLabel = accessibleText(children);
   const label = isLoading ? loadingText : (typeof props["aria-label"] === "string" ? props["aria-label"] : visibleLabel);
   const nativeDisabled = disabled || isLoading;
+  const classNames = [wrapLabel ? styles.wrapLabel : undefined, className].filter(Boolean).join(" ") || undefined;
 
   return (
     <AstryxButton
@@ -45,7 +50,7 @@ export function Button({
       label={label || "عملیات"}
       variant={variant === "danger" ? "destructive" : variant}
       type={type}
-      className={className}
+      className={classNames}
       isDisabled={nativeDisabled}
       isLoading={isLoading}
       href={href}

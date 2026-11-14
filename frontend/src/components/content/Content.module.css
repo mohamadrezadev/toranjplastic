@@ -9,42 +9,46 @@
  */
 
 /* ---------- Route frames used by the page files (contentStyles) ---------- */
+/*
+ * Frame convention: a page frame is an Astryx VStack (as section or article,
+ * gap 0) with .section and the global .content-container; an empty state sits
+ * in an Astryx Center; the detail column is a VStack with .detailContent.
+ */
 .main { min-height: 60vh; padding-block-end: var(--space-16); }
 .section { padding-block: clamp(2.5rem, 6vw, 5rem); }
 .managed { max-width: 52rem; }
 .catalogSection { padding-block-start: clamp(3rem, 6vw, 5rem); scroll-margin-top: 6rem; }
-.detailContent { max-width: 68rem; margin-inline: auto; }
-
 /*
- * Link actions written by route files. They mirror the Astryx Button metrics
- * (height, radius, label type) so a page that mixes them with Button-adapter
- * actions reads as one system. Labels may wrap instead of being clipped.
+ * The in-page catalog target takes programmatic focus (tabIndex -1) so the
+ * next Tab continues inside the catalog. It is a region, not a control, so it
+ * draws no focus ring of its own.
  */
-.primaryLink,
-.secondaryLink {
-  min-height: var(--size-element-md, var(--control-min-height));
-  padding-block: var(--space-2);
-  padding-inline: var(--space-3);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  border-radius: var(--radius-element, var(--radius-sm));
-  font-size: var(--font-size-body);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-heading);
-  text-align: center;
-  text-decoration: none;
-  transition: background-color var(--motion-fast) var(--motion-easing), color var(--motion-fast) var(--motion-easing);
-}
-.primaryLink { color: var(--color-on-action); background-color: var(--color-brand-action); }
-.primaryLink:hover { color: var(--color-on-action); background-color: var(--color-brand-action-hover); }
-.secondaryLink { color: var(--color-text-primary); background-color: var(--color-neutral, var(--color-surface-subtle)); }
-.secondaryLink:hover { color: var(--color-text-primary); background-color: color-mix(in srgb, var(--color-text-primary) 12%, transparent); }
+.catalogSection:focus,
+.catalogSection:focus-visible { outline: none; box-shadow: none; }
+/* Full width up to the 68rem measure under a block or a flex parent: auto margins alone would shrink a flex item to its content. */
+.detailContent { inline-size: 100%; max-width: 68rem; margin-inline: auto; }
 
 /* ---------- Shared type roles ---------- */
-.title { color: var(--color-brand-primary); }
-.lead { max-width: 46rem; }
+/*
+ * Public headings and summaries break inside an unbreakable run (a code, an
+ * identifier, a URL). Astryx Heading and Text set `overflow-wrap: break-word`,
+ * which leaves the run's full width as the element's min-content width: in a
+ * shrink-to-fit flex column the element then grows past its card and the card's
+ * clip hides the start of every line. `anywhere` lets the min-content width
+ * shrink to one character, so the box keeps the column's width.
+ */
+.title { color: var(--color-brand-primary); overflow-wrap: anywhere; }
+.lead { max-width: 46rem; overflow-wrap: anywhere; }
+/*
+ * SectionTitle: halfway between the heading-sm token (card titles) and the
+ * heading-lg size of the level-one page title, so h1 > h2 > h3 at every width
+ * (28, 31.2 and 40px at 360, 768 and 1280px; the page title is 32, 38.4 and
+ * 56px there).
+ */
+.sectionTitle {
+  font-size: calc((var(--font-size-heading-sm) + var(--font-size-heading-lg)) / 2);
+  line-height: var(--line-height-heading);
+}
 
 /* ---------- ContentPageHeading ---------- */
 .heading {
@@ -114,7 +118,6 @@
   padding-block-end: var(--space-6);
   border-block-end: var(--border-width) solid var(--color-border-default);
 }
-.sectionTitle { font-size: var(--font-size-heading-lg); line-height: var(--text-heading-1-leading, var(--line-height-heading)); }
 
 /* ---------- ContentGrid ---------- */
 .grid { margin-block-start: clamp(1.5rem, 4vw, 3rem); }
@@ -134,7 +137,16 @@
 .gridFeatured .cardBody { min-height: 0; justify-content: center; }
 
 /* ---------- ContentCard (an Astryx Card) ---------- */
+/*
+ * Natural height (public-visual-experience: "predictable natural sizing ...
+ * without creating artificial empty card regions"). The Astryx Grid stretches
+ * its items to the tallest card of the row, which left a blank band between a
+ * short card's summary and its action whenever a neighbour had a longer title,
+ * tag or summary. A card keeps the height of its own content instead; the action
+ * link still closes the card (.cardLink) and the media keeps one footprint.
+ */
 .card {
+  align-self: start;
   display: flex;
   flex-direction: column;
   transition: transform var(--motion-normal) var(--motion-easing), box-shadow var(--motion-normal) var(--motion-easing), border-color var(--motion-normal) var(--motion-easing);
@@ -176,6 +188,16 @@
   font-size: var(--font-size-sm);
 }
 .cardBody { flex: 1 1 auto; min-width: 0; padding: clamp(1rem, 2.5vw, 1.5rem); }
+/*
+ * One card title size at either outline rank: a level-three title (a card
+ * under its caller's own section heading) keeps the Astryx level-two type
+ * scale instead of shrinking to the level-three step.
+ */
+.cardTitle {
+  font-size: var(--text-heading-2-size);
+  font-weight: var(--text-heading-2-weight);
+  line-height: var(--text-heading-2-leading);
+}
 .meta { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
 .cardLink {
   width: 100%;
@@ -188,10 +210,53 @@
 }
 
 /* ---------- ContentTag (an Astryx Badge) ---------- */
+/*
+ * The Badge keeps one line and cuts a long label with an ellipsis; a long CMS
+ * category, family or manufacturer value wraps instead (the label inherits
+ * white-space from the Badge root), so the whole value stays visible.
+ */
 .tag {
+  height: auto;
   color: var(--color-brand-primary);
   background-color: var(--color-brand-action-soft);
   border-radius: var(--radius-sm);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+
+/* ---------- ArticleMeta: a linked category (an Astryx Link) ---------- */
+/* The link box is the 44 by 44 pixel target; the visible pill sits inside it. */
+.tagLink {
+  min-block-size: var(--control-min-height);
+  min-inline-size: var(--control-min-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/*
+ * The tag colours plus a border and a permanent underline: unlike the plain
+ * tag it reads as a link without hover. Hover and keyboard focus strengthen
+ * the border and the underline.
+ */
+.tagLinkLabel {
+  padding-inline: var(--space-2);
+  color: var(--color-brand-primary);
+  background-color: var(--color-brand-action-soft);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.8;
+  text-decoration-line: underline;
+  text-underline-offset: .3em;
+  overflow-wrap: anywhere;
+  transition: border-color var(--motion-fast) var(--motion-easing);
+}
+.tagLink:hover .tagLinkLabel,
+.tagLink:focus-visible .tagLinkLabel {
+  border-color: var(--color-brand-action);
+  text-decoration-thickness: 2px;
 }
 
 /* ---------- Pagination ---------- */
@@ -203,16 +268,27 @@
   grid-template-columns: minmax(0, 1.08fr) minmax(20rem, .92fr);
   align-items: stretch;
 }
+/*
+ * The media panel keeps its own width. Its implicit grid track is pinned to the
+ * panel (minmax(0, 1fr)): an auto track grows to the max-content width of its
+ * item, and an image that fails to load is laid out from its width and height
+ * attributes (726 by 545 for a featured image), so it used to widen the track,
+ * leave the panel and paint over the copy column beside it.
+ */
 .detailMedia {
   min-width: 0;
   min-height: 32rem;
   padding: clamp(1rem, 3vw, 2rem);
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   place-items: center;
+  overflow: hidden;
   background: linear-gradient(145deg, var(--color-surface-subtle), var(--color-surface-raised));
 }
 .heroMedia {
   width: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
   height: 100%;
   max-height: 38rem;
   display: block;
@@ -229,7 +305,16 @@
   border: var(--border-width) dashed var(--color-border-strong);
   border-radius: var(--radius-md);
 }
+/*
+ * Every element of the copy column shrinks to the column and breaks inside an
+ * unbreakable run, so a long title, summary, category or note stays inside the
+ * hero card at every width (see the shared type roles above).
+ */
 .detailCopy { min-width: 0; padding: clamp(2rem, 5vw, 4rem); }
+.detailCopy > * { min-inline-size: 0; max-inline-size: 100%; overflow-wrap: anywhere; }
+/* No image and no placeholder: one column, with the ContentPageHeading measure. */
+.detailHeroTextOnly { grid-template-columns: minmax(0, 1fr); }
+.detailHeroTextOnly .detailCopy { max-width: 54rem; }
 .detailNote {
   padding-block-start: var(--space-4);
   border-block-start: var(--border-width) solid var(--color-border-default);
@@ -238,28 +323,89 @@
 /* ---------- PreservedText, ImageGallery, Specifications ---------- */
 .contentBody { max-width: 52rem; margin-block-start: clamp(3rem, 7vw, 5rem); }
 .preserved { white-space: pre-wrap; overflow-wrap: anywhere; }
-.gallery { margin-block-start: var(--space-12); }
+/*
+ * ImageGallery: uniform tiles. Images of mixed proportions (portrait, square,
+ * landscape) used to keep their natural heights in two top-aligned tracks, which
+ * left a hole beside the shorter picture and an empty track beside an odd last
+ * one. Every picture now sits whole (object-fit: contain, never cropped, so no
+ * approved content is hidden) in a 4:3 tile on the subtle surface, so rows line
+ * up. From two tracks up (31rem: two 240px minimums plus the 16px gap of the
+ * Astryx Grid) an odd last tile is centred at the width of its neighbours instead
+ * of leaving a track empty beside it; below that the gallery is one column.
+ * The section is the size container for that step.
+ */
+.gallery { margin-block-start: var(--space-12); container-type: inline-size; }
 .galleryImage {
   width: 100%;
   height: auto;
+  aspect-ratio: 4 / 3;
   display: block;
+  object-fit: contain;
   border-radius: var(--radius-md);
   background-color: var(--color-surface-subtle);
 }
-.specifications { max-width: 52rem; margin-block-start: var(--space-12); }
+@container (min-width: 31rem) {
+  .galleryGrid > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: calc((100% - var(--spacing-4)) / 2);
+  }
+}
+
+/*
+ * Specifications: the engineered spec sheet. A framed panel with a header
+ * band; inside it, Astryx MetadataList renders a <dl> whose <dt>/<dd> pairs
+ * are the grid rows. The element rules below draw ruled rows, the shaded
+ * label column and alternating row fills on those elements (scoped to
+ * .specSheet, never Astryx internals or generated classes).
+ */
+.specifications {
+  max-width: 52rem;
+  margin-block-start: var(--space-12);
+  overflow: hidden;
+  background-color: var(--color-surface-card);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+.specificationsTitle {
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--color-surface-raised);
+  border-block-end: var(--border-width) solid var(--color-border-strong);
+}
+/* Cells stretch to their row so fills and rules line up; each starts at its first line. */
+.specSheet dl { gap: 0; align-items: stretch; }
+.specSheet dt,
+.specSheet dd {
+  min-width: 0;
+  min-height: 0;
+  padding: var(--space-3) var(--space-6);
+  border-block-end: var(--border-width) solid var(--color-border-default);
+  overflow-wrap: anywhere;
+}
+.specSheet dt {
+  align-items: flex-start;
+  background-color: var(--color-surface-raised);
+  border-inline-end: var(--border-width) solid var(--color-border-default);
+}
+.specSheet dd { background-color: var(--color-surface-card); }
+/* Alternating rows: every second pair takes the next surface step. */
+.specSheet dt:nth-of-type(even) { background-color: var(--color-surface-subtle); }
+.specSheet dd:nth-of-type(even) { background-color: var(--color-surface-raised); }
+.specSheet dt:last-of-type,
+.specSheet dd:last-of-type { border-block-end: 0; }
+/* LTR codes, grades and units: the monospaced code face (mapped in astryx-theme.css). */
+.specValue { font-family: var(--font-family-code, ui-monospace, monospace); }
 
 /* ---------- DetailInquiryCard (an Astryx Card) ---------- */
 .inquirySection { margin-block-start: var(--space-12); }
 /* Astryx's documented card padding token; the Card keeps its theme padding mode. */
 .inquiryCard { --astryx-card-padding: clamp(1.25rem, 4vw, 2.5rem); }
 .inquiryLead { max-width: 48rem; }
-/* Long Persian action labels wrap instead of being cut with an ellipsis. */
-.inquiryAction {
-  height: auto;
-  min-height: var(--size-element-md, var(--control-min-height));
-  white-space: normal;
-  text-align: center;
-}
+/*
+ * The action label wraps through the Button adapter's wrapLabel prop;
+ * .inquiryAction only makes it a full-width row on mobile (below).
+ */
 
 /* ---------- CampaignBanner (retained Toranj image link) ---------- */
 .campaignBanner {
@@ -277,72 +423,84 @@
 .campaignBanner:focus-visible { outline: .25rem solid var(--color-brand-action); outline-offset: .25rem; }
 .campaignBannerImage { width: 100%; height: auto; display: block; }
 
-/* ---------- Institutional sections written by the about/contact routes ---------- */
-.institutionalSection { margin-block-start: clamp(2.5rem, 6vw, 4rem); display: grid; gap: 1.25rem; }
-.institutionalSection h2 { color: var(--color-brand-primary); font-size: var(--font-size-heading-sm); font-weight: var(--font-weight-bold); line-height: var(--line-height-heading); }
-.institutionalGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; }
-.institutionalCard {
-  padding: clamp(1.25rem, 2.5vw, 1.75rem);
-  display: flex;
-  flex-direction: column;
-  gap: .75rem;
-  background-color: var(--color-surface-card);
-  border: var(--border-width) solid var(--color-border-default);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+/* ---------- BalancedGrid and ContentGrid with three or more cards ---------- */
+/*
+ * Three columns above 64rem, two from 40rem and one at or below 40rem (the
+ * home capability-card steps). The column template overrides the Astryx Grid
+ * template through the Grid's className (unlayered, so it outranks the
+ * astryx-base layer); the Grid keeps its gap.
+ */
+.balancedGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+@media (max-width: 64rem) {
+  .balancedGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* An odd last item spans the row instead of sitting beside an empty track. */
+  .balancedGrid > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+  /* A spanning content card turns horizontal, like the featured card, instead of a row-wide 4:3 image. */
+  .balancedGrid > .card:last-child:nth-child(odd) {
+    display: grid;
+    grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+  }
+  .balancedGrid > .card:last-child:nth-child(odd) .cardMediaLink {
+    min-height: 14rem;
+    border-block-end: 0;
+    border-inline-end: var(--border-width) solid var(--color-border-default);
+  }
+  /* The card body sets the row height; the media fills it instead of growing it. */
+  .balancedGrid > .card:last-child:nth-child(odd) :is(.cardMedia, .cardPlaceholder) {
+    height: 0;
+    min-height: 100%;
+    aspect-ratio: auto;
+  }
 }
-.institutionalCard:hover { border-color: color-mix(in srgb, var(--color-brand-action) 50%, var(--color-border-default)); }
-.institutionalCard h3 { color: var(--color-brand-primary); font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); }
-.institutionalCard p { color: var(--color-text-secondary); font-size: var(--font-size-sm); line-height: 1.8; }
-/* A standalone phone or email action: 44px target, LTR digits, right aligned like the surrounding Persian text. */
-.contactChannelValue {
-  min-block-size: var(--control-min-height);
-  margin-block-start: var(--space-1);
-  display: inline-block;
-  direction: ltr;
-  text-align: right;
-  color: var(--color-brand-action);
-  font-family: var(--font-family-latin);
-  font-size: 1.25rem;
-  font-weight: var(--font-weight-bold);
-  line-height: var(--control-min-height);
+
+@media (max-width: 40rem) {
+  .balancedGrid { grid-template-columns: minmax(0, 1fr); }
+  .balancedGrid > :last-child:nth-child(odd) { grid-column: auto; }
+  .balancedGrid > .card:last-child:nth-child(odd) { display: flex; }
+  .balancedGrid > .card:last-child:nth-child(odd) .cardMediaLink {
+    min-height: 0;
+    border-inline-end: 0;
+    border-block-end: var(--border-width) solid var(--color-border-default);
+  }
+  .balancedGrid > .card:last-child:nth-child(odd) :is(.cardMedia, .cardPlaceholder) {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 4 / 3;
+  }
 }
-.contactChannelValue:hover { color: var(--color-brand-action-hover); text-decoration: underline; }
-.contactMetaGrid { margin-block-start: 1rem; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.25rem; }
-.contactMetaCard {
-  padding: clamp(1.25rem, 2.5vw, 1.75rem);
-  display: flex;
-  flex-direction: column;
-  gap: .75rem;
-  background-color: var(--color-surface-raised);
-  border: var(--border-width) solid var(--color-border-default);
-  border-radius: var(--radius-lg);
-}
-.contactMetaCard h3 { color: var(--color-brand-primary); font-size: 1.1rem; }
-.contactMetaCard p, .contactMetaCard li { color: var(--color-text-secondary); font-size: var(--font-size-sm); line-height: 1.8; }
-.contactMetaCard ul { margin: 0; padding: 0; display: grid; gap: .4rem; list-style: none; }
 
 /* ---------- Tablet (at or below 56rem) ---------- */
 @media (max-width: 56rem) {
   .landingHero { min-height: 0; grid-template-columns: minmax(0, 1fr); }
   .landingCopy { padding: clamp(1.5rem, 5vw, 2.5rem); }
   .landingTitle { max-width: 14ch; }
-  .landingMedia { min-height: 16rem; max-height: 16rem; order: -1; }
-  .landingMedia picture { height: 100%; }
+  /*
+   * A fixed-height artwork strip. The picture stretches into the strip's one
+   * row, so the image's 100% height resolves and object-fit crops it from the
+   * bottom (the product half) instead of the overflow clip cutting the
+   * artwork's rasterized headline in half.
+   */
+  .landingMedia {
+    height: 16rem;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
+    place-items: stretch;
+    order: -1;
+  }
+  .landingMedia picture { height: 100%; min-height: 0; }
   .landingMedia img { height: 100%; aspect-ratio: auto; object-position: center bottom !important; }
   .catalogHeading { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
   .gridFeatured > .card { height: 20rem; grid-template-columns: minmax(16rem, .85fr) minmax(0, 1.15fr); }
   .detailHero { grid-template-columns: minmax(0, 1fr); }
   .detailMedia { min-height: 25rem; }
-  .institutionalGrid,
-  .contactMetaGrid { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ---------- Mobile (at or below 38rem) ---------- */
 @media (max-width: 38rem) {
   .section { padding-block: 2rem 3rem; }
   .catalogSection { padding-block-start: 2.75rem; }
-  .landingMedia { min-height: 10rem; max-height: 10rem; padding: .65rem; }
+  .landingMedia { height: 10rem; padding: .65rem; }
   .landingMediaLabel { display: none; }
   .landingCopy { padding: 1.25rem; }
   /* The Astryx HStack becomes a full-width action column. */
@@ -359,6 +517,14 @@
   .cardBody { padding: var(--space-4); }
   .detailMedia { min-height: 19rem; padding: .75rem; }
   .detailCopy { padding: var(--space-6); }
+  /* One column: each label cell sits above its value as the row's band. */
+  .specSheet dl { grid-template-columns: minmax(0, 1fr); }
+  .specSheet dt {
+    padding-block-end: var(--space-1);
+    border-block-end: 0;
+    border-inline-end: 0;
+  }
+  .specSheet dd { padding-block-start: var(--space-1); }
   .inquiryAction { width: 100%; }
   .campaignBanner { width: 100%; margin-block-end: var(--space-8); border-radius: .55rem; }
 }

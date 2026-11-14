@@ -1,11 +1,64 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import type { ReactNode } from "react";
+import { Card } from "@astryxdesign/core/Card";
+import { Grid } from "@astryxdesign/core/Grid";
+import { Heading } from "@astryxdesign/core/Heading";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Link } from "@astryxdesign/core/Link";
+import { MetadataList, MetadataListItem } from "@astryxdesign/core/MetadataList";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/navigation";
-import { DetailHero, ImageGallery, contentStyles } from "@/components/content";
+import { BalancedGrid, DetailHero, ImageGallery, contentStyles } from "@/components/content";
+import { Button, DirectionalData } from "@/components/ui";
 import { getManagedPage, isNotFoundError } from "@/lib/public-content";
 import { publicContentMetadata } from "@/lib/content-metadata";
 import { contactPageJsonLd, serializeJsonLd } from "@/lib/jsonld";
+import styles from "../institutional-pages.module.css";
+
+type ContactChannel = {
+  title: string;
+  description: ReactNode;
+  values: ReadonlyArray<{ href: string; label: string }>;
+};
+
+/*
+ * The verified official channels. Phone numbers and the email address are
+ * standalone actions with an isolated LTR value; nothing here may be added
+ * without approved content.
+ */
+const contactChannels: ReadonlyArray<ContactChannel> = [
+  {
+    title: "واحد فروش محصولات و سفارش‌های عمده",
+    description: "جهت استعلام محصولات کاتالوگ ترنج، پیگیری تیراژ و هماهنگی خرید عمده با کارشناسان فروش در تماس باشید.",
+    values: [
+      { href: "tel:+989132075925", label: "۰۹۱۳۲۰۷۵۹۲۵" },
+      { href: "tel:+989122009515", label: "۰۹۱۲۲۰۰۹۵۱۵" },
+    ],
+  },
+  {
+    title: "پشتیبانی فنی وب‌سایت",
+    description: "راهنمایی کاربری، رفع مشکلات فنی در ثبت استعلام آنلاین و ورود به حساب کاربری سایت.",
+    values: [{ href: "tel:+989104500086", label: "۰۹۱۰۴۵۰۰۰۸۶" }],
+  },
+  {
+    title: "واحد تأمین مواد اولیه پلیمری و مکاتبات",
+    description: (
+      <>
+        استعلام انواع گریدهای پلیمری (<DirectionalData>PP, PE</DirectionalData>)، ارسال مشخصات فنی سفارش و مکاتبات رسمی از طریق ایمیل کارخانه.
+      </>
+    ),
+    values: [{ href: "mailto:info@toranjplastic.com", label: "info@toranjplastic.com" }],
+  },
+];
+
+/* The verified business hours, as label and value pairs. */
+const businessHours: ReadonlyArray<{ days: string; hours: string }> = [
+  { days: "شنبه تا چهارشنبه:", hours: "۸:۰۰ الی ۱۷:۰۰" },
+  { days: "پنج‌شنبه‌ها:", hours: "۸:۰۰ الی ۱۳:۰۰" },
+  { days: "جمعه‌ها و تعطیلات رسمی:", hours: "تعطیل" },
+];
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -24,6 +77,13 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
+/*
+ * Contact (OpenSpec change rebuild-ui-with-astryx, task 5.3). The record is an
+ * Astryx VStack rendered as <article> (the shared frame convention). The three
+ * channel cards use the shared BalancedGrid steps, so the third card never
+ * sits beside an empty track. Actions use the Button adapter's wrapLabel; only
+ * the closing call-to-action row becomes full width on mobile.
+ */
 export default async function ContactPage() {
   let page;
   try {
@@ -40,99 +100,78 @@ export default async function ContactPage() {
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(contactPageJsonLd(page)) }}
       />
       <Breadcrumb items={[{ label: "خانه", href: "/" }, { label: page.title }]} />
-      <article className={`${contentStyles.section} content-container`}>
+      <VStack as="article" gap={0} className={`${contentStyles.section} content-container`}>
         <DetailHero
           eyebrow="تماس با ما"
           title={page.title}
           summary={page.summary}
           image={page.images[0]}
-          action={
-            <Link className={contentStyles.primaryLink} href="/inquiry">
-              ثبت آنلاین استعلام قیمت
-            </Link>
-          }
+          action={<Button href="/inquiry" wrapLabel>ثبت آنلاین استعلام قیمت</Button>}
           note="کارشناسان ترنج پلاستیک در ساعات کاری رسمی آماده پاسخگویی به استعلام‌ها و مشاوره‌های مهندسی هستند."
         />
 
-        <div className={contentStyles.detailContent}>
-          <section className={contentStyles.institutionalSection} aria-labelledby="contact-channels-title">
-            <h2 id="contact-channels-title">کانال‌های ارتباط مستقیم با کارخانه</h2>
-            <div className={contentStyles.institutionalGrid}>
-              <div className={contentStyles.institutionalCard}>
-                <h3>واحد فروش محصولات و سفارش‌های عمده</h3>
-                <p>
-                  جهت استعلام محصولات کاتالوگ ترنج، پیگیری تیراژ و هماهنگی خرید عمده با کارشناسان فروش در تماس باشید.
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
-                  <a className={contentStyles.contactChannelValue} href="tel:+989132075925">
-                    ۰۹۱۳۲۰۷۵۹۲۵
-                  </a>
-                  <a className={contentStyles.contactChannelValue} href="tel:+989122009515">
-                    ۰۹۱۲۲۰۰۹۵۱۵
-                  </a>
-                </div>
-              </div>
+        <VStack gap={0} className={contentStyles.detailContent}>
+          <VStack as="section" gap={5} aria-labelledby="contact-channels-title" className={styles.section}>
+            <Heading level={2} id="contact-channels-title" color="inherit" className={styles.title}>کانال‌های ارتباط مستقیم با کارخانه</Heading>
+            <BalancedGrid>
+              {contactChannels.map((channel) => (
+                <Card key={channel.title} elevation="low" className={styles.card}>
+                  <VStack gap={3}>
+                    <Heading level={3} color="inherit" className={styles.title}>{channel.title}</Heading>
+                    <Text as="p" type="supporting">{channel.description}</Text>
+                    <VStack gap={1} hAlign="start">
+                      {channel.values.map((value) => (
+                        <Link key={value.href} href={value.href} size="lg" weight="bold" className={styles.channelLink}>
+                          <DirectionalData>{value.label}</DirectionalData>
+                        </Link>
+                      ))}
+                    </VStack>
+                  </VStack>
+                </Card>
+              ))}
+            </BalancedGrid>
 
-              <div className={contentStyles.institutionalCard}>
-                <h3>پشتیبانی فنی وب‌سایت</h3>
-                <p>
-                  راهنمایی کاربری، رفع مشکلات فنی در ثبت استعلام آنلاین و ورود به حساب کاربری سایت.
-                </p>
-                <a className={contentStyles.contactChannelValue} href="tel:+989104500086">
-                  ۰۹۱۰۴۵۰۰۰۸۶
-                </a>
-              </div>
+            <Grid columns={{ minWidth: 280, max: 2 }} gap={5}>
+              <Card className={styles.card}>
+                <VStack gap={3}>
+                  <Heading level={3} color="inherit" className={styles.title}>ساعات کاری و پذیرش</Heading>
+                  <MetadataList label={{ position: "start", width: "minmax(7rem, 50%)" }}>
+                    {businessHours.map((entry) => (
+                      <MetadataListItem key={entry.days} label={entry.days}>{entry.hours}</MetadataListItem>
+                    ))}
+                  </MetadataList>
+                </VStack>
+              </Card>
 
-              <div className={contentStyles.institutionalCard}>
-                <h3>واحد تأمین مواد اولیه پلیمری و مکاتبات</h3>
-                <p>
-                  استعلام انواع گریدهای پلیمری (PP, PE)، ارسال مشخصات فنی سفارش و مکاتبات رسمی از طریق ایمیل کارخانه.
-                </p>
-                <a className={contentStyles.contactChannelValue} href="mailto:info@toranjplastic.com">
-                  info@toranjplastic.com
-                </a>
-              </div>
-            </div>
-
-            <div className={contentStyles.contactMetaGrid}>
-              <div className={contentStyles.contactMetaCard}>
-                <h3>ساعات کاری و پذیرش</h3>
-                <ul>
-                  <li><strong>شنبه تا چهارشنبه:</strong> ۸:۰۰ الی ۱۷:۰۰</li>
-                  <li><strong>پنج‌شنبه‌ها:</strong> ۸:۰۰ الی ۱۳:۰۰</li>
-                  <li><strong>جمعه‌ها و تعطیلات رسمی:</strong> تعطیل</li>
-                </ul>
-              </div>
-
-              <div className={contentStyles.contactMetaCard}>
-                <h3>نشانی کارخانه و انبار مرکزی</h3>
-                <p>
-                  تهران، کهریزک، مجتمع تولیدی صنایع پلاستیک ترنج
-                </p>
-                <p style={{ color: "var(--color-text-muted)", fontSize: "0.82rem" }}>
-                  دسترسی مستقیم ناوگان حمل‌ونقل و باربری‌های صنعتی جهت بارگیری و ارسال ایمن به سراسر کشور.
-                </p>
-              </div>
-            </div>
-          </section>
+              <Card className={styles.card}>
+                <VStack gap={3}>
+                  <Heading level={3} color="inherit" className={styles.title}>نشانی کارخانه و انبار مرکزی</Heading>
+                  <Text as="p">تهران، کهریزک، مجتمع تولیدی صنایع پلاستیک ترنج</Text>
+                  <Text as="p" type="supporting">
+                    دسترسی مستقیم ناوگان حمل‌ونقل و باربری‌های صنعتی جهت بارگیری و ارسال ایمن به سراسر کشور.
+                  </Text>
+                </VStack>
+              </Card>
+            </Grid>
+          </VStack>
 
           <ImageGallery images={page.images} />
 
-          <section className={contentStyles.institutionalSection} aria-labelledby="fast-inquiry-box-title">
-            <h2 id="fast-inquiry-box-title">سریع‌ترین مسیر: ثبت استعلام در سامانه آنلاین</h2>
-            <div className={contentStyles.institutionalCard} style={{ gap: "1.25rem", padding: "2rem" }}>
-              <p style={{ fontSize: "var(--font-size-body)", lineHeight: "1.9" }}>
-                برای بررسی دقیق ابعاد فنی پروژه، آپلود مدارک و صدور پیش‌فاکتور مکتوب، سامانه استعلام آنلاین ترنج پلاستیک در دسترس شماست. کارشناسان ما اطلاعات را بررسی کرده و پاسخ رسمی را ظرف ۲۴ الی ۴۸ ساعت در کارتابل سازمانی شما بارگذاری می‌کنند.
-              </p>
-              <div>
-                <Link className={contentStyles.primaryLink} href="/inquiry">
-                  ورود به فرم استعلام و ثبت مشخصات قطعه
-                </Link>
-              </div>
-            </div>
+          <section aria-labelledby="fast-inquiry-box-title" className={styles.section}>
+            <Card variant="muted" className={styles.callout}>
+              <VStack gap={4}>
+                <Heading level={2} id="fast-inquiry-box-title" color="inherit" className={styles.title}>سریع‌ترین مسیر: ثبت استعلام در سامانه آنلاین</Heading>
+                <Text as="p" color="secondary">
+                  برای بررسی دقیق ابعاد فنی پروژه، آپلود مدارک و صدور پیش‌فاکتور مکتوب، سامانه استعلام آنلاین ترنج پلاستیک در دسترس شماست. کارشناسان ما اطلاعات را بررسی کرده و پاسخ رسمی را ظرف ۲۴ الی ۴۸ ساعت در کارتابل سازمانی شما بارگذاری می‌کنند.
+                </Text>
+                <HStack gap={3} wrap="wrap">
+                  <Button href="/inquiry" wrapLabel className={styles.calloutAction}>ورود به فرم استعلام و ثبت مشخصات قطعه</Button>
+                </HStack>
+              </VStack>
+            </Card>
           </section>
-        </div>
-      </article>
+        </VStack>
+      </VStack>
     </main>
   );
 }

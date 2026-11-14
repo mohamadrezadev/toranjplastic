@@ -12,6 +12,28 @@ describe("feedback patterns", () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
+  it("keeps the plain title for existing callers and draws a heading only when a level is requested", async () => {
+    const { container, rerender } = render(<ErrorState title="عنوان آزمایشی" message="پیام آزمایشی" />);
+    // Backward compatible: without headingLevel the title is the Banner's plain title text.
+    expect(screen.queryByRole("heading")).not.toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("عنوان آزمایشی");
+    expect(screen.getByRole("alert")).toHaveTextContent("پیام آزمایشی");
+
+    rerender(<ErrorState title="عنوان آزمایشی" message="پیام آزمایشی" headingLevel={1} />);
+    expect(screen.getByRole("heading", { level: 1, name: "عنوان آزمایشی" })).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("پیام آزمایشی");
+    expect(await axe(container)).toHaveNoViolations();
+
+    // The same opt-in on the underlying alert, at any level and for any status.
+    rerender(<Alert variant="warning" title="اطلاعات ناقص است" headingLevel={3}>موارد ضروری را بررسی کنید.</Alert>);
+    expect(screen.getByRole("heading", { level: 3, name: "اطلاعات ناقص است" })).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("موارد ضروری را بررسی کنید.");
+    expect(await axe(container)).toHaveNoViolations();
+
+    rerender(<Alert variant="warning" title="اطلاعات ناقص است">موارد ضروری را بررسی کنید.</Alert>);
+    expect(screen.queryByRole("heading")).not.toBeInTheDocument();
+  });
+
   it("reserves a busy loading region", () => {
     render(<LoadingState label="در حال دریافت اطلاعات" />);
     expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "true");

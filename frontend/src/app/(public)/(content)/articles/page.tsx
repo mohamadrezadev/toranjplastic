@@ -1,17 +1,23 @@
-import Link from "next/link";
+import { Center } from "@astryxdesign/core/Center";
+import { VStack } from "@astryxdesign/core/VStack";
 import { Breadcrumb } from "@/components/navigation";
 import { EmptyState } from "@/components/feedback";
-import { ContentCard, ContentGrid, ContentPageHeading, ContentTag, Pagination, contentStyles } from "@/components/content";
+import { ArticleMeta, ContentCard, ContentGrid, ContentPageHeading, Pagination, contentStyles } from "@/components/content";
 import { parsePageNumber } from "@/lib/public-content";
 import { listStrapiArticles, listStrapiCategories } from "@/lib/strapi";
 import { publicCollectionMetadata } from "@/lib/content-metadata";
+import { ArticleCategoryTabs } from "./ArticleCategoryTabs";
+import styles from "./articles.module.css";
 
 const description = "مقاله‌ها و یادداشت‌های تخصصی و آموزشی ترنج پلاستیک در صنعت قالب‌گیری و تزریق پلاستیک.";
 export const metadata = publicCollectionMetadata("مقالات", description, "/articles");
 
-const formatDate = (value: string) =>
-  new Intl.DateTimeFormat("fa-IR", { dateStyle: "long", timeZone: "UTC" }).format(new Date(value));
-
+/*
+ * Article collection (OpenSpec change rebuild-ui-with-astryx, task 5.3).
+ * The shared frame convention: an Astryx VStack page frame and a Center for
+ * the honest empty state. The category strip marks this view ("/articles")
+ * as current; each card links its category through the shared ArticleMeta.
+ */
 export default async function ArticlesPage({
   searchParams,
 }: {
@@ -34,34 +40,11 @@ export default async function ArticlesPage({
   return (
     <main className={contentStyles.main}>
       <Breadcrumb items={[{ label: "خانه", href: "/" }, { label: "مقالات" }]} />
-      <section className={`${contentStyles.section} content-container`}>
+      <VStack as="section" gap={0} className={`${contentStyles.section} content-container`}>
         <ContentPageHeading eyebrow="دانشنامه" title="مقالات تخصصی" description={description} />
 
         {categories.length > 0 ? (
-          <nav aria-label="دسته‌بندی مقالات" style={{ marginBlockStart: "1.5rem", display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-            <span style={{ display: "inline-flex", alignItems: "center", padding: "0.4rem 0.85rem", borderRadius: "9999px", background: "var(--color-brand-primary)", color: "#fff", fontSize: "0.875rem", fontWeight: 600 }}>
-              همه مقالات
-            </span>
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/articles/category/${cat.slug}`}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  padding: "0.4rem 0.85rem",
-                  borderRadius: "9999px",
-                  background: "var(--color-surface-card)",
-                  border: "1px solid var(--color-border-default)",
-                  color: "var(--color-text-secondary)",
-                  fontSize: "0.875rem",
-                  textDecoration: "none",
-                }}
-              >
-                {cat.name}
-              </Link>
-            ))}
-          </nav>
+          <ArticleCategoryTabs className={styles.categoryNav} categories={categories.map(({ slug, name }) => ({ slug, name }))} />
         ) : null}
 
         {result.items.length ? (
@@ -74,30 +57,21 @@ export default async function ArticlesPage({
                   summary={item.summary}
                   href={`/articles/${item.slug}`}
                   image={item.featuredImage}
-                  meta={
-                    <>
-                      {item.category ? (
-                        <Link href={`/articles/category/${item.category.slug}`} style={{ textDecoration: "none" }}>
-                          <ContentTag>{item.category.name}</ContentTag>
-                        </Link>
-                      ) : null}
-                      <ContentTag>{formatDate(item.publishedAt)}</ContentTag>
-                    </>
-                  }
+                  meta={<ArticleMeta category={item.category} publishedAt={item.publishedAt} categoryLink />}
                 />
               ))}
             </ContentGrid>
             <Pagination pageInfo={result.pageInfo} basePath="/articles" />
           </>
         ) : (
-          <div className={contentStyles.section}>
+          <Center className={contentStyles.section}>
             <EmptyState
               title="مقاله منتشرشده‌ای وجود ندارد"
               description="مقاله‌ها پس از بازبینی و انتشار رسمی در سامانه مدیریت محتوا در این بخش قرار می‌گیرند."
             />
-          </div>
+          </Center>
         )}
-      </section>
+      </VStack>
     </main>
   );
 }

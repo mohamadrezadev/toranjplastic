@@ -1,20 +1,22 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Center } from "@astryxdesign/core/Center";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Link } from "@astryxdesign/core/Link";
+import { VStack } from "@astryxdesign/core/VStack";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/navigation";
 import { EmptyState } from "@/components/feedback";
-import { ContentCard, ContentGrid, ContentPageHeading, ContentTag, Pagination, contentStyles } from "@/components/content";
-import { parsePageNumber } from "@/lib/public-content";
-import { listStrapiArticles, getStrapiCategory, isStrapiNotFoundError, StrapiCategory } from "@/lib/strapi";
+import { ArticleMeta, ContentCard, ContentGrid, ContentPageHeading, Pagination, contentStyles } from "@/components/content";
+import { parsePageNumber, type PageResult } from "@/lib/public-content";
+import { listStrapiArticles, listStrapiCategories, getStrapiCategory, isStrapiNotFoundError, type StrapiArticle, type StrapiCategory } from "@/lib/strapi";
 import { publicCollectionMetadata } from "@/lib/content-metadata";
+import { ArticleCategoryTabs } from "../../ArticleCategoryTabs";
+import styles from "../../articles.module.css";
 
 type Props = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ page?: string | string[] }>;
 };
-
-const formatDate = (value: string) =>
-  new Intl.DateTimeFormat("fa-IR", { dateStyle: "long", timeZone: "UTC" }).format(new Date(value));
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -33,6 +35,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
+const emptyResult: PageResult<StrapiArticle> = { items: [], pageInfo: { page: 1, pageSize: 12, total: 0, totalPages: 0 } };
+
+/*
+ * Article category collection (OpenSpec change rebuild-ui-with-astryx,
+ * task 5.3). The shared frame convention: an Astryx VStack page frame and a
+ * Center for the honest empty state. The category strip persists from the
+ * article index and marks this category as the current view; the strip, like
+ * the index, is omitted when the category list is unavailable.
+ */
 export default async function ArticleCategoryPage({ params, searchParams }: Props) {
   const { slug } = await params;
   const page = parsePageNumber((await searchParams).page);
@@ -47,12 +58,13 @@ export default async function ArticleCategoryPage({ params, searchParams }: Prop
     throw error;
   }
 
-  let result;
-  try {
-    result = await listStrapiArticles({ page, categorySlug: category.slug });
-  } catch {
-    result = { items: [], pageInfo: { page: 1, pageSize: 12, total: 0, totalPages: 0 } };
-  }
+  const [result, categories] = await Promise.all([
+    listStrapiArticles({ page, categorySlug: category.slug }).catch(() => emptyResult),
+    listStrapiCategories().catch(() => []),
+  ]);
+  const currentPath = `/articles/category/${category.slug}`;
+  // The current category always has its tab, even if the list response omits it.
+  const stripCategories = categories.some((entry) => entry.slug === category.slug) ? categories : [...categories, category];
 
   return (
     <main className={contentStyles.main}>
@@ -63,29 +75,22 @@ export default async function ArticleCategoryPage({ params, searchParams }: Prop
           { label: category.name },
         ]}
       />
-      <section className={`${contentStyles.section} content-container`}>
+      <VStack as="section" gap={0} className={`${contentStyles.section} content-container`}>
         <ContentPageHeading
           eyebrow="دسته‌بندی مقالات"
           title={category.name}
           description={category.description || `مجموعه مقالات و مطالب آموزشی منتشرشده در دسته‌بندی ${category.name}.`}
         />
 
-        <div style={{ marginBlockStart: "1.5rem" }}>
-          <Link
-            href="/articles"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.35rem",
-              fontSize: "0.875rem",
-              color: "var(--color-brand-action)",
-              fontWeight: 600,
-              textDecoration: "none",
-            }}
-          >
-            ← مشاهده همه دسته‌بندی‌ها و مقالات
+        {categories.length > 0 ? (
+          <ArticleCategoryTabs className={styles.categoryNav} value={currentPath} categories={stripCategories.map(({ slug: categorySlug, name }) => ({ slug: categorySlug, name }))} />
+        ) : null}
+
+        <HStack className={styles.backLink}>
+          <Link href="/articles" size="sm" weight="bold" className={styles.targetLink}>
+            <span aria-hidden="true">←</span> مشاهده همه دسته‌بندی‌ها و مقالات
           </Link>
-        </div>
+        </HStack>
 
         {result.items.length ? (
           <>
@@ -97,26 +102,21 @@ export default async function ArticleCategoryPage({ params, searchParams }: Prop
                   summary={item.summary}
                   href={`/articles/${item.slug}`}
                   image={item.featuredImage}
-                  meta={
-                    <>
-                      <ContentTag>{category.name}</ContentTag>
-                      <ContentTag>{formatDate(item.publishedAt)}</ContentTag>
-                    </>
-                  }
+                  meta={<ArticleMeta category={category} publishedAt={item.publishedAt} />}
                 />
               ))}
             </ContentGrid>
             <Pagination pageInfo={result.pageInfo} basePath={`/articles/category/${category.slug}`} />
           </>
         ) : (
-          <div className={contentStyles.section}>
+          <Center className={contentStyles.section}>
             <EmptyState
               title={`مقاله‌ای در دسته‌بندی «${category.name}» منتشر نشده است`}
               description="مقاله‌های جدید پس از انتشار رسمی در این بخش قرار می‌گیرند."
             />
-          </div>
+          </Center>
         )}
-      </section>
+      </VStack>
     </main>
   );
 }

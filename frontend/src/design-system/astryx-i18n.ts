@@ -46,5 +46,9 @@ export const astryxPersianOverrides = {
     "@astryx.link.newTab": "(در برگهٔ تازه باز می‌شود)",
     "@astryx.metadataList.showMore": "نمایش بیشتر",
     "@astryx.metadataList.showLess": "نمایش کمتر",
+    // Article category TabList (task 5.3): the visual-only arrow-key hint shown on
+    // first keyboard focus ("← → to navigate") and the fallback list name.
+    "@astryx.keyboardHint.toNavigate": "برای جابه‌جایی",
+    "@astryx.tabList.label": "زبانه‌ها",
   },
 } satisfies Overrides;

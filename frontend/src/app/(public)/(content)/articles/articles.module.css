@@ -1,0 +1,48 @@
+/*
+ * Article collection, category and detail composition (OpenSpec change
+ * rebuild-ui-with-astryx, task 5.3). Astryx TabList, Link, Divider and Heading
+ * plus the shared content layer (including ContentTag and ArticleMeta) own the
+ * controls, type and surfaces; these rules only add the Toranj rhythm, heading
+ * colour and control targets around them. Values come from Toranj tokens or
+ * the Astryx roles mapped onto them in astryx-theme.css. No raw colours.
+ */
+
+/* The category navigation and the way back to every article follow the page heading. */
+.categoryNav,
+.backLink { margin-block-start: var(--space-6); }
+
+/* The standalone way back keeps the 44px control target. */
+.targetLink { min-block-size: var(--control-min-height); }
+
+/*
+ * A category tab never outgrows the strip. Astryx tabs keep one line and their
+ * label's full width (they hug), so a category name wider than the strip made a
+ * tab wider than the strip: it scrolled, the label and the focus ring were cut
+ * at both ends and the scroll arrows sat on top of the text. The cap leaves two
+ * rem for the strip's edge fade and scroll arrow at each end, the label wraps
+ * (white-space and overflow-wrap are inherited by the label), and a tab that
+ * fits keeps its one-line, content-width look. Applied through the Tab's
+ * className, an Astryx extension point (recorded in the phase 5 evidence).
+ */
+.categoryTab {
+  max-inline-size: calc(100% - 4rem);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Article tags and related articles follow the article body. */
+.tags { margin-block-start: var(--spacing-10, 2.5rem); }
+/*
+ * The tag list and each tag may shrink to the line: a flex item keeps its
+ * min-content width by default, so one very long tag would otherwise widen the
+ * list (and the page) instead of wrapping onto more lines inside its badge.
+ */
+.tagList,
+.tagList > li { min-inline-size: 0; max-inline-size: 100%; }
+.related { margin-block-start: clamp(3rem, 6vw, 5rem); }
+
+/* Public content headings carry the brand ink, as in the shared content layer. */
+.relatedTitle {
+  margin-block-start: var(--spacing-10, 2.5rem);
+  color: var(--color-brand-primary);
+}

@@ -1,0 +1,32 @@
+/*
+ * About and contact composition (OpenSpec change rebuild-ui-with-astryx,
+ * task 5.3). Astryx Card, Grid, Stack, Heading, Text, Link and MetadataList,
+ * the shared BalancedGrid plus the Toranj Button adapter own the surfaces,
+ * type, controls and spacing; these rules only add the Toranj section rhythm,
+ * heading colour and control targets around them. Values come from Toranj
+ * tokens or the Astryx roles mapped onto them in astryx-theme.css. No raw
+ * colours.
+ */
+
+/* Section rhythm below the hero, as on the other public content pages. */
+.section { margin-block-start: clamp(2.5rem, 6vw, 4rem); }
+
+/* Public content headings carry the brand ink, as in the shared content layer. */
+.title { color: var(--color-brand-primary); }
+
+/* Astryx's documented card padding token; each Card keeps its theme padding mode. */
+.card { --astryx-card-padding: clamp(1.25rem, 2.5vw, 1.75rem); }
+.callout { --astryx-card-padding: clamp(1.25rem, 4vw, 2rem); }
+
+/* A standalone phone or email action keeps the 44px control target. */
+.channelLink { min-block-size: var(--control-min-height); }
+
+/*
+ * Long Persian action labels wrap through the Button adapter's wrapLabel prop.
+ * The closing call-to-action buttons become full-width rows on mobile (at or
+ * below 38rem); the hero action keeps its content width, as on every other
+ * DetailHero.
+ */
+@media (max-width: 38rem) {
+  .calloutAction { width: 100%; }
+}

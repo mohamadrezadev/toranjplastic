@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { axe } from "jest-axe";
 import { describe, expect, it, vi } from "vitest";
 import { Button, Checkbox, DirectionalData, Input, Radio, Select, StatusBadge, Switch, Textarea } from ".";
+import buttonStyles from "./Button.module.css";
 
 describe("UI primitives", () => {
   it("activates an enabled button once and blocks loading or disabled actions", async () => {
@@ -27,6 +28,18 @@ describe("UI primitives", () => {
     </>);
     expect(screen.getByRole("button", { name: "حذف" })).toHaveAttribute("data-variant", "destructive");
     expect(screen.getByRole("link", { name: "ثبت استعلام" })).toHaveAttribute("href", "/inquiry");
+  });
+
+  it("lets a long action label wrap only when asked, keeping the caller's class and name", () => {
+    render(<>
+      <Button href="/inquiry/injection" wrapLabel className="callerAction">ثبت استعلام تزریق با قالب مشتری</Button>
+      <Button href="/inquiry">ثبت استعلام</Button>
+    </>);
+    const wrapping = screen.getByRole("link", { name: "ثبت استعلام تزریق با قالب مشتری" });
+    expect(wrapping).toHaveClass(buttonStyles.wrapLabel, "callerAction");
+    // The prop is consumed by the adapter, never forwarded to the DOM.
+    expect(wrapping).not.toHaveAttribute("wraplabel");
+    expect(screen.getByRole("link", { name: "ثبت استعلام" })).not.toHaveClass(buttonStyles.wrapLabel);
   });
 
   it("associates labels, help and Persian errors with form controls", async () => {

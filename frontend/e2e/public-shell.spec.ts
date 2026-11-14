@@ -1,13 +1,25 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { themeColors, themeStorageKey } from "../src/design-system/theme";
 
 const publicPaths = ["/", "/products", "/injection-molding", "/materials", "/articles", "/about", "/contact", "/privacy", "/terms", "/inquiry", "/account"];
+
+/*
+ * html and body both declare `overflow-x: hidden`, which makes <body> the
+ * page's horizontal scroll container: documentElement.scrollWidth alone never
+ * reports content wider than the viewport, so both boxes are checked.
+ * e2e/public-content.spec.ts adds an element-level check for content clipped
+ * inside <main>.
+ */
+const hasHorizontalOverflow = (page: Page) => page.evaluate(() => {
+  const root = document.documentElement;
+  return root.scrollWidth > root.clientWidth || document.body.scrollWidth > document.body.clientWidth;
+});
 
 test("public shell is responsive without horizontal overflow", async ({ page }, testInfo) => {
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
   const viewport = page.viewportSize();
-  const hasOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+  const hasOverflow = await hasHorizontalOverflow(page);
   expect(hasOverflow).toBe(false);
 
   const desktopNavigation = page.getByRole("navigation", { name: "ناوبری اصلی" });
@@ -33,7 +45,7 @@ test("public shell is responsive without horizontal overflow", async ({ page }, 
 
   await page.goto("/products");
   await expect(page.getByRole("heading", { name: "محصولات", exact: true })).toBeVisible();
-  const innerHasOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+  const innerHasOverflow = await hasHorizontalOverflow(page);
   expect(innerHasOverflow).toBe(false);
   await page.screenshot({ path: testInfo.outputPath("public-inner.png"), fullPage: true });
 });
@@ -59,7 +71,7 @@ test("mobile drawer supports keyboard, focus return and an inert background", as
     await page.keyboard.press("Tab");
     expect(await page.evaluate(() => Boolean(document.activeElement?.closest("main, footer")))).toBe(false);
   }
-  expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+  expect(await hasHorizontalOverflow(page)).toBe(false);
 
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -87,7 +99,7 @@ test("header switches between inline links and the drawer at the 72rem breakpoin
       }
       const header = await page.getByRole("banner").boundingBox();
       expect(header?.height, `header must stay on one row at ${width}px`).toBeLessThan(100);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), `${width}px must not overflow`).toBe(false);
+      expect(await hasHorizontalOverflow(page), `${width}px must not overflow`).toBe(false);
     }
   }
 });
@@ -140,7 +152,7 @@ test("theme follows the system, switches accessibly and persists", async ({ page
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await expect(page.locator('meta[name="theme-color"]').first()).toHaveAttribute("content", themeColors.light);
-  const hasOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+  const hasOverflow = await hasHorizontalOverflow(page);
   expect(hasOverflow).toBe(false);
 });
 
@@ -204,7 +216,7 @@ test("connected content fits the viewport in both themes", async ({ page }) => {
     for (const path of ["/products", "/products/industrial-basket", "/articles/material-selection", "/about"]) {
       await page.goto(path);
       await expect(page.locator("main")).toBeVisible();
-      expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), `${path} must not overflow in ${colorScheme}`).toBe(false);
+      expect(await hasHorizontalOverflow(page), `${path} must not overflow in ${colorScheme}`).toBe(false);
     }
   }
 });
@@ -221,7 +233,7 @@ test("campaign artwork stays responsive and exposes real actions", async ({ page
   await expect(inquiryAction).toHaveAttribute("href", "/inquiry");
   await productsAction.focus();
   expect(await productsAction.evaluate((element) => getComputedStyle(element).outlineStyle)).not.toBe("none");
-  expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+  expect(await hasHorizontalOverflow(page)).toBe(false);
   await page.screenshot({ path: testInfo.outputPath("campaign-home.png"), fullPage: true });
 
   await page.goto("/products");
@@ -240,14 +252,14 @@ test("campaign artwork stays responsive and exposes real actions", async ({ page
   const cardBox = await productCard.boundingBox();
   expect(cardBox?.height).toBeLessThan(600);
   expect(cardBox?.width).toBeGreaterThan(viewportWidth * (viewportWidth <= 390 ? .85 : .72));
-  expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+  expect(await hasHorizontalOverflow(page)).toBe(false);
   await page.screenshot({ path: testInfo.outputPath("catalog-products.png"), fullPage: true });
 
   await page.getByRole("link", { name: "مشاهده جزئیات" }).click();
   await expect(page.getByRole("heading", { name: "سبد صنعتی نمونه", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "ثبت استعلام محصول" })).toHaveAttribute("href", "/inquiry/product?slug=industrial-basket");
   await expect(page.getByText("ثبت استعلام به معنی تأیید قیمت یا موجودی نیست.")).toBeVisible();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+  expect(await hasHorizontalOverflow(page)).toBe(false);
   await page.screenshot({ path: testInfo.outputPath("catalog-product-detail.png"), fullPage: true });
 
   const routes = [
@@ -269,13 +281,13 @@ test("campaign artwork stays responsive and exposes real actions", async ({ page
       const campaignImage = element as HTMLImageElement;
       return campaignImage.complete && campaignImage.naturalWidth > 0;
     })).toBe(true);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), `${path} campaign must not overflow`).toBe(false);
+    expect(await hasHorizontalOverflow(page), `${path} campaign must not overflow`).toBe(false);
   }
   const materialsArtwork = await request.get("/branding/banners/materials.png");
   expect(materialsArtwork.ok()).toBe(true);
   await page.goto("/contact");
   await expect(page.getByRole("heading", { name: "تماس با ما", exact: true })).toBeVisible();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+  expect(await hasHorizontalOverflow(page)).toBe(false);
   await page.screenshot({ path: testInfo.outputPath("campaign-contact.png"), fullPage: true });
 });
 
@@ -294,7 +306,7 @@ test("adjacent tablet breakpoints keep capability cards proportionate", async ({
     expect(Math.abs(boxes[0].top - boxes[1].top)).toBeLessThan(2);
     expect(boxes[0].width).toBeGreaterThan(width * .35);
     expect(boxes[2].top).toBeGreaterThan(boxes[0].top);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+    expect(await hasHorizontalOverflow(page)).toBe(false);
   }
 });
 
@@ -321,20 +333,67 @@ test("mobile footer disclosures keep contact visible and reveal reachable links"
   await page.keyboard.press("Enter");
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
   await expect(links.getByRole("link", { name: "محصولات کاتالوگ" })).toBeVisible();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+  expect(await hasHorizontalOverflow(page)).toBe(false);
 });
 
 test("footer keeps keyboard focus visible on the dark brand surface", async ({ page }) => {
-  await page.emulateMedia({ colorScheme: "light" });
-  await page.goto("/");
-  const link = page.getByRole("contentinfo").getByRole("link", { name: "info@toranjplastic.com" });
-  await link.focus();
-  await expect(link).toBeFocused();
-  const focus = await link.evaluate((element) => {
-    const style = getComputedStyle(element);
-    const footer = element.closest("footer");
-    return { outline: style.outlineColor, outlineStyle: style.outlineStyle, background: footer ? getComputedStyle(footer).backgroundColor : "" };
+  // The footer is an always-dark brand surface in both themes; light is where the default ring matched it.
+  for (const colorScheme of ["light", "dark"] as const) {
+    await page.emulateMedia({ colorScheme });
+    await page.goto("/");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", colorScheme);
+    const link = page.getByRole("contentinfo").getByRole("link", { name: "info@toranjplastic.com" });
+    await link.focus();
+    await expect(link).toBeFocused();
+    const focus = await link.evaluate((element) => {
+      const style = getComputedStyle(element);
+      const footer = element.closest("footer");
+      return { outline: style.outlineColor, outlineStyle: style.outlineStyle, outlineWidth: parseFloat(style.outlineWidth), background: footer ? getComputedStyle(footer).backgroundColor : "" };
+    });
+    expect(focus.outlineStyle, colorScheme).not.toBe("none");
+    expect(focus.outlineWidth, colorScheme).toBeGreaterThanOrEqual(2);
+    expect(focus.outline, colorScheme).not.toBe(focus.background);
+  }
+});
+
+test("home campaign artwork never shows its rasterized headline or buttons beside the semantic copy", async ({ page }, testInfo) => {
+  // The artwork's rasterized Persian headline, text and button pills start at about 61% of its width
+  // (x = 1170 of 1916, measured on public/branding/banners/home-hero.webp); every crop is anchored left.
+  const rasterizedCopyStart = 1170 / 1916;
+  const visibleShare = () => page.getByTestId("home-campaign").locator("img").evaluate((element) => {
+    const image = element as HTMLImageElement;
+    const style = getComputedStyle(image);
+    const box = image.getBoundingClientRect();
+    const scale = style.objectFit === "cover" ? Math.max(box.width / image.naturalWidth, box.height / image.naturalHeight) : box.width / image.naturalWidth;
+    const renderedWidth = image.naturalWidth * scale;
+    const offset = (box.width - renderedWidth) * (parseFloat(style.objectPosition) / 100);
+    return { objectFit: style.objectFit, start: -offset / renderedWidth, end: (box.width - offset) / renderedWidth };
   });
-  expect(focus.outlineStyle).not.toBe("none");
-  expect(focus.outline).not.toBe(focus.background);
+  const widths = testInfo.project.name === "desktop-1280" ? [360, 390, 608, 640, 641, 768, 896, 1024, 1025, 1152, 1153, 1280] : [page.viewportSize()?.width ?? 0];
+  await page.goto("/");
+  const image = page.getByTestId("home-campaign").locator("img");
+  await expect.poll(() => image.evaluate((element) => (element as HTMLImageElement).complete && (element as HTMLImageElement).naturalWidth > 0)).toBe(true);
+  for (const width of widths) {
+    if (testInfo.project.name === "desktop-1280") await page.setViewportSize({ width, height: 900 });
+    const share = await visibleShare();
+    expect(share.objectFit, `${width}px`).toBe("cover");
+    expect(share.start, `${width}px crop is anchored to the artwork's left edge`).toBeLessThanOrEqual(0.001);
+    expect(share.end, `${width}px crop must stop before the rasterized copy`).toBeLessThan(rasterizedCopyStart);
+  }
+});
+
+test("home capability links are named by their titles and described by their summaries", async ({ page }) => {
+  await page.goto("/");
+  const region = page.locator('section[aria-label="حوزه‌های ترنج پلاستیک"]');
+  const expected = [
+    ["خدمات تزریق پلاستیک", "/injection-molding"],
+    ["محصولات کاتالوگ", "/products"],
+    ["مواد اولیه و پلیمرها", "/materials"],
+  ] as const;
+  for (const [title, href] of expected) {
+    const link = region.getByRole("link", { name: title, exact: true });
+    await expect(link).toHaveAttribute("href", href);
+    await expect(link).toHaveAccessibleDescription(/\S/);
+  }
+  await expect(region.getByRole("link")).toHaveCount(3);
 });

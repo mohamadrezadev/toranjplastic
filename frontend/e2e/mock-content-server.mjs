@@ -497,6 +497,492 @@ const adminRecords = {
   pages: adminPage,
 };
 
+/*
+ * ===========================================================================
+ * Public content variant fixtures (OpenSpec change rebuild-ui-with-astryx,
+ * task 5.4). Every variant sits behind a discriminator that the legacy specs
+ * never request, so the legacy responses above and below stay what they were.
+ * One legacy answer is corrected on purpose: /api/categories used to ignore
+ * its slug filter (see the Strapi notes). The discriminators:
+ *
+ * Backend public content (/api/v1/public/content)
+ * - products?page=2 and ?page=3: the middle and last page of a 17-item
+ *   collection (6, 6 and 5 items; the fixture caps every page at 6 items, so
+ *   its pageInfo says pageSize 6). ?page=99: HTTP 200 with no items, the empty
+ *   collection. Page 1 and page 97 (the fail-once retry fixture) keep the
+ *   legacy single-product answers, so a first page of a multi-page products
+ *   collection cannot exist without changing them.
+ * - products/<slug>: fixture-product-no-image (no image), -long (long title,
+ *   summary, category and code), -bright (near-white image), -gallery (four
+ *   images), -portrait (portrait image), plus numbered fillers
+ *   fixture-product-NN. fixture-product-longtoken (a title, summary and code
+ *   with no break opportunity) is reachable by slug only, never listed.
+ * - materials?page=2 and ?page=3 (17 items, 6/6/5), ?page=99 (empty). Page 1
+ *   and every other page stay HTTP 503, the legacy error fixture.
+ * - materials/<slug>: fixture-material-open (inquiryAvailable true, three
+ *   images, LTR specification values), -closed (inquiryAvailable false),
+ *   -long-grade (a long LTR grade tag), -no-image, plus numbered fillers.
+ * - services?page=2 and ?page=3 (17 items, 6/6/5). Page 1 stays empty.
+ * - services/<slug>: fixture-service-cta (a long CMS ctaLabel and the safe
+ *   ctaHref /contact, three images), -plain (no call to action), -unsafe (a
+ *   javascript: ctaHref that the page must ignore), -no-image, plus fillers.
+ * - Managed pages (about, contact, privacy, terms) are NOT varied: their
+ *   routes request fixed slugs and carry no query parameter, so a variant
+ *   would have to replace the legacy response. They keep images: [].
+ *
+ * Media served by this mock (small generated SVG, nothing stored in the repo)
+ * - /api/v1/media/public/fixture-<w>x<h>-<tone>/<variant>: the path shape the
+ *   backend publishes for public media (next.config.ts remotePatterns allow
+ *   /api/v1/media/public/** for MEDIA_PUBLIC_ORIGIN).
+ * - /uploads/fixture-<w>x<h>-<tone>.svg: the path shape of Strapi media
+ *   (next.config.ts allows /uploads/** for the Strapi origin). Strapi image
+ *   URLs are relative and the app resolves them against STRAPI_API_URL.
+ * - tone is a, b, c, d, e (gradients) or bright (a near-white image with no
+ *   gradient). fixture-missing-* answers 404: an image that never loads.
+ *
+ * Strapi (/api/articles and /api/categories)
+ * - /api/articles with pagination[page]=2 or 3 and no category filter: the
+ *   middle and last page of an 18-article universe (6 per page).
+ *   pagination[page]=99 and no filter: an empty page.
+ * - filters[category][slug][$eq]=fixture-paginated: 13 articles in three pages
+ *   (6, 6 and 1), so the category page has a first, a middle and a last page.
+ *   fixture-rich: the rich article and three related ones. fixture-long-category:
+ *   one article under a very long category name. fixture-empty: no articles.
+ *   Every other category filter keeps the legacy answer.
+ * - filters[slug][$eq]=<slug> for the fixture slugs: fixture-rich-article
+ *   (featured image, six tags, long words, URL, email and an identifier in the
+ *   body, three related articles), fixture-related-1 .. -3 (an image, no image,
+ *   an image that 404s), fixture-long-category-article and fixture-paginated-NN.
+ *   fixture-long-tags-article (no category, two tags far longer than a phone
+ *   width) is reachable by slug only, never listed.
+ * - /api/categories?filters[slug][$eq]=<slug> now honours the filter: the two
+ *   legacy categories and the four fixture categories resolve to themselves
+ *   and any other slug (for example missing-category) answers an empty list,
+ *   the route's not-found experience. Before, every slug resolved to the
+ *   first legacy category. Without the filter the list is still the legacy
+ *   pair, so the category strip on /articles is unchanged.
+ * ===========================================================================
+ */
+const fixturePageSize = 6;
+const fixtureOrigin = `http://127.0.0.1:${port}`;
+const faNumber = (value) => value.toLocaleString("fa-IR");
+
+const imageTones = {
+  a: ["#cfe0e4", "#7fa6b0"],
+  b: ["#e8dcc8", "#b79a6a"],
+  c: ["#d8e2d0", "#86a36f"],
+  d: ["#dcd2e6", "#9a82b5"],
+  e: ["#e6d2d2", "#b57d7d"],
+  bright: ["#f8f8f8", "#f8f8f8"],
+};
+const fixtureImageSvg = (width, height, tone) => {
+  const [from, to] = imageTones[tone] ?? imageTones.a;
+  const guides = tone === "bright"
+    ? ""
+    : `<path d="M0 ${height}L${width} 0M0 0L${width} ${height}" stroke="rgba(0,0,0,.16)" stroke-width="${Math.max(2, Math.round(width / 300))}"/>`
+      + `<text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" font-family="monospace" font-size="${Math.round(Math.min(width, height) / 9)}" fill="rgba(0,0,0,.55)">FIXTURE ${width}x${height}</text>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`
+    + `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${from}"/><stop offset="1" stop-color="${to}"/></linearGradient></defs>`
+    + `<rect width="${width}" height="${height}" fill="url(#g)"/>${guides}`
+    + `<rect x="6" y="6" width="${width - 12}" height="${height - 12}" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="4"/></svg>`;
+};
+const serveFixtureImage = (response, name) => {
+  const match = name.match(/^fixture-(\d{2,4})x(\d{2,4})-([a-z]+)$/);
+  if (!match) {
+    response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" });
+    return response.end("fixture image not found");
+  }
+  response.writeHead(200, { "Content-Type": "image/svg+xml", "Cache-Control": "no-store" });
+  return response.end(fixtureImageSvg(Number(match[1]), Number(match[2]), match[3]));
+};
+
+const sendJson = (response, status, body) => {
+  response.writeHead(status, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "no-store",
+  });
+  response.end(JSON.stringify(body));
+};
+const pagedCollection = (items, page) => ({
+  items: items.slice((page - 1) * fixturePageSize, page * fixturePageSize),
+  pageInfo: {
+    page,
+    pageSize: fixturePageSize,
+    total: items.length,
+    totalPages: Math.ceil(items.length / fixturePageSize),
+  },
+});
+
+const backendImage = (width, height, tone, alt = "تصویر آزمایشی") => ({
+  url: `${fixtureOrigin}/api/v1/media/public/fixture-${width}x${height}-${tone}/card`,
+  alt,
+  width,
+  height,
+});
+const longLtr = "TRJ-FIXTURE-IDENTIFIER-WITH-NO-BREAK-OPPORTUNITY-0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ-REV-A/B";
+const longPersianTitle = "عنوان آزمایشی بسیار طولانی برای بررسی شکستن سطر در کارت، عنوان صفحه و مسیر ناوبری در همه عرض‌های صفحه";
+const longProse = "این بند آزمایشی فقط برای اندازه‌گیری طول خط در متن‌های بلند نوشته شده است و هیچ ادعای فنی، قیمت، موجودی یا مشخصه محصولی ندارد. ".repeat(5).trim();
+const longPersianSummary = "خلاصه آزمایشی بسیار طولانی که فقط برای بررسی کوتاه‌شدن سه‌سطری متن در کارت و شکستن سطرها در عرض‌های کم نوشته شده است و هیچ ادعای فنی، قیمت یا موجودی ندارد و چند بار تکرار می‌شود تا از سه سطر بیشتر شود.";
+const fixtureProductCategory = { id: "category-fixture", name: "دسته‌بندی آزمایشی", slug: "fixture-category" };
+const fixtureLongProductCategory = {
+  id: "category-fixture-long",
+  name: "دسته‌بندی آزمایشی با نامی بسیار طولانی برای بررسی شکستن سطر در برچسب کارت",
+  slug: "fixture-long-category",
+};
+
+const fixtureProduct = (n) => {
+  const base = {
+    id: `fixture-product-${n}`,
+    name: `محصول آزمایشی شماره ${faNumber(n)}`,
+    slug: `fixture-product-${String(n).padStart(2, "0")}`,
+    summary: `خلاصه آزمایشی محصول شماره ${faNumber(n)} برای بررسی چیدمان کارت.`,
+    description: "توضیحات آزمایشی منتشرشده.\n\nبند دوم توضیحات آزمایشی.",
+    category: fixtureProductCategory,
+    images: [backendImage(1200, 1200, ["a", "b", "c", "d", "e"][n % 5])],
+    specifications: [{ label: "کد مرجع", value: `TRJ-P-${String(n).padStart(3, "0")}` }],
+    featured: n % 5 === 0,
+    publishedAt,
+    ...seo,
+  };
+  const special = {
+    7: {},
+    8: { slug: "fixture-product-no-image", name: "محصول آزمایشی بدون تصویر", images: [] },
+    9: {
+      slug: "fixture-product-long",
+      name: `سبد صنعتی ${longPersianTitle}`,
+      summary: longPersianSummary,
+      description: `${longProse}
+
+بند دوم توضیحات آزمایشی.`,
+      category: fixtureLongProductCategory,
+      featured: true,
+      specifications: [
+        { label: "کد مرجع", value: longLtr },
+        { label: "برچسب بسیار طولانی برای بررسی شکستن سطر در ستون برچسب جدول مشخصات", value: "مقدار فارسی آزمایشی که برای بررسی شکستن سطر در ستون مقدار کمی طولانی نوشته شده است" },
+      ],
+    },
+    10: { slug: "fixture-product-bright", name: "محصول آزمایشی با تصویر روشن", images: [backendImage(1200, 900, "bright")] },
+    11: {
+      slug: "fixture-product-gallery",
+      name: "محصول آزمایشی با چند تصویر",
+      images: [backendImage(1600, 900, "a"), backendImage(900, 1200, "b"), backendImage(1200, 1200, "c"), backendImage(1600, 900, "d")],
+      specifications: [
+        { label: "کد مرجع", value: "TRJ-P-011" },
+        { label: "ردیف بسته‌بندی", value: "LOT.2026.0011/A" },
+        { label: "توضیح", value: "مقدار فارسی آزمایشی" },
+      ],
+    },
+    12: { slug: "fixture-product-portrait", name: "محصول آزمایشی با تصویر عمودی", images: [backendImage(900, 1200, "c")] },
+  }[n];
+  return { ...base, ...(special ?? {}) };
+};
+const fixtureProducts = Array.from({ length: 17 }, (_, index) => fixtureProduct(index + 1));
+// Reachable by slug only (never listed): a title, summary and code with no break opportunity.
+const fixtureProductExtras = [
+  {
+    ...fixtureProduct(18),
+    slug: "fixture-product-longtoken",
+    name: "TRJ-FIXTURE-PRODUCT-NAME-WITH-NO-BREAK-OPPORTUNITY-0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    summary: longLtr,
+    specifications: [{ label: "کد مرجع", value: longLtr }],
+  },
+];
+
+const fixtureMaterialFamily = "خانواده آزمایشی پلیمر";
+const fixtureMaterial = (n) => {
+  const base = {
+    id: `fixture-material-${n}`,
+    name: `ماده آزمایشی شماره ${faNumber(n)}`,
+    slug: `fixture-material-${String(n).padStart(2, "0")}`,
+    family: fixtureMaterialFamily,
+    grade: `TRJ-GR-${String(1000 + n)}`,
+    manufacturer: null,
+    summary: `خلاصه آزمایشی ماده شماره ${faNumber(n)} برای بررسی چیدمان کارت.`,
+    description: "توضیحات آزمایشی منتشرشده.\n\nبند دوم توضیحات آزمایشی.",
+    images: [backendImage(1200, 900, ["a", "b", "c", "d", "e"][n % 5])],
+    specifications: [{ label: "کد مرجع", value: `TRJ-M-${String(n).padStart(3, "0")}` }],
+    inquiryAvailable: true,
+    publishedAt,
+    ...seo,
+  };
+  const special = {
+    7: {
+      slug: "fixture-material-open",
+      name: "ماده آزمایشی باز برای استعلام",
+      manufacturer: "تولیدکننده آزمایشی",
+      description: `${longProse}
+
+بند دوم توضیحات آزمایشی.`,
+      images: [backendImage(1600, 900, "a"), backendImage(900, 1200, "b"), backendImage(1200, 1200, "c")],
+      specifications: [
+        { label: "گرید", value: "TRJ-GR-1007" },
+        { label: "کد مرجع", value: "TRJ-M-007" },
+        { label: "شناسه دسته", value: "TRJ-BATCH-0000000000000000000000000000000000000001-REV-A-FIXTURE" },
+        { label: "یادداشت", value: "مقدار فارسی آزمایشی" },
+      ],
+    },
+    8: {
+      slug: "fixture-material-closed",
+      name: "ماده آزمایشی بدون استعلام",
+      inquiryAvailable: false,
+      images: [backendImage(1200, 900, "d")],
+      specifications: [{ label: "گرید", value: "TRJ-GR-1008" }],
+    },
+    9: {
+      slug: "fixture-material-long-grade",
+      name: "ماده آزمایشی با گرید بسیار طولانی",
+      grade: longLtr,
+      manufacturer: "تولیدکننده‌ای با نامی بسیار طولانی برای بررسی شکستن سطر در برچسب",
+    },
+    10: { slug: "fixture-material-no-image", name: "ماده آزمایشی بدون تصویر", images: [], family: null, grade: null },
+  }[n];
+  return { ...base, ...(special ?? {}) };
+};
+const fixtureMaterials = Array.from({ length: 17 }, (_, index) => fixtureMaterial(index + 1));
+
+const fixtureService = (n) => {
+  const base = {
+    id: `fixture-service-${n}`,
+    name: `خدمت آزمایشی شماره ${faNumber(n)}`,
+    slug: `fixture-service-${String(n).padStart(2, "0")}`,
+    summary: `خلاصه آزمایشی خدمت شماره ${faNumber(n)} برای بررسی چیدمان کارت.`,
+    description: "توضیحات آزمایشی منتشرشده.\n\nبند دوم توضیحات آزمایشی.",
+    images: [backendImage(1200, 900, ["a", "b", "c", "d", "e"][n % 5])],
+    specifications: [{ label: "کد مرجع", value: `TRJ-S-${String(n).padStart(3, "0")}` }],
+    ctaLabel: null,
+    ctaHref: null,
+    publishedAt,
+    ...seo,
+  };
+  const special = {
+    7: {
+      slug: "fixture-service-cta",
+      name: "خدمت آزمایشی با دعوت به اقدام",
+      description: `${longProse}
+
+بند دوم توضیحات آزمایشی.`,
+      images: [backendImage(1600, 900, "a"), backendImage(1200, 1200, "b"), backendImage(900, 1200, "c")],
+      ctaLabel: "برای بررسی این خدمت با واحد مربوطه تماس بگیرید و مشخصات قالب و قطعه را همراه با توضیحات تکمیلی ارسال کنید",
+      ctaHref: "/contact",
+    },
+    8: { slug: "fixture-service-plain", name: "خدمت آزمایشی بدون دعوت به اقدام" },
+    9: {
+      slug: "fixture-service-unsafe",
+      name: "خدمت آزمایشی با نشانی نامعتبر",
+      ctaLabel: "دعوت به اقدام با نشانی نامعتبر",
+      ctaHref: "javascript:alert(1)",
+    },
+    10: { slug: "fixture-service-no-image", name: "خدمت آزمایشی بدون تصویر", images: [] },
+  }[n];
+  return { ...base, ...(special ?? {}) };
+};
+const fixtureServices = Array.from({ length: 17 }, (_, index) => fixtureService(index + 1));
+
+const strapiImage = (width, height, tone, alt = "تصویر آزمایشی") => ({
+  url: `/uploads/fixture-${width}x${height}-${tone}.svg`,
+  alternativeText: alt,
+  name: `fixture-${width}x${height}-${tone}.svg`,
+  width,
+  height,
+});
+const strapiMissingImage = (index) => ({
+  url: `/uploads/fixture-missing-${index}.svg`,
+  alternativeText: "تصویر آزمایشی که بارگذاری نمی‌شود",
+  name: `fixture-missing-${index}.svg`,
+  width: 1200,
+  height: 900,
+});
+const fixtureCategories = {
+  paginated: { documentId: "cat-f1", id: 11, name: "دسته آزمایشی صفحه‌بندی", slug: "fixture-paginated", description: "دسته‌بندی آزمایشی با چند صفحه مقاله" },
+  rich: { documentId: "cat-f2", id: 12, name: "دسته آزمایشی تصویری", slug: "fixture-rich", description: "دسته‌بندی آزمایشی مقاله‌های تصویری" },
+  longName: {
+    documentId: "cat-f3",
+    id: 13,
+    name: "دسته‌بندی آزمایشی با نامی بسیار طولانی برای بررسی شکستن سطر در برچسب‌ها و نوار دسته‌ها",
+    slug: "fixture-long-category",
+    description: "دسته‌بندی آزمایشی با نام طولانی",
+  },
+  empty: { documentId: "cat-f4", id: 14, name: "دسته آزمایشی بدون مقاله", slug: "fixture-empty", description: "دسته‌بندی آزمایشی بدون مقاله" },
+};
+const legacyStrapiCategories = [
+  { documentId: "cat-1", id: 1, name: "فناوری و تولید", slug: "tech-production", description: "دسته‌بندی فنی" },
+  { documentId: "cat-2", id: 2, name: "انتخاب مواد", slug: "materials-selection-category", description: "دسته‌بندی راهنما" },
+];
+const knownStrapiCategories = [...legacyStrapiCategories, ...Object.values(fixtureCategories)];
+const strapiFixtureArticle = ({ n, slug, title, summary, body, image, category, tags = [] }) => ({
+  documentId: `fx-art-${n}`,
+  id: 100 + n,
+  title,
+  slug,
+  summary,
+  body,
+  publishedAt,
+  featuredImage: image,
+  category,
+  tags,
+  seo: { metaTitle: title, metaDescription: summary },
+});
+// Index n of the 13 paginated articles: an image, no image, a missing image and a bright image, in a fixed mix.
+const pagedArticleImages = {
+  1: strapiImage(1600, 900, "a"),
+  3: strapiImage(1200, 1200, "b"),
+  5: strapiMissingImage(5),
+  6: strapiImage(900, 1200, "c"),
+  7: strapiImage(1600, 900, "d"),
+  9: strapiImage(1200, 900, "bright"),
+  11: strapiImage(1200, 1200, "e"),
+  13: strapiImage(1600, 900, "a"),
+};
+const pagedArticles = Array.from({ length: 13 }, (_, index) => {
+  const n = index + 1;
+  return strapiFixtureArticle({
+    n,
+    slug: `fixture-paginated-${String(n).padStart(2, "0")}`,
+    title: n === 4 ? `مقاله آزمایشی ${longPersianTitle}` : `مقاله آزمایشی شماره ${faNumber(n)}`,
+    summary: n === 4 ? longPersianSummary : `خلاصه آزمایشی مقاله شماره ${faNumber(n)} برای بررسی چیدمان کارت.`,
+    body: "بند اول متن آزمایشی.\n\nبند دوم متن آزمایشی.",
+    image: pagedArticleImages[n] ?? null,
+    category: fixtureCategories.paginated,
+  });
+});
+const richTags = [
+  { documentId: "tag-1", id: 1, name: "برچسب کوتاه", slug: "fixture-tag-1" },
+  { documentId: "tag-2", id: 2, name: "برچسب دوم", slug: "fixture-tag-2" },
+  { documentId: "tag-3", id: 3, name: "برچسب آزمایشی با چند کلمه برای بررسی", slug: "fixture-tag-3" },
+  { documentId: "tag-4", id: 4, name: "TRJ-FIXTURE-TAG-0123", slug: "fixture-tag-4" },
+  { documentId: "tag-5", id: 5, name: "برچسب پنجم", slug: "fixture-tag-5" },
+  { documentId: "tag-6", id: 6, name: "برچسب ششم", slug: "fixture-tag-6" },
+];
+// Extreme CMS tags, used only by fixture-long-tags-article: far longer than a phone width.
+const extremeTags = [
+  { documentId: "tag-7", id: 7, name: "برچسب آزمایشی بسیار طولانی برای بررسی شکستن سطر و اندازه توکن در عرض‌های کم صفحه", slug: "fixture-tag-7" },
+  { documentId: "tag-8", id: 8, name: "TRJ-FIXTURE-TAG-WITH-NO-BREAK-OPPORTUNITY-0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ", slug: "fixture-tag-8" },
+  { documentId: "tag-9", id: 9, name: "برچسب کوتاه", slug: "fixture-tag-1" },
+];
+const longPersianWord = "بسیارطولانیبدونفاصلهبرایآزمونشکستنخطدرمتنفارسیکهنبایدسرریزکندوبایدکامل‌دیده‌شود";
+const richBody = [
+  "بند اول مقاله آزمایشی با تصویر شاخص، چند برچسب و مقاله‌های مرتبط.",
+  longProse,
+  `واژه‌ای بسیار طولانی و بدون فاصله: ${longPersianWord}`,
+  `شناسه آزمایشی بسیار طولانی: ${longLtr}`,
+  "نشانی آزمایشی: https://example.com/fixture/very/long/path/segment/without/any/break/opportunity/0123456789/abcdefghijklmnopqrstuvwxyz?query=value&another=parameter#fragment-identifier",
+  "ایمیل آزمایشی: very.long.fixture.email.address.for.overflow.testing@subdomain.example-domain-for-fixtures.example.com",
+  "بند پایانی مقاله آزمایشی. ".repeat(6).trim(),
+].join("\n\n");
+const richArticle = strapiFixtureArticle({
+  n: 50,
+  slug: "fixture-rich-article",
+  title: `مقاله آزمایشی ${longPersianTitle}`,
+  summary: "خلاصه آزمایشی مقاله‌ای با تصویر شاخص، برچسب‌های متعدد و مقاله‌های مرتبط.",
+  body: richBody,
+  image: strapiImage(1600, 900, "a", "تصویر شاخص آزمایشی"),
+  category: fixtureCategories.rich,
+  tags: richTags,
+});
+const relatedArticles = [
+  strapiFixtureArticle({ n: 51, slug: "fixture-related-1", title: "مقاله مرتبط آزمایشی با تصویر", summary: "خلاصه آزمایشی مقاله مرتبط با تصویر.", body: "متن آزمایشی.", image: strapiImage(1200, 900, "b"), category: fixtureCategories.rich }),
+  strapiFixtureArticle({ n: 52, slug: "fixture-related-2", title: `مقاله مرتبط ${longPersianTitle}`, summary: longPersianSummary, body: "متن آزمایشی.", image: null, category: fixtureCategories.rich }),
+  strapiFixtureArticle({ n: 53, slug: "fixture-related-3", title: "مقاله مرتبط آزمایشی با تصویر بارگذاری‌نشده", summary: "خلاصه آزمایشی مقاله مرتبطی که تصویرش بارگذاری نمی‌شود.", body: "متن آزمایشی.", image: strapiMissingImage(53), category: fixtureCategories.rich }),
+];
+const longCategoryArticle = strapiFixtureArticle({
+  n: 54,
+  slug: "fixture-long-category-article",
+  title: "مقاله آزمایشی با دسته‌بندی بسیار طولانی",
+  summary: "خلاصه آزمایشی مقاله‌ای که دسته‌بندی آن نامی بسیار طولانی دارد.",
+  body: "متن آزمایشی.",
+  image: strapiImage(1200, 900, "c"),
+  category: fixtureCategories.longName,
+});
+// Reachable by slug only (never listed): extreme tags and no category.
+const longTagsArticle = strapiFixtureArticle({
+  n: 55,
+  slug: "fixture-long-tags-article",
+  title: "مقاله آزمایشی با برچسب‌های بسیار طولانی",
+  summary: "خلاصه آزمایشی مقاله‌ای که برچسب‌های آن از عرض یک گوشی طولانی‌ترند و دسته‌بندی ندارد.",
+  body: "متن آزمایشی.",
+  image: null,
+  category: null,
+  tags: extremeTags,
+});
+const fixtureArticleExtras = [longTagsArticle];
+// 13 + 1 + 3 + 1 = 18 articles: three pages of six without a category filter.
+const fixtureArticleUniverse = [...pagedArticles, richArticle, ...relatedArticles, longCategoryArticle];
+const strapiPage = (items, page, perPage = fixturePageSize) => ({
+  data: items.slice((page - 1) * perPage, page * perPage),
+  meta: {
+    pagination: { page, pageSize: perPage, pageCount: Math.ceil(items.length / perPage), total: items.length },
+  },
+});
+
+/** Answers a Strapi article request that targets a fixture discriminator, or returns null for the legacy handler. */
+const strapiArticlesFixture = (params) => {
+  const slug = params.get("filters[slug][$eq]");
+  if (slug) {
+    const hit = [...fixtureArticleUniverse, ...fixtureArticleExtras].find((entry) => entry.slug === slug);
+    return hit ? strapiPage([hit], 1) : null;
+  }
+  const category = params.get("filters[category][slug][$eq]");
+  const excluded = params.get("filters[slug][$ne]");
+  const page = Number(params.get("pagination[page]") ?? "1");
+  if (category) {
+    if (!Object.values(fixtureCategories).some((entry) => entry.slug === category)) return null;
+    const pool = fixtureArticleUniverse.filter((entry) => entry.category?.slug === category && entry.slug !== excluded);
+    // A related-articles request sets its own page size; a collection request is capped by the fixture.
+    if (excluded) return strapiPage(pool, 1, Number(params.get("pagination[pageSize]")) || pool.length || 1);
+    return strapiPage(pool, page);
+  }
+  if (!excluded && [2, 3, 99].includes(page)) return strapiPage(fixtureArticleUniverse, page);
+  return null;
+};
+
+/** Handles every fixture discriminator above. Returns true when the request was answered. */
+const serveFixture = (url, response) => {
+  const { pathname, searchParams } = url;
+  const media = pathname.match(/^\/api\/v1\/media\/public\/([^/]+)\/(?:thumb|card|detail)$/) ?? pathname.match(/^\/uploads\/([^/]+)\.svg$/);
+  if (media) {
+    serveFixtureImage(response, media[1]);
+    return true;
+  }
+  const collections = {
+    products: { items: fixtureProducts, empty: [99], paged: [2, 3] },
+    materials: { items: fixtureMaterials, empty: [99], paged: [2, 3] },
+    services: { items: fixtureServices, empty: [], paged: [2, 3] },
+  };
+  const detail = pathname.match(/^\/api\/v1\/public\/content\/(products|materials|services)\/(fixture-[a-z0-9-]+)$/);
+  if (detail) {
+    const record = [...collections[detail[1]].items, ...(detail[1] === "products" ? fixtureProductExtras : [])].find((entry) => entry.slug === detail[2]);
+    if (!record) return false;
+    sendJson(response, 200, record);
+    return true;
+  }
+  const list = pathname.match(/^\/api\/v1\/public\/content\/(products|materials|services)$/);
+  if (list) {
+    const page = Number(searchParams.get("page") ?? "1");
+    const collectionFixture = collections[list[1]];
+    if (collectionFixture.paged.includes(page)) {
+      sendJson(response, 200, pagedCollection(collectionFixture.items, page));
+      return true;
+    }
+    if (collectionFixture.empty.includes(page)) {
+      sendJson(response, 200, { items: [], pageInfo: { page, pageSize: fixturePageSize, total: 0, totalPages: 0 } });
+      return true;
+    }
+    return false;
+  }
+  if (pathname === "/api/articles") {
+    const body = strapiArticlesFixture(searchParams);
+    if (!body) return false;
+    sendJson(response, 200, body);
+    return true;
+  }
+  if (pathname === "/api/categories" && searchParams.has("filters[slug][$eq]")) {
+    const match = knownStrapiCategories.find((entry) => entry.slug === searchParams.get("filters[slug][$eq]"));
+    sendJson(response, 200, { data: match ? [match] : [] });
+    return true;
+  }
+  return false;
+};
+
 createServer((request, response) => {
   const url = new URL(request.url ?? "/", `http://127.0.0.1:${port}`);
   if (
@@ -510,6 +996,7 @@ createServer((request, response) => {
     });
     return response.end(JSON.stringify({ message: "temporary fixture failure" }));
   }
+  if (request.method === "GET" && serveFixture(url, response)) return;
   if (url.pathname === "/api/articles") {
     const slugFilter = url.searchParams.get("filters[slug][$eq]");
     const slugNotFilter = url.searchParams.get("filters[slug][$ne]");
