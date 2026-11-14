@@ -1,7 +1,15 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import { Card } from "@astryxdesign/core/Card";
+import { Heading } from "@astryxdesign/core/Heading";
+import { HStack } from "@astryxdesign/core/HStack";
+import { MetadataList, MetadataListItem } from "@astryxdesign/core/MetadataList";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 import { CustomerSubmitButton } from "@/components/account/CustomerSubmitButton";
 import { CustomerQuotations } from "@/components/account/CustomerQuotations";
+import { formatInquiryDate, inquiryStatusLabel, inquiryStatusTone, inquiryTypeLabel } from "@/components/account/inquiry-labels";
+import { Alert } from "@/components/feedback";
+import { Button, StatusBadge, Textarea } from "@/components/ui";
 import { getInquiry, InquiryApiError } from "@/lib/inquiries";
 import { listCustomerQuotations } from "@/lib/customer-quotations";
 import {
@@ -9,33 +17,21 @@ import {
   addCustomerInquiryMessageAction,
   rejectCustomerQuotationAction,
 } from "./actions";
-import styles from "../../Portal.module.css";
+import styles from "@/components/account/PortalPage.module.css";
 
-const labels: Record<string, string> = {
-  SUBMITTED: "ثبت‌شده",
-  UNDER_REVIEW: "در حال بررسی",
-  NEED_MORE_INFO: "نیازمند اطلاعات",
-  QUOTED: "پیشنهاد ارسال‌شده",
-  ACCEPTED: "پذیرفته‌شده",
-  IN_PROGRESS: "در حال انجام",
-  COMPLETED: "تکمیل‌شده",
-  REJECTED: "ردشده",
-  CANCELLED: "لغوشده",
-};
-const typeLabels: Record<string, string> = {
-  PRODUCT: "استعلام محصول",
-  INJECTION_SERVICE: "خدمات تزریق",
-  MATERIAL: "مواد اولیه",
-  GENERAL_CONTACT: "تماس عمومی",
-};
-const formatDate = (value: string) =>
-  new Intl.DateTimeFormat("fa-IR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
 const terminalStatuses = new Set(["COMPLETED", "REJECTED", "CANCELLED"]);
 
 export const instant = false;
+
+/*
+ * Owned request detail (OpenSpec change rebuild-ui-with-astryx, tasks 7.1 and
+ * 7.2). Astryx Cards group the header, submitted data (MetadataList), the
+ * quotation block, the conversation and the status history. Result banners are
+ * the shared Alert (polite status or assertive alert). The conversation is
+ * chronological and append-only, each message a Card marked with its sender;
+ * the composer is a separate muted Card with its own heading, a labelled
+ * Textarea and a submit action that disables itself while pending.
+ */
 export default async function InquiryDetailPage({
   params,
   searchParams,
@@ -73,85 +69,43 @@ export default async function InquiryDetailPage({
   const canMessage = !terminalStatuses.has(item.status);
 
   return (
-    <section className={styles.page}>
-      {state.created ? (
-        <p role="status" className={styles.success}>
-          درخواست شما ثبت شد و در صف بررسی قرار دارد.
-        </p>
-      ) : null}
-      {state.success === "message" ? (
-        <p role="status" className={styles.success}>
-          پیام شما برای کارشناس ثبت شد.
-        </p>
-      ) : null}
-      {state.success === "accepted" ? (
-        <p role="status" className={styles.success}>
-          پیشنهاد قیمت با موفقیت پذیرفته شد و سفارش در مرحله انجام قرار گرفت.
-        </p>
-      ) : null}
-      {state.success === "rejected" ? (
-        <p role="status" className={styles.success}>
-          پیشنهاد قیمت رد شد و درخواست برای بررسی و اصلاح به کارشناس بازگردانده شد.
-        </p>
-      ) : null}
+    <VStack as="section" gap={5} className={styles.page}>
+      {state.created ? <Alert variant="success" title="درخواست شما ثبت شد و در صف بررسی قرار دارد." /> : null}
+      {state.success === "message" ? <Alert variant="success" title="پیام شما برای کارشناس ثبت شد." /> : null}
+      {state.success === "accepted" ? <Alert variant="success" title="پیشنهاد قیمت با موفقیت پذیرفته شد و سفارش در مرحله انجام قرار گرفت." /> : null}
+      {state.success === "rejected" ? <Alert variant="success" title="پیشنهاد قیمت رد شد و درخواست برای بررسی و اصلاح به کارشناس بازگردانده شد." /> : null}
       {state.conflict === "quotation" ? (
-        <p role="alert" className={styles.error}>
-          نسخه پیشنهاد قیمت یا وضعیت درخواست تغییر کرده یا منقضی شده است. صفحه را تازه‌سازی کنید و آخرین وضعیت را بررسی فرمایید.
-        </p>
+        <Alert variant="danger" title="نسخه پیشنهاد قیمت یا وضعیت درخواست تغییر کرده یا منقضی شده است. صفحه را تازه‌سازی کنید و آخرین وضعیت را بررسی فرمایید.">
+          {/* An explicit refresh, never an automatic retry: it reloads this request without the conflict marker. */}
+          <Button href={`/account/inquiries/${item.id}`} variant="secondary">تازه‌سازی و دیدن آخرین وضعیت</Button>
+        </Alert>
       ) : null}
-      {state.error === "accept" ? (
-        <p role="alert" className={styles.error}>
-          پذیرش پیشنهاد قیمت انجام نشد. صفحه را تازه‌سازی و دوباره تلاش کنید.
-        </p>
-      ) : null}
-      {state.error === "reject" ? (
-        <p role="alert" className={styles.error}>
-          رد پیشنهاد قیمت انجام نشد. صفحه را تازه‌سازی و دوباره تلاش کنید.
-        </p>
-      ) : null}
-      {state.error && state.error !== "accept" && state.error !== "reject" ? (
-        <p role="alert" className={styles.error}>
-          ارسال پیام انجام نشد. صفحه را تازه‌سازی و دوباره تلاش کنید.
-        </p>
-      ) : null}
-      <div className={styles.actions}>
-        <Link className={styles.backLink} href="/account/inquiries">
-          بازگشت به درخواست‌ها
-        </Link>
-      </div>
-      <header className={styles.detailHeader}>
-        <div>
-          <p className={styles.eyebrow}>
-            جزئیات درخواست / {typeLabels[item.type]}
-          </p>
-          <h1>{item.catalogItemName ?? "درخواست مشتری"}</h1>
-          <div className={styles.detailMeta}>
-            <span>ثبت در {formatDate(item.createdAt)}</span>
-          </div>
-        </div>
-        <span className={styles.status} data-status={item.status}>
-          {labels[item.status]}
-        </span>
-      </header>
-      <section className={styles.panel} aria-labelledby="submitted-data-title">
-        <h2 className={styles.sectionTitle} id="submitted-data-title">
-          اطلاعات ثبت‌شده
-        </h2>
-        {fields.length ? (
-          <dl className={styles.details}>
-            {fields.map(([label, value]) => (
-              <div key={label}>
-                <dt>{label}</dt>
-                <dd>{value}</dd>
-              </div>
-            ))}
-          </dl>
-        ) : (
-          <p className={styles.lead}>
-            برای این درخواست اطلاعات تکمیلی ثبت نشده است.
-          </p>
-        )}
-      </section>
+      {state.error === "accept" ? <Alert variant="danger" title="پذیرش پیشنهاد قیمت انجام نشد. صفحه را تازه‌سازی و دوباره تلاش کنید." /> : null}
+      {state.error === "reject" ? <Alert variant="danger" title="رد پیشنهاد قیمت انجام نشد. صفحه را تازه‌سازی و دوباره تلاش کنید." /> : null}
+      {state.error && state.error !== "accept" && state.error !== "reject" ? <Alert variant="danger" title="ارسال پیام انجام نشد. صفحه را تازه‌سازی و دوباره تلاش کنید." /> : null}
+      <div><Button href="/account/inquiries" variant="secondary">بازگشت به درخواست‌ها</Button></div>
+      <Card elevation="low" className={styles.detailHeader}>
+        <HStack as="header" gap={4} vAlign="center" hAlign="between" wrap="wrap">
+          <VStack gap={2} hAlign="start" className={styles.headerCopy}>
+            <Text as="p" type="supporting" weight="bold" className={styles.eyebrow}>جزئیات درخواست / {inquiryTypeLabel[item.type]}</Text>
+            <Heading level={1} color="inherit" className={`${styles.title} ${styles.detailTitle}`}>{item.catalogItemName ?? "درخواست مشتری"}</Heading>
+            <Text as="p" type="supporting" color="secondary">ثبت در {formatInquiryDate(item.createdAt)}</Text>
+          </VStack>
+          <StatusBadge label={inquiryStatusLabel[item.status]} tone={inquiryStatusTone(item.status)} />
+        </HStack>
+      </Card>
+      <Card className={styles.panel}>
+        <VStack as="section" gap={4} aria-labelledby="submitted-data-title">
+          <Heading level={2} id="submitted-data-title" color="inherit" className={styles.sectionTitle}>اطلاعات ثبت‌شده</Heading>
+          {fields.length ? (
+            <MetadataList className={styles.details}>
+              {fields.map(([label, value]) => <MetadataListItem key={label} label={label}>{value}</MetadataListItem>)}
+            </MetadataList>
+          ) : (
+            <Text as="p" color="secondary">برای این درخواست اطلاعات تکمیلی ثبت نشده است.</Text>
+          )}
+        </VStack>
+      </Card>
 
       <CustomerQuotations
         inquiryId={item.id}
@@ -162,73 +116,55 @@ export default async function InquiryDetailPage({
         rejectAction={rejectCustomerQuotationAction}
       />
 
-      <section className={styles.panel} aria-labelledby="conversation-title">
-        <h2 className={styles.sectionTitle} id="conversation-title">
-          گفتگو با کارشناس
-        </h2>
-        <div className={styles.conversation}>
-          {item.messages.length ? (
-            item.messages.map((message) => (
-              <article
-                className={styles.message}
-                data-sender={message.senderType}
-                key={message.id}
-              >
-                <div className={styles.messageMeta}>
-                  <strong>
-                    {message.senderType === "CUSTOMER" ? "شما" : "کارشناس ترنج"}
-                  </strong>
-                  <time dateTime={message.createdAt}>
-                    {formatDate(message.createdAt)}
-                  </time>
-                </div>
-                <p>{message.text}</p>
-              </article>
-            ))
+      <Card className={styles.panel}>
+        <VStack as="section" gap={4} aria-labelledby="conversation-title">
+          <Heading level={2} id="conversation-title" color="inherit" className={styles.sectionTitle}>گفتگو با کارشناس</Heading>
+          <VStack gap={3} className={styles.conversation}>
+            {item.messages.length ? (
+              item.messages.map((message) => (
+                <Card role="article" key={message.id} variant={message.senderType === "CUSTOMER" ? "blue" : "muted"} className={styles.message} data-sender={message.senderType}>
+                  <VStack gap={2} hAlign="start">
+                    <HStack gap={2} hAlign="between" wrap="wrap" width="100%">
+                      <Text as="span" weight="bold" color="inherit">{message.senderType === "CUSTOMER" ? "شما" : "کارشناس ترنج"}</Text>
+                      <Text as="span" type="supporting" color="secondary"><time dateTime={message.createdAt}>{formatInquiryDate(message.createdAt)}</time></Text>
+                    </HStack>
+                    <Text as="p" className={styles.messageText}>{message.text}</Text>
+                  </VStack>
+                </Card>
+              ))
+            ) : (
+              <Text as="p" color="secondary">هنوز پیامی در این گفتگو ثبت نشده است.</Text>
+            )}
+          </VStack>
+          {canMessage ? (
+            <Card variant="muted" className={styles.composer}>
+              <form action={messageAction} aria-labelledby="composer-title">
+                <VStack gap={3} hAlign="start">
+                  <Heading level={3} id="composer-title" color="inherit" className={styles.sectionTitle}>پیام جدید</Heading>
+                  <Textarea label="پیام شما" name="text" required maxLength={4000} helpText="اطلاعات موردنیاز را بدون درج رمز یا اطلاعات بانکی ارسال کنید." />
+                  <CustomerSubmitButton pendingText="در حال ارسال…">ارسال پیام</CustomerSubmitButton>
+                </VStack>
+              </form>
+            </Card>
           ) : (
-            <p className={styles.lead}>هنوز پیامی در این گفتگو ثبت نشده است.</p>
+            <Text as="p" color="secondary">این درخواست بسته شده و امکان ارسال پیام جدید ندارد.</Text>
           )}
-        </div>
-        {canMessage ? (
-          <form action={messageAction} className={styles.messageForm}>
-            <label htmlFor="customer-reply">پیام شما</label>
-            <textarea
-              id="customer-reply"
-              name="text"
-              required
-              minLength={1}
-              maxLength={4000}
-              aria-describedby="customer-reply-help"
-            />
-            <small id="customer-reply-help">
-              اطلاعات موردنیاز را بدون درج رمز یا اطلاعات بانکی ارسال کنید.
-            </small>
-            <CustomerSubmitButton pendingText="در حال ارسال…">
-              ارسال پیام
-            </CustomerSubmitButton>
-          </form>
-        ) : (
-          <p className={styles.lead}>
-            این درخواست بسته شده و امکان ارسال پیام جدید ندارد.
-          </p>
-        )}
-      </section>
+        </VStack>
+      </Card>
 
-      <section className={styles.panel} aria-labelledby="status-history-title">
-        <h2 className={styles.sectionTitle} id="status-history-title">
-          تاریخچه وضعیت
-        </h2>
-        <ol className={styles.timeline}>
-          {item.statusHistory.map((history) => (
-            <li key={history.id}>
-              <strong>{labels[history.toStatus]}</strong>
-              <time dateTime={history.createdAt}>
-                {formatDate(history.createdAt)}
-              </time>
-            </li>
-          ))}
-        </ol>
-      </section>
-    </section>
+      <Card className={styles.panel}>
+        <VStack as="section" gap={4} aria-labelledby="status-history-title">
+          <Heading level={2} id="status-history-title" color="inherit" className={styles.sectionTitle}>تاریخچه وضعیت</Heading>
+          <ol className={styles.timeline}>
+            {item.statusHistory.map((history) => (
+              <li key={history.id}>
+                <Text as="span" weight="bold" color="inherit" className={styles.sectionTitle}>{inquiryStatusLabel[history.toStatus]}</Text>
+                <Text as="span" type="supporting" color="secondary"><time dateTime={history.createdAt}>{formatInquiryDate(history.createdAt)}</time></Text>
+              </li>
+            ))}
+          </ol>
+        </VStack>
+      </Card>
+    </VStack>
   );
 }

@@ -128,6 +128,7 @@ Differences from earlier notes, found while verifying:
 | OD-10 | `safeCta` accepts protocol-relative `//host` | Decided 2026-11-14: internal-only policy confirmed by the owner, option A applied | 5.3, 9.6 |
 | OD-11 | Badge used for category tags | Exception recorded | none; confirmed at 9.6 |
 | OD-12 | Astryx extension points that the CLI docs do not list | Exception recorded | none; confirmed at 9.2 and 9.6 |
+| OD-13 | Customer portal frame stays Toranj CSS, not Astryx `AppShell` | Exception recorded | none; confirmed at 7.4 and 9.6 |
 
 #### OD-1: Material detail inquiry card and hero action follow `inquiryAvailable`
 
@@ -316,3 +317,10 @@ Differences from earlier notes, found while verifying:
   - B. Replace them with the props-first alternatives above. This trades real heading elements or adds wrappers for no user benefit.
 - **Recommended:** A. Each use is confined to one stylesheet, no alternative is better for users, and guards turn a silent upgrade regression into a failing test.
 - **If accepted:** add an e2e assertion that an h2 card title and an h3 card title compute the same font size, and one that `.inquiryCard` computes the clamp's two end paddings (the token works); keep the `dl` structure test. List the three items in the 9.2 upgrade procedure with `evidence/public-content.md:714-722`, and correct the wording "documented `--astryx-card-padding` token" at `evidence/public-content.md:139` and in the two CSS comments named above to "documented in Astryx core source comments only".
+
+#### OD-13: Customer portal frame stays Toranj CSS
+
+- **Status:** Exception recorded (2026-11-14), confirmed at 7.4 and 9.6.
+- **In tension:** the Astryx-first rule (use the documented component for the pattern) against `spec: customer-portal-experience`, Requirement "Responsive RTL portal composition", and the existing e2e checks that a phone keeps its navigation reachable in a fixed bottom bar.
+- **Decision:** the landmarks and the responsive frame of `CustomerPortalShell` (sidebar, sticky phone top bar, fixed bottom bar) stay Toranj CSS. Astryx `AppShell`/`SideNav`/`MobileNav` turn the phone navigation into a drawer, which would change a tested behaviour and hide the three destinations behind a control. Everything inside the frame is Astryx (`Link`, `Avatar`, `Text`, `Card`, `Heading`) and the shared `Button`.
+- **Revisit:** if the owner prefers the drawer, replace the frame in one change and update the portal e2e frame test.

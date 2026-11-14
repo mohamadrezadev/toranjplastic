@@ -985,6 +985,11 @@ const serveFixture = (url, response) => {
 
 const loginAttempts = new Map();
 const inquiryAttempts = new Map();
+const customerAttempts = new Map();
+function countFixtureAttempt(action, request) {
+  const key = `${action}:${cookieValue(request, "toranj_session")}`;
+  customerAttempts.set(key, (customerAttempts.get(key) ?? 0) + 1);
+}
 
 function readRequestText(request) {
   return new Promise((resolve) => {
@@ -1153,7 +1158,7 @@ createServer((request, response) => {
   ) {
     const quotationMode = cookieValue(request, "quotation_mode");
     let currentInquiry = inquiry;
-    if (quotationMode === "sent" || quotationMode === "quoted") {
+    if (quotationMode === "sent" || quotationMode === "quoted" || quotationMode === "expired") {
       currentInquiry = { ...inquiry, status: "QUOTED", version: 1 };
     } else if (quotationMode === "accepted") {
       currentInquiry = { ...inquiry, status: "ACCEPTED", version: 2 };
@@ -1172,7 +1177,9 @@ createServer((request, response) => {
   ) {
     const mode = cookieValue(request, "quotation_mode");
     let current = customerSentQuotation;
-    if (mode === "accepted") {
+    if (mode === "expired") {
+      current = { ...customerSentQuotation, validUntil: "2020-01-01T00:00:00.000Z", isExpired: true };
+    } else if (mode === "accepted") {
       current = { ...customerSentQuotation, status: "ACCEPTED", respondedAt: publishedAt };
     } else if (mode === "rejected") {
       current = { ...customerSentQuotation, status: "REJECTED", respondedAt: publishedAt, rejectionReason: "قیمت بالا است" };
@@ -1187,6 +1194,14 @@ createServer((request, response) => {
     url.pathname === "/api/v1/inquiries/inquiry-1/quotations/quotation-1/accept" &&
     request.method === "POST"
   ) {
+    // Failure fixtures (task 7.3/7.4): cookie quotation_fail=conflict answers 409 and =error answers 500;
+    // every attempt is counted per session so "no automatic retry" is measured.
+    countFixtureAttempt("accept", request);
+    const failMode = cookieValue(request, "quotation_fail");
+    if (failMode === "conflict" || failMode === "error") {
+      response.writeHead(failMode === "conflict" ? 409 : 500, { "Content-Type": "application/json; charset=utf-8" });
+      return response.end(JSON.stringify({ message: failMode }));
+    }
     const csrfCookie = cookieValue(request, "toranj_csrf") === "fixture-csrf";
     if (!csrfCookie || request.headers["x-csrf-token"] !== "fixture-csrf") {
       response.writeHead(403, { "Content-Type": "application/json; charset=utf-8" });
@@ -1202,6 +1217,14 @@ createServer((request, response) => {
     url.pathname === "/api/v1/inquiries/inquiry-1/quotations/quotation-1/reject" &&
     request.method === "POST"
   ) {
+    // Failure fixtures (task 7.3/7.4): cookie quotation_fail=conflict answers 409 and =error answers 500;
+    // every attempt is counted per session so "no automatic retry" is measured.
+    countFixtureAttempt("reject", request);
+    const failMode = cookieValue(request, "quotation_fail");
+    if (failMode === "conflict" || failMode === "error") {
+      response.writeHead(failMode === "conflict" ? 409 : 500, { "Content-Type": "application/json; charset=utf-8" });
+      return response.end(JSON.stringify({ message: failMode }));
+    }
     const csrfCookie = cookieValue(request, "toranj_csrf") === "fixture-csrf";
     if (!csrfCookie || request.headers["x-csrf-token"] !== "fixture-csrf") {
       response.writeHead(403, { "Content-Type": "application/json; charset=utf-8" });
@@ -1228,13 +1251,30 @@ createServer((request, response) => {
     url.pathname === "/api/v1/inquiries/inquiry-1/messages" &&
     request.method === "POST"
   ) {
-    response.writeHead(200, {
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "no-store",
+    // A message holding FIXTURE_FAIL answers 503; every attempt is counted per session.
+    return readRequestText(request).then((raw) => {
+      countFixtureAttempt("message", request);
+      if (raw.includes("FIXTURE_FAIL")) {
+        response.writeHead(503, { "Content-Type": "application/json; charset=utf-8" });
+        return response.end(JSON.stringify({ message: "Service unavailable" }));
+      }
+      response.writeHead(200, {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-store",
+      });
+      return response.end(JSON.stringify(inquiry));
     });
-    return response.end(JSON.stringify(inquiry));
+  }
+  if (url.pathname === "/__fixtures/customer-attempts") {
+    response.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+    return response.end(JSON.stringify({ attempts: customerAttempts.get(`${url.searchParams.get("action")}:${url.searchParams.get("session")}`) ?? 0 }));
   }
   if (url.pathname === "/api/v1/inquiries" && request.method === "GET") {
+    // Cookie portal_fail=1 simulates an unavailable inquiry service (task 7.1 error state).
+    if (cookieValue(request, "portal_fail") === "1") {
+      response.writeHead(503, { "Content-Type": "application/json; charset=utf-8" });
+      return response.end(JSON.stringify({ message: "Service unavailable" }));
+    }
     response.writeHead(200, {
       "Content-Type": "application/json; charset=utf-8",
       "Cache-Control": "no-store",

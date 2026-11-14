@@ -26,7 +26,9 @@ describe("CustomerPortalShell", () => {
     expect(screen.getByRole("link", { name: "نمای کلی" })).toHaveAttribute("href", "/account");
     expect(screen.getByRole("link", { name: "درخواست‌های من" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "درخواست جدید" })).toHaveAttribute("href", "/inquiry");
-    expect(screen.getAllByText("مشتری نمونه")).toHaveLength(2);
+    // The name appears in the account card and the compact top bar; the Astryx Avatar also carries it as hidden decoration.
+    expect(screen.getAllByText("مشتری نمونه").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByRole("complementary", { name: "ناوبری پنل مشتری" })).toBeInTheDocument();
     expect(screen.getByText("+989121234567")).toHaveAttribute("dir", "ltr");
     expect(screen.getByRole("main")).toContainElement(screen.getByRole("heading", { name: "محتوای پنل" }));
     expect(screen.getByRole("button", { name: "خروج امن" })).toBeEnabled();

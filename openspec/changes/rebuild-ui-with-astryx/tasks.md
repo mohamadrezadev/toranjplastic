@@ -47,10 +47,10 @@
 
 ## 7. Customer portal migration
 
-- [ ] 7.1 Migrate the customer portal shell, account context, navigation, overview, request list/filter, request detail, history, loading, empty, and error states.
-- [ ] 7.2 Migrate customer-visible inquiry messaging with chronological content, distinct composer state, pending/disabled behavior, and ownership-safe failures.
-- [ ] 7.3 Migrate quotation display, private PDF action, accept/reject confirmation, conflict, expired, already-answered, and success states without implying automatic pricing or purchase.
-- [ ] 7.4 Verify private customer flows retain server ownership, redaction, noindex/no-store, dark/light, Persian RTL, keyboard, and responsive requirements.
+- [x] 7.1 Migrate the customer portal shell, account context, navigation, overview, request list/filter, request detail, history, loading, empty, and error states.
+- [x] 7.2 Migrate customer-visible inquiry messaging with chronological content, distinct composer state, pending/disabled behavior, and ownership-safe failures.
+- [x] 7.3 Migrate quotation display, private PDF action, accept/reject confirmation, conflict, expired, already-answered, and success states without implying automatic pricing or purchase.
+- [x] 7.4 Verify private customer flows retain server ownership, redaction, noindex/no-store, dark/light, Persian RTL, keyboard, and responsive requirements.
 
 ## 8. Admin experience migration
 
