@@ -20,7 +20,7 @@ test("admin inquiry inbox and detail remain RTL, private and responsive", async 
   const mobileMenu = page.locator('details').filter({ hasText: 'منو' });
   if (await mobileMenu.isVisible()) await mobileMenu.locator('summary').click();
   await expect(page.locator('a[href="/admin/inquiries"][aria-current="page"]').filter({ visible: true })).toBeVisible();
-  await expect(page.locator('section[aria-label] strong').first()).toBeVisible();
+  await expect(page.getByRole('group', { name: 'خلاصه استعلام‌ها' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
 
   await page.goto("/admin/inquiries/inquiry-1");
@@ -31,7 +31,7 @@ test("admin inquiry inbox and detail remain RTL, private and responsive", async 
   await page.getByLabel("پیام جدید برای مشتری").fill("پیام آزمایشی برای مشتری");
   await page.getByRole("button", { name: "ارسال پیام به مشتری" }).click();
   await expect(page).toHaveURL(/success=message/);
-  await expect(page.getByRole("status").filter({ hasText: /\S/ })).toContainText("پیام برای مشتری ثبت شد");
+  await expect(page.getByRole("status").filter({ hasText: "پیام برای مشتری ثبت شد" }).first()).toBeVisible();
   await expect(page.locator('input[name="expectedVersion"]').first()).toHaveValue("0");
   expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
 });

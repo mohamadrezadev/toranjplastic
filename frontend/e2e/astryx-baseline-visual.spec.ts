@@ -41,7 +41,7 @@ test("records the pre-Astryx representative visual matrix", async ({ page, conte
 
     await setSession(context, "customer-baseline-session");
     await openForSnapshot(page, "/inquiry/product", theme);
-    await expect(page.getByRole("status").filter({ hasText: /\S/ })).toContainText("مرحله 1 از 3");
+    await expect(page.getByRole("region", { name: "پیشرفت فرم درخواست" }).getByRole("status")).toContainText("مرحله 1 از 3");
     await expect.soft(page).toHaveScreenshot(`inquiry-product-${theme}.png`, { fullPage: true });
 
     await setSession(context, "customer-baseline-session");

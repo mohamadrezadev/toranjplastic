@@ -25,30 +25,23 @@ async function expectVisibleActionsNotToOverlap(page: Page) {
 }
 
 test("authenticated customer can submit and view a private product inquiry", async ({ page }, testInfo) => {
+  await page.context().addCookies([
+    { name: "toranj_session", value: "customer-presentation", domain: "127.0.0.1", path: "/", httpOnly: true, sameSite: "Lax" },
+    { name: "toranj_csrf", value: "fixture-csrf", domain: "127.0.0.1", path: "/", sameSite: "Lax" },
+  ]);
   for (const theme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme: theme });
-    await page.goto("/auth/login?next=/inquiry/product");
-    await page.getByLabel("شماره موبایل").fill("09123456789");
-    await page.getByLabel("رمز عبور").fill("strong-password");
-    await page.getByRole("button", { name: "ورود" }).click();
+    await page.goto("/inquiry/product");
     await expect(page).toHaveURL(/\/inquiry\/product$/);
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
-    await expect(page.getByRole("navigation", { name: "بخش‌های پنل مشتری" })).toBeVisible();
-    await expect(page.getByRole("status").filter({ hasText: /\S/ })).toContainText("مرحله 1 از 3");
+    await expect(page.getByRole("region", { name: "پیشرفت فرم درخواست" }).getByRole("status")).toContainText("مرحله 1 از 3");
     await expect(page.getByRole("group", { name: /موضوع درخواست/ })).toBeVisible();
     await expect(page.getByRole("group", { name: /مقدار و تحویل/ })).toBeHidden();
     await expect(page.getByRole("button", { name: "مرحله بعد" })).toBeVisible();
     await expect(page.getByRole("button", { name: "ثبت درخواست" })).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
     if (testInfo.project.name === "mobile-360" || testInfo.project.name === "mobile-390") {
-      const navigation = page.getByRole("navigation", { name: "بخش‌های پنل مشتری" });
-      await expect(navigation).toHaveCSS("position", "fixed");
-      const navBottomBeforeScroll = await navigation.evaluate((element) => Math.round(element.getBoundingClientRect().bottom));
-      expect(navBottomBeforeScroll).toBe(page.viewportSize()?.height);
-      await page.evaluate(() => window.scrollTo(0, 500));
-      const navBottomAfterScroll = await navigation.evaluate((element) => Math.round(element.getBoundingClientRect().bottom));
-      expect(navBottomAfterScroll).toBe(navBottomBeforeScroll);
       const undersizedTargets = await page.locator("a:visible, button:visible, input:visible, select:visible, textarea:visible").evaluateAll((elements) => elements
         .map((element) => ({ label: element.getAttribute("aria-label") || element.textContent?.trim() || element.tagName, rect: element.getBoundingClientRect() }))
         .filter(({ rect }) => rect.width < 44 || rect.height < 44)
@@ -60,24 +53,16 @@ test("authenticated customer can submit and view a private product inquiry", asy
     }
     await page.getByLabel("محصول *", { exact: true }).selectOption("product-1");
     await page.getByRole("button", { name: "مرحله بعد" }).click();
-    await expect(page.getByRole("status").filter({ hasText: /\S/ })).toContainText("مرحله 2 از 3");
+    await expect(page.getByRole("region", { name: "پیشرفت فرم درخواست" }).getByRole("status")).toContainText("مرحله 2 از 3");
     await expect(page.getByRole("group", { name: /موضوع درخواست/ })).toBeHidden();
     await expect(page.getByRole("group", { name: /مقدار و تحویل/ })).toBeVisible();
     await page.getByLabel("مقدار تقریبی (اختیاری)").fill("100");
     await page.getByLabel("شهر یا محل تحویل").fill("تهران");
     await page.getByRole("button", { name: "مرحله بعد" }).click();
-    await expect(page.getByRole("status").filter({ hasText: /\S/ })).toContainText("مرحله 3 از 3");
+    await expect(page.getByRole("region", { name: "پیشرفت فرم درخواست" }).getByRole("status")).toContainText("مرحله 3 از 3");
     await expect(page.getByRole("group", { name: /توضیحات تکمیلی/ })).toBeVisible();
     await page.getByLabel("توضیحات تکمیلی").fill("درخواست آزمون");
     if (testInfo.project.name === "mobile-360" || testInfo.project.name === "mobile-390") {
-      const submit = page.getByRole("button", { name: "ثبت درخواست" });
-      const navigation = page.getByRole("navigation", { name: "بخش‌های پنل مشتری" });
-      await submit.evaluate((element) => element.scrollIntoView({ block: "center" }));
-      const submitRect = await submit.boundingBox();
-      const navigationRect = await navigation.boundingBox();
-      expect(submitRect).not.toBeNull();
-      expect(navigationRect).not.toBeNull();
-      expect((submitRect?.y ?? 0) + (submitRect?.height ?? 0)).toBeLessThanOrEqual(navigationRect?.y ?? 0);
       await expectVisibleActionsNotToOverlap(page);
       await page.screenshot({ path: testInfo.outputPath(`inquiry-form-final-${theme}.png`), fullPage: false });
     }

@@ -57,15 +57,15 @@
 - [x] 8.1 Migrate the admin shell, skip link, identity/account context, capability-aware navigation, secure logout, breadcrumbs, responsive sidebar/menu, and shared page workspace.
 - [x] 8.2 Migrate admin content lists and authoring forms for products, materials, services, articles, categories, and managed pages using shared Astryx-backed patterns.
 - [x] 8.3 Migrate media library, uploader, picker dialog, gallery editor, progress, failure, deletion-blocked, and conflict states with focus trap/return and keyboard coverage.
-- [ ] 8.4 Migrate inquiry operations, assignment, status transitions, internal notes, customer messages, timelines, conflict handling, and quotation editor panels without changing backend authorization.
-- [ ] 8.5 Migrate staff list/create/detail surfaces with capability-derived UI, validation, forbidden, inactive, and optimistic-conflict states.
-- [ ] 8.6 Verify admin E2E flows at all required widths and themes, including keyboard-only operation, responsive table/card transformations, overlay focus, and negative capability paths.
+- [x] 8.4 Migrate inquiry operations, assignment, status transitions, internal notes, customer messages, timelines, conflict handling, and quotation editor panels without changing backend authorization.
+- [x] 8.5 Migrate staff list/create/detail surfaces with capability-derived UI, validation, forbidden, inactive, and optimistic-conflict states.
+- [x] 8.6 Verify admin E2E flows at all required widths and themes, including keyboard-only operation, responsive table/card transformations, overlay focus, and negative capability paths.
 
 ## 9. Cleanup, documentation, and delivery gates
 
-- [ ] 9.1 Remove legacy primitive/style paths only after repository-wide usage checks prove they are unused; remove temporary adapters whose call sites have completed migration.
-- [ ] 9.2 Document the Toranj theme mapping, public component entry points, approved Astryx workflow, swizzle exception process, and exact package-upgrade procedure.
-- [ ] 9.3 Run package-version alignment, lint, typecheck, unit/component tests, architecture checks, backend/frontend E2E tests, PostgreSQL integration tests where applicable, and the production monorepo build.
-- [ ] 9.4 Run final Astryx source and completed-build doctor checks and resolve every critical or unexplained RTL, accessibility, hydration, styling, or dependency finding.
-- [ ] 9.5 Re-capture the representative visual matrix, compare it with the baseline, and verify no unintended overflow, mixed visual system, fabricated content, or product-contract regression.
-- [ ] 9.6 Review every acceptance scenario in the change specs, record evidence beside the matching task, and leave all unproved tasks unchecked before archive.
+- [x] 9.1 Remove legacy primitive/style paths only after repository-wide usage checks prove they are unused; remove temporary adapters whose call sites have completed migration.
+- [x] 9.2 Document the Toranj theme mapping, public component entry points, approved Astryx workflow, swizzle exception process, and exact package-upgrade procedure.
+- [x] 9.3 Run package-version alignment, lint, typecheck, unit/component tests, architecture checks, backend/frontend E2E tests, PostgreSQL integration tests where applicable, and the production monorepo build.
+- [x] 9.4 Run final Astryx source and completed-build doctor checks and resolve every critical or unexplained RTL, accessibility, hydration, styling, or dependency finding.
+- [x] 9.5 Re-capture the representative visual matrix, compare it with the baseline, and verify no unintended overflow, mixed visual system, fabricated content, or product-contract regression.
+- [x] 9.6 Review every acceptance scenario in the change specs, record evidence beside the matching task, and leave all unproved tasks unchecked before archive.

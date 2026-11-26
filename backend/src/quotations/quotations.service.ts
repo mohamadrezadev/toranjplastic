@@ -443,7 +443,7 @@ export class QuotationsService {
         })
         .then((inquiry) => {
           if (inquiry?.owner?.mobile) {
-            this.notifications?.notifyQuotationIssued({
+            void this.notifications?.notifyQuotationIssued({
               inquiryId,
               quotationNumber: result.quotationNumber,
               customerName: inquiry.owner.displayName,

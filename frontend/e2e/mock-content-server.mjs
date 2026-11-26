@@ -1624,6 +1624,21 @@ createServer((request, response) => {
         JSON.stringify({ code: "INVALID_CSRF", message: "Invalid CSRF token" }),
       );
     }
+    // Cookie inquiry_fail: conflict, transition, assignee or error make the mutation fail with the backend's stable code.
+    const inquiryFailures = {
+      conflict: [409, "INQUIRY_VERSION_CONFLICT"],
+      transition: [409, "INQUIRY_INVALID_TRANSITION"],
+      assignee: [409, "INQUIRY_INVALID_ASSIGNEE"],
+      error: [500, "INTERNAL_ERROR"],
+    };
+    const inquiryFailure = inquiryFailures[cookieValue(request, "inquiry_fail")];
+    if (inquiryFailure) {
+      response.writeHead(inquiryFailure[0], {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-store",
+      });
+      return response.end(JSON.stringify({ code: inquiryFailure[1] }));
+    }
     response.writeHead(200, {
       "Content-Type": "application/json; charset=utf-8",
       "Cache-Control": "no-store",

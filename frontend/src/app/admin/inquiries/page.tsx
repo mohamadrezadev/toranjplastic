@@ -1,7 +1,16 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Button } from "@/components/ui";
-import { getAdminInquirySummary, inquiryQuery, inquiryStatusLabels, inquiryStatuses, inquiryTypeLabels, inquiryTypes, listAdminAssignees, listAdminInquiries } from "@/features/admin-inquiries";
+import { Card } from "@astryxdesign/core/Card";
+import { Grid } from "@astryxdesign/core/Grid";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Link } from "@astryxdesign/core/Link";
+import { Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow } from "@astryxdesign/core/Table";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
+import { AdminHeader, AdminPagination, AdminSection, AdminStat } from "@/components/admin/AdminContent";
+import { EmptyState } from "@/components/feedback";
+import { Button, Input, Select, StatusBadge } from "@/components/ui";
+import { inquiryStatusTone } from "@/components/account/inquiry-labels";
+import { getAdminInquirySummary, inquiryStatusLabels, inquiryStatuses, inquiryTypeLabels, inquiryTypes, listAdminAssignees, listAdminInquiries } from "@/features/admin-inquiries";
 import styles from "./Inquiry.module.css";
 
 export const metadata: Metadata = { title: "کارتابل استعلام‌ها", robots: { index: false, follow: false } };
@@ -9,6 +18,14 @@ export const instant = false;
 
 type Params = { page?: string; q?: string; type?: string; status?: string; assignment?: string; from?: string; to?: string };
 
+const day = (value: string) => new Intl.DateTimeFormat("fa-IR").format(new Date(value));
+
+/*
+ * Inquiry inbox (OpenSpec change rebuild-ui-with-astryx, task 8.4): real summary
+ * counts, URL-based filters (a plain GET form), an Astryx Table on wide screens
+ * and cards on narrow ones, the shared empty state and page links that keep
+ * every filter. Data loading and the filter contract are unchanged.
+ */
 export default async function AdminInquiriesPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;
   const page = Math.max(1, Number(params.page ?? "1") || 1);
@@ -21,33 +38,123 @@ export default async function AdminInquiriesPage({ searchParams }: { searchParam
     from: params.from || undefined, to: params.to || undefined,
   };
   const [result, summary, assignees] = await Promise.all([listAdminInquiries(filters), getAdminInquirySummary(), listAdminAssignees()]);
-  const pageHref = (target: number) => `?${inquiryQuery({ ...filters, page: target })}`;
+  // Page links use the page's own parameter names (`assignment`), so every filter survives a page change.
+  const pageHref = (target: number) => {
+    const query = new URLSearchParams();
+    if (params.q?.trim()) query.set("q", params.q.trim());
+    if (filters.type) query.set("type", filters.type);
+    if (filters.status) query.set("status", filters.status);
+    if (params.assignment) query.set("assignment", params.assignment);
+    if (filters.from) query.set("from", filters.from);
+    if (filters.to) query.set("to", filters.to);
+    query.set("page", String(target));
+    return `/admin/inquiries?${query}`;
+  };
+  const hasFilters = Boolean(filters.q || filters.type || filters.status || params.assignment || filters.from || filters.to);
 
-  return <div className={styles.page}>
-    <header className={styles.heading}><div><p className={styles.eyebrow}>عملیات مشتریان</p><h1>کارتابل استعلام‌ها</h1><p className={styles.lead}>درخواست‌های ثبت‌شده را بررسی، فیلتر و برای پیگیری به مدیر فعال اختصاص دهید.</p></div></header>
-    <section className={styles.summaryGrid} aria-label="خلاصه استعلام‌ها">
-      <div className={styles.summaryCard}><span>کل درخواست‌ها</span><strong>{summary.total.toLocaleString("fa-IR")}</strong></div>
-      <div className={styles.summaryCard}><span>بدون مسئول</span><strong>{summary.unassigned.toLocaleString("fa-IR")}</strong></div>
-      <div className={styles.summaryCard}><span>ثبت‌شده</span><strong>{summary.submitted.toLocaleString("fa-IR")}</strong></div>
-      <div className={styles.summaryCard}><span>در حال بررسی</span><strong>{summary.underReview.toLocaleString("fa-IR")}</strong></div>
-    </section>
-    <section className={styles.panel} aria-labelledby="filters-title"><h2 id="filters-title">جست‌وجو و فیلتر</h2>
-      <form className={styles.filters}>
-        <div className={styles.filterField}><label htmlFor="q">شناسه، عنوان یا موبایل</label><input id="q" name="q" maxLength={80} defaultValue={params.q ?? ""} /></div>
-        <div className={styles.filterField}><label htmlFor="type">نوع درخواست</label><select id="type" name="type" defaultValue={filters.type ?? ""}><option value="">همه</option>{inquiryTypes.map((item) => <option key={item} value={item}>{inquiryTypeLabels[item]}</option>)}</select></div>
-        <div className={styles.filterField}><label htmlFor="status">وضعیت</label><select id="status" name="status" defaultValue={filters.status ?? ""}><option value="">همه</option>{inquiryStatuses.map((item) => <option key={item} value={item}>{inquiryStatusLabels[item]}</option>)}</select></div>
-        <div className={styles.filterField}><label htmlFor="assignment">مسئول</label><select id="assignment" name="assignment" defaultValue={params.assignment ?? ""}><option value="">همه</option><option value="unassigned">بدون مسئول</option>{assignees.map((item) => <option key={item.id} value={item.id}>{item.displayName}</option>)}</select></div>
-        <div className={styles.filterField}><label htmlFor="from">از تاریخ</label><input id="from" name="from" type="date" defaultValue={params.from ?? ""} /></div>
-        <div className={styles.filterField}><label htmlFor="to">تا قبل از تاریخ</label><input id="to" name="to" type="date" defaultValue={params.to ?? ""} /></div>
-        <div className={styles.filterActions}><Button type="submit">اعمال فیلتر</Button><Link className={styles.clearLink} href="/admin/inquiries">پاک‌کردن</Link></div>
-      </form>
-    </section>
-    <section className={styles.panel} aria-labelledby="results-title"><div className={styles.heading}><div><h2 id="results-title">نتایج</h2><p className={styles.lead}>{result.total.toLocaleString("fa-IR")} درخواست</p></div></div>
-      {result.items.length === 0 ? <p className={styles.empty}>استعلامی با این فیلترها پیدا نشد.</p> : <>
-        <div className={styles.desktopTable}><table className={styles.table}><thead><tr><th>درخواست</th><th>مشتری</th><th>نوع</th><th>وضعیت</th><th>مسئول</th><th>تاریخ</th></tr></thead><tbody>{result.items.map((item) => <tr key={item.id}><td><Link className={styles.rowLink} href={`/admin/inquiries/${item.id}`}>{item.catalogItemName ?? "درخواست مشتری"}</Link><br /><small dir="ltr">{item.id.slice(-10)}</small></td><td>{item.ownerSummary.displayName}<br /><small dir="ltr">{item.ownerSummary.mobile}</small></td><td>{inquiryTypeLabels[item.type]}</td><td><span className={styles.badge} data-status={item.status}>{inquiryStatusLabels[item.status]}</span></td><td>{item.assigneeSummary?.displayName ?? "بدون مسئول"}</td><td>{new Intl.DateTimeFormat("fa-IR").format(new Date(item.createdAt))}</td></tr>)}</tbody></table></div>
-        <div className={styles.mobileCards}>{result.items.map((item) => <article key={item.id} className={styles.mobileCard}><div className={styles.mobileCardHeader}><Link className={styles.rowLink} href={`/admin/inquiries/${item.id}`}>{item.catalogItemName ?? "درخواست مشتری"}</Link><span className={styles.badge} data-status={item.status}>{inquiryStatusLabels[item.status]}</span></div><div className={styles.metaRow}><span>{item.ownerSummary.displayName}</span><span>{inquiryTypeLabels[item.type]}</span></div><div className={styles.metaRow}><span>{item.assigneeSummary?.displayName ?? "بدون مسئول"}</span><time dateTime={item.createdAt}>{new Intl.DateTimeFormat("fa-IR").format(new Date(item.createdAt))}</time></div></article>)}</div>
-      </>}
-      {result.pageCount > 1 ? <nav className={styles.pagination} aria-label="صفحه‌بندی">{page > 1 ? <Link href={pageHref(page - 1)}>قبلی</Link> : <span />}<span>صفحه {result.page.toLocaleString("fa-IR")} از {result.pageCount.toLocaleString("fa-IR")}</span>{page < result.pageCount ? <Link href={pageHref(page + 1)}>بعدی</Link> : <span />}</nav> : null}
-    </section>
-  </div>;
+  return (
+    <VStack gap={4}>
+      <AdminHeader eyebrow="عملیات مشتریان" title="کارتابل استعلام‌ها" lead="درخواست‌های ثبت‌شده را بررسی، فیلتر و برای پیگیری به مدیر فعال اختصاص دهید." />
+
+      <Grid columns={{ minWidth: 150, max: 4 }} gap={3} role="group" aria-label="خلاصه استعلام‌ها">
+        <AdminStat label="کل درخواست‌ها" value={summary.total.toLocaleString("fa-IR")} />
+        <AdminStat label="بدون مسئول" value={summary.unassigned.toLocaleString("fa-IR")} />
+        <AdminStat label="ثبت‌شده" value={summary.submitted.toLocaleString("fa-IR")} />
+        <AdminStat label="در حال بررسی" value={summary.underReview.toLocaleString("fa-IR")} />
+      </Grid>
+
+      <AdminSection title="جست‌وجو و فیلتر" id="filters-title">
+        <form aria-labelledby="filters-title">
+          <VStack gap={3}>
+            <Grid columns={{ minWidth: 170 }} gap={3} align="end">
+              <Input label="شناسه، عنوان یا موبایل" name="q" maxLength={80} defaultValue={params.q ?? ""} />
+              <Select label="نوع درخواست" name="type" defaultValue={filters.type ?? ""}>
+                <option value="">همه</option>
+                {inquiryTypes.map((item) => <option key={item} value={item}>{inquiryTypeLabels[item]}</option>)}
+              </Select>
+              <Select label="وضعیت" name="status" defaultValue={filters.status ?? ""}>
+                <option value="">همه</option>
+                {inquiryStatuses.map((item) => <option key={item} value={item}>{inquiryStatusLabels[item]}</option>)}
+              </Select>
+              <Select label="مسئول" name="assignment" defaultValue={params.assignment ?? ""}>
+                <option value="">همه</option>
+                <option value="unassigned">بدون مسئول</option>
+                {assignees.map((item) => <option key={item.id} value={item.id}>{item.displayName}</option>)}
+              </Select>
+              <Input label="از تاریخ" name="from" type="date" defaultValue={params.from ?? ""} />
+              <Input label="تا قبل از تاریخ" name="to" type="date" defaultValue={params.to ?? ""} />
+            </Grid>
+            <HStack gap={2} wrap="wrap" className={styles.filterActions}>
+              <Button type="submit">اعمال فیلتر</Button>
+              <Button href="/admin/inquiries" variant="ghost">پاک‌کردن</Button>
+            </HStack>
+          </VStack>
+        </form>
+      </AdminSection>
+
+      <AdminSection title="نتایج" id="results-title" hint={`${result.total.toLocaleString("fa-IR")} درخواست`}>
+        {result.items.length === 0 ? (
+          <EmptyState title="استعلامی با این فیلترها پیدا نشد." description={hasFilters ? "فیلترها را تغییر دهید یا پاک کنید." : "هنوز درخواستی ثبت نشده است."} action={hasFilters ? { label: "پاک‌کردن فیلترها", href: "/admin/inquiries" } : undefined} />
+        ) : (
+          <>
+            <div className={styles.desktopTable}>
+              <Table aria-label="فهرست استعلام‌ها" dividers="rows" hasHover>
+                <TableHeader>
+                  <TableRow>
+                    {["درخواست", "مشتری", "نوع", "وضعیت", "مسئول", "تاریخ"].map((header) => <TableHeaderCell key={header}>{header}</TableHeaderCell>)}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {result.items.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <VStack gap={0.5} hAlign="start">
+                          <Link href={`/admin/inquiries/${item.id}`} className={styles.rowLink}>{item.catalogItemName ?? "درخواست مشتری"}</Link>
+                          <Text as="span" type="supporting" color="secondary" dir="ltr">{item.id.slice(-10)}</Text>
+                        </VStack>
+                      </TableCell>
+                      <TableCell>
+                        <VStack gap={0.5} hAlign="start">
+                          <Text as="span">{item.ownerSummary.displayName}</Text>
+                          <Text as="span" type="supporting" color="secondary" dir="ltr">{item.ownerSummary.mobile}</Text>
+                        </VStack>
+                      </TableCell>
+                      <TableCell>{inquiryTypeLabels[item.type]}</TableCell>
+                      <TableCell><StatusBadge label={inquiryStatusLabels[item.status]} tone={inquiryStatusTone(item.status)} /></TableCell>
+                      <TableCell>{item.assigneeSummary?.displayName ?? "بدون مسئول"}</TableCell>
+                      <TableCell>{day(item.createdAt)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <ul className={styles.mobileCards} aria-label="فهرست استعلام‌ها (کارت)">
+              {result.items.map((item) => (
+                <li key={item.id}>
+                  <Card variant="muted">
+                    <VStack gap={2}>
+                      <HStack gap={2} hAlign="between" vAlign="start" wrap="wrap">
+                        <Link href={`/admin/inquiries/${item.id}`} className={styles.rowLink}>{item.catalogItemName ?? "درخواست مشتری"}</Link>
+                        <StatusBadge label={inquiryStatusLabels[item.status]} tone={inquiryStatusTone(item.status)} />
+                      </HStack>
+                      <HStack gap={2} hAlign="between" wrap="wrap">
+                        <Text as="span" type="supporting" color="secondary">{item.ownerSummary.displayName}</Text>
+                        <Text as="span" type="supporting" color="secondary">{inquiryTypeLabels[item.type]}</Text>
+                      </HStack>
+                      <HStack gap={2} hAlign="between" wrap="wrap">
+                        <Text as="span" type="supporting" color="secondary">{item.assigneeSummary?.displayName ?? "بدون مسئول"}</Text>
+                        <Text as="span" type="supporting" color="secondary"><time dateTime={item.createdAt}>{day(item.createdAt)}</time></Text>
+                      </HStack>
+                    </VStack>
+                  </Card>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {result.pageCount > 1 ? <AdminPagination basePath="/admin/inquiries" page={result.page} totalPages={result.pageCount} query="" hrefFor={pageHref} /> : null}
+      </AdminSection>
+    </VStack>
+  );
 }

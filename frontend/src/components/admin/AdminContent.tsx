@@ -120,8 +120,8 @@ export function AdminListPage({
 }
 
 /** Previous/next as links (the pages stay reachable without script and keep the filters). */
-export function AdminPagination({ basePath, page, totalPages, query, pageParam = "page" }: { basePath: string; page: number; totalPages: number; query: string; pageParam?: string }) {
-  const href = (target: number) => `${basePath}?${pageParam}=${target}${query}`;
+export function AdminPagination({ basePath, page, totalPages, query, pageParam = "page", hrefFor }: { basePath: string; page: number; totalPages: number; query: string; pageParam?: string; hrefFor?: (page: number) => string }) {
+  const href = hrefFor ?? ((target: number) => `${basePath}?${pageParam}=${target}${query}`);
   return (
     <HStack as="nav" gap={3} hAlign="center" vAlign="center" wrap="wrap" aria-label="صفحه‌بندی فهرست">
       {page > 1 ? <Button href={href(page - 1)} variant="secondary">قبلی</Button> : null}
@@ -183,5 +183,66 @@ export function AdminFieldset({ legend, children }: { legend: ReactNode; childre
       <legend className={styles.legend}>{legend}</legend>
       <VStack gap={3}>{children}</VStack>
     </fieldset>
+  );
+}
+
+/** Page header for screens made of several cards (no wrapping card): eyebrow, the one h1, a lead and an end slot. */
+export function AdminHeader({ eyebrow, title, lead, badge, actions }: { eyebrow?: string; title: string; lead?: string; badge?: ReactNode; actions?: ReactNode }) {
+  return (
+    <HStack as="header" gap={3} hAlign="between" vAlign="end" wrap="wrap" className={styles.pageHeader}>
+      <VStack gap={1} hAlign="start" className={styles.headerCopy}>
+        {eyebrow ? <Text as="p" type="supporting" weight="bold" className={styles.eyebrow}>{eyebrow}</Text> : null}
+        <Heading level={1} color="inherit" className={styles.title}>{title}</Heading>
+        {lead ? <Text as="p" color="secondary" className={styles.lead}>{lead}</Text> : null}
+      </VStack>
+      {badge || actions ? <HStack gap={2} vAlign="center" wrap="wrap">{badge}{actions}</HStack> : null}
+    </HStack>
+  );
+}
+
+/** A titled card section (level-two heading). `variant` marks staff-only or accented areas. */
+export function AdminSection({ title, id, eyebrow, badge, hint, variant = "default", children }: { title: string; id?: string; eyebrow?: string; badge?: ReactNode; hint?: ReactNode; variant?: "default" | "muted" | "dashed"; children: ReactNode }) {
+  const headingId = id ?? undefined;
+  return (
+    <Card variant={variant === "muted" ? "muted" : "default"} className={variant === "dashed" ? `${styles.page} ${styles.dashed}` : styles.page} role={headingId ? "region" : undefined} aria-labelledby={headingId}>
+      <VStack gap={3}>
+        <HStack gap={3} hAlign="between" vAlign="start" wrap="wrap">
+          <VStack gap={1} hAlign="start" className={styles.headerCopy}>
+            {eyebrow ? <Text as="p" type="supporting" weight="bold" className={styles.eyebrow}>{eyebrow}</Text> : null}
+            <Heading level={2} id={headingId} color="inherit" className={styles.sectionTitle}>{title}</Heading>
+          </VStack>
+          {badge}
+        </HStack>
+        {hint ? <Text as="p" type="supporting" color="secondary">{hint}</Text> : null}
+        {children}
+      </VStack>
+    </Card>
+  );
+}
+
+/** Chronological list: each entry has a title, an optional actor line and a time. */
+export function AdminTimeline({ entries, label }: { entries: Array<{ id: string; title: ReactNode; actor?: string; time: string; timeLabel: string }>; label: string }) {
+  return (
+    <ol className={styles.timeline} aria-label={label}>
+      {entries.map((entry) => (
+        <li key={entry.id}>
+          <Text as="span" weight="bold" color="inherit">{entry.title}</Text>
+          {entry.actor ? <Text as="span" type="supporting" color="secondary">{entry.actor}</Text> : null}
+          <Text as="span" type="supporting" color="secondary"><time dateTime={entry.time}>{entry.timeLabel}</time></Text>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/** One real figure of a summary row. */
+export function AdminStat({ label, value }: { label: string; value: string }) {
+  return (
+    <Card variant="muted" className={styles.stat}>
+      <VStack gap={1}>
+        <Text as="span" type="supporting" color="secondary">{label}</Text>
+        <Text as="span" weight="bold" color="inherit" className={styles.statValue}>{value}</Text>
+      </VStack>
+    </Card>
   );
 }

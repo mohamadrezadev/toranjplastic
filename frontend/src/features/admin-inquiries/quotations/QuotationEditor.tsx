@@ -1,6 +1,14 @@
 "use client";
-import { useMemo, useState } from "react";
+import { Card } from "@astryxdesign/core/Card";
+import { Grid } from "@astryxdesign/core/Grid";
+import { Heading } from "@astryxdesign/core/Heading";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AdminFieldset } from "@/components/admin/AdminContent";
 import { AdminSubmitButton } from "@/components/admin/AdminSubmitButton";
+import { Button, Input, Textarea } from "@/components/ui";
 import { quotationIsoToTehranLocal } from "@/lib/quotation-date";
 import type { Quotation, QuotationItem } from "./types";
 import styles from "./Quotation.module.css";
@@ -26,6 +34,18 @@ const quantity = (value: string) => {
 };
 const money = (value: bigint) =>
   `${new Intl.NumberFormat("fa-IR").format(value)} ریال`;
+const itemFieldId = (index: number) => `quotation-item-${index}-description`;
+
+/*
+ * Quotation draft editor (OpenSpec change rebuild-ui-with-astryx, task 8.4).
+ * Same form contract as before: `itemCount`, `description-N`, `quantity-N`,
+ * `unit-N`, `unitPriceRials-N`, the three adjustments, `validUntil` (Iran local
+ * time), the terms and `expectedVersion` of the draft. Rows are Astryx-styled
+ * fieldsets of the shared fields; the running totals use integer arithmetic only
+ * and are a convenience, the backend recomputes and rejects a mismatch. When a
+ * row is added the new row's first field gets focus; when one is removed focus
+ * moves to the add button so it is never lost.
+ */
 export function QuotationEditor({
   draft,
   action,
@@ -46,6 +66,12 @@ export function QuotationEditor({
   const [additional, setAdditional] = useState(
     draft?.additionalCostRials ?? "0",
   );
+  const pendingFocus = useRef<string | null>(null);
+  useEffect(() => {
+    if (!pendingFocus.current) return;
+    document.getElementById(pendingFocus.current)?.focus();
+    pendingFocus.current = null;
+  });
   const totals = useMemo(() => {
     const lines = items.map(
       (item) =>
@@ -71,38 +97,40 @@ export function QuotationEditor({
       {draft ? (
         <input type="hidden" name="expectedVersion" value={draft.editVersion} />
       ) : null}
-      <div className={styles.editorHeader}>
-        <div>
-          <h3>
-            {draft
-              ? `ویرایش پیش‌نویس نسخه ${draft.version.toLocaleString("fa-IR")}`
-              : "پیش‌نویس جدید"}
-          </h3>
-          <p>
-            همه قیمت‌ها دستی و به ریال وارد می‌شوند؛ سامانه از کاتالوگ یا موجودی
-            قیمت دریافت نمی‌کند.
-          </p>
-        </div>
-        <button
-          className={styles.secondaryButton}
-          type="button"
-          onClick={() =>
-            setItems((current) =>
-              current.length < 50 ? [...current, blank()] : current,
-            )
-          }
-          disabled={items.length >= 50}
-        >
-          افزودن ردیف
-        </button>
-      </div>
-      <div className={styles.items}>
-        {items.map((item, index) => (
-          <fieldset className={styles.item} key={index}>
-            <legend>ردیف {(index + 1).toLocaleString("fa-IR")}</legend>
-            <label>
-              شرح
-              <input
+      <VStack gap={4}>
+        <HStack gap={3} hAlign="between" vAlign="start" wrap="wrap">
+          <VStack gap={1} hAlign="start" className={styles.editorCopy}>
+            <Heading level={3} color="inherit" className={styles.editorTitle}>
+              {draft
+                ? `ویرایش پیش‌نویس نسخه ${draft.version.toLocaleString("fa-IR")}`
+                : "پیش‌نویس جدید"}
+            </Heading>
+            <Text as="p" type="supporting" color="secondary">
+              همه قیمت‌ها دستی و به ریال وارد می‌شوند؛ سامانه از کاتالوگ یا موجودی
+              قیمت دریافت نمی‌کند.
+            </Text>
+          </VStack>
+          <Button
+            id="quotation-add-item"
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              if (items.length >= 50) return;
+              pendingFocus.current = itemFieldId(items.length);
+              setItems((current) => [...current, blank()]);
+            }}
+            disabled={items.length >= 50}
+          >
+            افزودن ردیف
+          </Button>
+        </HStack>
+
+        <VStack gap={3}>
+          {items.map((item, index) => (
+            <AdminFieldset key={index} legend={<>ردیف {(index + 1).toLocaleString("fa-IR")}</>}>
+              <Input
+                id={itemFieldId(index)}
+                label="شرح"
                 name={`description-${index}`}
                 value={item.description}
                 onChange={(event) =>
@@ -111,11 +139,9 @@ export function QuotationEditor({
                 required
                 maxLength={500}
               />
-            </label>
-            <div className={styles.itemGrid}>
-              <label>
-                تعداد
-                <input
+              <Grid columns={{ minWidth: 160 }} gap={3} align="start" className={styles.itemGrid}>
+                <Input
+                  label="تعداد"
                   name={`quantity-${index}`}
                   value={item.quantity}
                   onChange={(event) =>
@@ -126,10 +152,8 @@ export function QuotationEditor({
                   pattern="[0-9]+([.][0-9]{1,3})?"
                   required
                 />
-              </label>
-              <label>
-                واحد
-                <input
+                <Input
+                  label="واحد"
                   name={`unit-${index}`}
                   value={item.unit}
                   onChange={(event) =>
@@ -138,10 +162,8 @@ export function QuotationEditor({
                   required
                   maxLength={40}
                 />
-              </label>
-              <label>
-                قیمت واحد (ریال)
-                <input
+                <Input
+                  label="قیمت واحد (ریال)"
                   name={`unitPriceRials-${index}`}
                   value={item.unitPriceRials}
                   onChange={(event) =>
@@ -152,31 +174,34 @@ export function QuotationEditor({
                   pattern="[0-9]+"
                   required
                 />
-              </label>
-            </div>
-            <div className={styles.lineTotal}>
-              جمع ردیف: <b dir="ltr">{money(totals.lines[index])}</b>
-            </div>
-            {items.length > 1 ? (
-              <button
-                className={styles.removeButton}
-                type="button"
-                onClick={() =>
-                  setItems((current) =>
-                    current.filter((_, itemIndex) => itemIndex !== index),
-                  )
-                }
-              >
-                حذف ردیف
-              </button>
-            ) : null}
-          </fieldset>
-        ))}
-      </div>
-      <div className={styles.adjustments}>
-        <label>
-          تخفیف (ریال)
-          <input
+              </Grid>
+              <HStack gap={3} hAlign="between" vAlign="center" wrap="wrap">
+                <Text as="span">
+                  جمع ردیف: <b dir="ltr">{money(totals.lines[index])}</b>
+                </Text>
+                {items.length > 1 ? (
+                  <Button
+                    type="button"
+                    variant="danger"
+                    aria-label={`حذف ردیف ${(index + 1).toLocaleString("fa-IR")}`}
+                    onClick={() => {
+                      pendingFocus.current = "quotation-add-item";
+                      setItems((current) =>
+                        current.filter((_, itemIndex) => itemIndex !== index),
+                      );
+                    }}
+                  >
+                    حذف ردیف
+                  </Button>
+                ) : null}
+              </HStack>
+            </AdminFieldset>
+          ))}
+        </VStack>
+
+        <Grid columns={{ minWidth: 160 }} gap={3} align="start" className={styles.adjustments}>
+          <Input
+            label="تخفیف (ریال)"
             name="discountRials"
             value={discount}
             onChange={(event) => setDiscount(event.target.value)}
@@ -185,10 +210,8 @@ export function QuotationEditor({
             pattern="[0-9]+"
             required
           />
-        </label>
-        <label>
-          مالیات (ریال)
-          <input
+          <Input
+            label="مالیات (ریال)"
             name="taxRials"
             value={tax}
             onChange={(event) => setTax(event.target.value)}
@@ -197,10 +220,8 @@ export function QuotationEditor({
             pattern="[0-9]+"
             required
           />
-        </label>
-        <label>
-          هزینه جانبی (ریال)
-          <input
+          <Input
+            label="هزینه جانبی (ریال)"
             name="additionalCostRials"
             value={additional}
             onChange={(event) => setAdditional(event.target.value)}
@@ -209,63 +230,58 @@ export function QuotationEditor({
             pattern="[0-9]+"
             required
           />
-        </label>
-      </div>
-      <div className={styles.totalBox}>
-        <span>
-          جمع اقلام <b dir="ltr">{money(totals.subtotal)}</b>
-        </span>
-        <strong>
-          مبلغ نهایی <b dir="ltr">{money(totals.total)}</b>
-        </strong>
-      </div>
-      <div className={styles.terms}>
-        <label>
-          اعتبار تا
-          <input
+        </Grid>
+
+        <Card variant="muted">
+          <HStack gap={4} hAlign="between" vAlign="center" wrap="wrap">
+            <Text as="span">
+              جمع اقلام <b dir="ltr">{money(totals.subtotal)}</b>
+            </Text>
+            <Text as="span" weight="bold" color="inherit">
+              مبلغ نهایی <b dir="ltr">{money(totals.total)}</b>
+            </Text>
+          </HStack>
+        </Card>
+
+        <VStack gap={3}>
+          <Input
             type="datetime-local"
+            label="اعتبار تا"
             name="validUntil"
             defaultValue={
               draft ? quotationIsoToTehranLocal(draft.validUntil) : ""
             }
-            aria-describedby="quotation-valid-until-hint"
+            helpText="تاریخ و ساعت براساس منطقه زمانی ایران ثبت می‌شود."
             dir="ltr"
             required
           />
-          <span id="quotation-valid-until-hint" className={styles.fieldHint}>
-            تاریخ و ساعت براساس منطقه زمانی ایران ثبت می‌شود.
-          </span>
-        </label>
-        <label>
-          شرایط تحویل
-          <textarea
+          <Textarea
+            label="شرایط تحویل"
             name="deliveryTerms"
             defaultValue={draft?.deliveryTerms ?? ""}
             required
             maxLength={2000}
           />
-        </label>
-        <label>
-          شرایط پرداخت
-          <textarea
+          <Textarea
+            label="شرایط پرداخت"
             name="paymentTerms"
             defaultValue={draft?.paymentTerms ?? ""}
             required
             maxLength={2000}
           />
-        </label>
-        <label>
-          توضیحات اختیاری
-          <textarea
+          <Textarea
+            label="توضیحات اختیاری"
             name="notes"
             defaultValue={draft?.notes ?? ""}
             maxLength={4000}
           />
-        </label>
-      </div>
-      <AdminSubmitButton pendingText="در حال ذخیره…">
-        ذخیره پیش‌نویس
-      </AdminSubmitButton>
+        </VStack>
+        <div>
+          <AdminSubmitButton pendingText="در حال ذخیره…">
+            ذخیره پیش‌نویس
+          </AdminSubmitButton>
+        </div>
+      </VStack>
     </form>
   );
 }

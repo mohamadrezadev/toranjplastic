@@ -106,3 +106,27 @@ describe("UI primitives", () => {
     expect(badge).not.toHaveAttribute("role", "button");
   });
 });
+
+describe("Checkbox submitted value", () => {
+  const submitted = (container: HTMLElement) => Object.fromEntries(new FormData(container.querySelector("form") as HTMLFormElement).entries());
+
+  it("submits the caller's value only while checked, so server actions that read yes/true keep working", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<form><Checkbox label="تأیید بازبینی" name="confirm" value="yes" /></form>);
+    expect(submitted(container)).toEqual({});
+    await user.click(screen.getByRole("checkbox", { name: "تأیید بازبینی" }));
+    expect(submitted(container)).toEqual({ confirm: "yes" });
+    await user.click(screen.getByRole("checkbox", { name: "تأیید بازبینی" }));
+    expect(submitted(container)).toEqual({});
+  });
+
+  it("submits nothing while disabled, and keeps the browser default when no value is given", async () => {
+    const user = userEvent.setup();
+    const { container, unmount } = render(<form><Checkbox label="درخواست" name="more" value="true" defaultChecked disabled /></form>);
+    expect(submitted(container)).toEqual({});
+    unmount();
+    const plain = render(<form><Checkbox label="ویژه" name="featured" /></form>);
+    await user.click(screen.getByRole("checkbox", { name: "ویژه" }));
+    expect(submitted(plain.container)).toEqual({ featured: "on" });
+  });
+});

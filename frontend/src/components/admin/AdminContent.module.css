@@ -1,6 +1,15 @@
-/* Admin content screens (task 8.2). Astryx supplies cards, headings, tables and fields; this file keeps only Toranj layout. */
+/* Admin content and inquiry screens (task 8.2). Astryx supplies cards, headings, tables and fields; this file keeps only Toranj layout. */
 .page { min-width: 0; }
 .pageHeader, .headerCopy { min-width: 0; }
+.eyebrow { color: var(--color-brand-action); }
+.lead { max-width: 46rem; line-height: 1.8; }
+.sectionTitle { color: var(--color-brand-primary); font-size: 1.1rem; }
+.dashed { border-style: dashed; }
+.stat { min-width: 0; }
+.statValue { color: var(--color-brand-primary); font-family: var(--font-family-latin); font-size: 1.65rem; }
+.timeline { margin: 0; padding: 0; list-style: none; display: grid; gap: .8rem; }
+.timeline li { padding-inline-start: 1rem; position: relative; display: grid; gap: .2rem; border-inline-start: 2px solid var(--color-border-default); }
+.timeline li::before { content: ""; width: .55rem; height: .55rem; position: absolute; inset-inline-start: -.34rem; inset-block-start: .4rem; border-radius: 50%; background: var(--color-brand-action); }
 .title { color: var(--color-brand-primary); font-size: clamp(1.4rem, 2.4vw, 1.9rem); line-height: 1.4; overflow-wrap: anywhere; }
 .rowLink { font-weight: var(--font-weight-bold); overflow-wrap: anywhere; }
 .filters { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; }
