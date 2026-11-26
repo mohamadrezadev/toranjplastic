@@ -9,6 +9,7 @@ import { publicContentMetadata } from "@/lib/content-metadata";
 import { productJsonLd, serializeJsonLd } from "@/lib/product-jsonld";
 
 type Props = { params: Promise<{ slug: string }> };
+export const instant = false;
 export async function generateMetadata({ params }: Props): Promise<Metadata> { try { const product = await getProduct((await params).slug); return publicContentMetadata({ title: product.name, path: `/products/${product.slug}`, summary: product.summary, metaTitle: product.metaTitle, metaDescription: product.metaDescription, images: product.images }); } catch (error) { if (isNotFoundError(error)) return { title: "محصول پیدا نشد", robots: { index: false, follow: false } }; throw error; } }
 
 /*

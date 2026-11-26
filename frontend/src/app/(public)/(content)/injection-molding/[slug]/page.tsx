@@ -8,6 +8,7 @@ import { getService, isNotFoundError } from "@/lib/public-content";
 import { publicContentMetadata } from "@/lib/content-metadata";
 
 type Props = { params: Promise<{ slug: string }> };
+export const instant = false;
 export async function generateMetadata({ params }: Props): Promise<Metadata> { try { const item = await getService((await params).slug); return publicContentMetadata({ title: item.name, path: `/injection-molding/${item.slug}`, summary: item.summary, metaTitle: item.metaTitle, metaDescription: item.metaDescription, images: item.images }); } catch (error) { if (isNotFoundError(error)) return { title: "خدمت پیدا نشد", robots: { index: false, follow: false } }; throw error; } }
 /*
  * An approved call to action is an internal path (OD-10, aligned with the

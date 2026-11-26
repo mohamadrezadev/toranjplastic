@@ -8,6 +8,7 @@ import { getMaterial, isNotFoundError } from "@/lib/public-content";
 import { publicContentMetadata } from "@/lib/content-metadata";
 
 type Props = { params: Promise<{ slug: string }> };
+export const instant = false;
 export async function generateMetadata({ params }: Props): Promise<Metadata> { try { const item = await getMaterial((await params).slug); return publicContentMetadata({ title: item.name, path: `/materials/${item.slug}`, summary: item.summary, metaTitle: item.metaTitle, metaDescription: item.metaDescription, images: item.images }); } catch (error) { if (isNotFoundError(error)) return { title: "ماده پیدا نشد", robots: { index: false, follow: false } }; throw error; } }
 
 /*

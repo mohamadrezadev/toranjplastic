@@ -11,6 +11,7 @@ import { publicCollectionMetadata } from "@/lib/content-metadata";
 
 const description = "خدمات تزریق پلاستیک منتشرشده بر پایه اطلاعات فنی تأییدشده؛ جزئیات ظرفیت تنها در صورت انتشار رسمی نمایش داده می‌شود.";
 export const metadata = publicCollectionMetadata("خدمات تزریق پلاستیک", description, "/injection-molding");
+export const instant = false;
 
 /*
  * Injection-service collection (OpenSpec change rebuild-ui-with-astryx,

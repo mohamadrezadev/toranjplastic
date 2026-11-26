@@ -17,6 +17,7 @@ type Props = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ page?: string | string[] }>;
 };
+export const instant = false;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;

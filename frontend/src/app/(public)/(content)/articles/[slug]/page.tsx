@@ -14,6 +14,7 @@ import { absoluteUrl, siteName } from "@/lib/site";
 import styles from "../articles.module.css";
 
 type Props = { params: Promise<{ slug: string }> };
+export const instant = false;
 
 function articleJsonLd(article: StrapiArticle) {
   return {

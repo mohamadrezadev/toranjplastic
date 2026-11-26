@@ -14,6 +14,8 @@ import { publicContentMetadata } from "@/lib/content-metadata";
 import { aboutPageJsonLd, serializeJsonLd } from "@/lib/jsonld";
 import styles from "../institutional-pages.module.css";
 
+export const instant = false;
+
 /* The three approved activity lines; Latin grade and certificate codes keep an isolated LTR run. */
 const activityLines: ReadonlyArray<{ title: string; description: ReactNode }> = [
   {

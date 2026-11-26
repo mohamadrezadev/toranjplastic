@@ -11,6 +11,7 @@ import { publicCollectionMetadata } from "@/lib/content-metadata";
 
 const description = "مواد اولیه پلیمری منتشرشده برای بررسی و استعلام؛ حضور در فهرست به معنی تضمین موجودی، قیمت یا زمان تحویل نیست.";
 export const metadata = publicCollectionMetadata("مواد اولیه", description, "/materials");
+export const instant = false;
 
 /*
  * Materials collection (OpenSpec change rebuild-ui-with-astryx, task 5.3).
