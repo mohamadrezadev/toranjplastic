@@ -11,6 +11,7 @@ import styles from "./articles.module.css";
 
 const description = "مقاله‌ها و یادداشت‌های تخصصی و آموزشی ترنج پلاستیک در صنعت قالب‌گیری و تزریق پلاستیک.";
 export const metadata = publicCollectionMetadata("مقالات", description, "/articles");
+export const instant = false;
 
 /*
  * Article collection (OpenSpec change rebuild-ui-with-astryx, task 5.3).

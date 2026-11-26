@@ -17,6 +17,8 @@ import { publicContentMetadata } from "@/lib/content-metadata";
 import { contactPageJsonLd, serializeJsonLd } from "@/lib/jsonld";
 import styles from "../institutional-pages.module.css";
 
+export const instant = false;
+
 type ContactChannel = {
   title: string;
   description: ReactNode;

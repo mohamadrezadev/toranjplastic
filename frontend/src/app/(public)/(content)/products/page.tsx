@@ -11,6 +11,7 @@ import { publicCollectionMetadata } from "@/lib/content-metadata";
 
 const description = "فهرست محصولات منتشرشده ترنج پلاستیک؛ جزئیات هر محصول بدون نمایش قیمت یا موجودی تأییدنشده.";
 export const metadata = publicCollectionMetadata("محصولات", description, "/products");
+export const instant = false;
 
 /*
  * Products collection (OpenSpec change rebuild-ui-with-astryx, task 5.3).
