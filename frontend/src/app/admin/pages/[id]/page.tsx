@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Button } from "@/components/ui";
 import { AdminContentError, archiveManagedPageAction, getManagedPage, publishManagedPageAction, updateManagedPageAction } from "@/features/admin-content/managed-page";
 import { ManagedPageFields } from "../ManagedPageFields";
-import { StatusBadge } from "../../content/StatusBadge";
-import styles from "../../Admin.module.css";
+import { AdminForm, AdminFormAlert, AdminPage, AdminStatusActions, ContentStatusBadge } from "@/components/admin/AdminContent";
 
 export const metadata: Metadata = { title: "ویرایش صفحه", robots: { index: false, follow: false } };
 export const instant = false;
@@ -32,36 +30,13 @@ export default async function EditManagedPagePage({ params, searchParams }: { pa
   const archiveAction = archiveManagedPageAction.bind(null, id);
 
   return (
-    <main className={styles.main}>
-      <div className={styles.shell}>
-        <section className={styles.card}>
-          <div className={styles.header}>
-            <h1>ویرایش صفحه</h1>
-            <StatusBadge status={page.status} />
-          </div>
-          {error ? <p className={styles.feedback} role="alert">{errorMessages[error] ?? errorMessages.failed}</p> : null}
+    <AdminPage title="ویرایش صفحه" badge={<ContentStatusBadge status={page.status} />}>
+      {error ? <AdminFormAlert message={errorMessages[error] ?? errorMessages.failed} /> : null}
+      <AdminStatusActions status={page.status} publishAction={publishAction} archiveAction={archiveAction} />
 
-          <div className={styles.statusActions}>
-            {page.status === "PUBLISHED" ? (
-              <span className={styles.statusLabel}>منتشرشده</span>
-            ) : (
-              <form action={publishAction}><Button type="submit">انتشار</Button></form>
-            )}
-            {page.status === "ARCHIVED" ? (
-              <span className={styles.statusLabel}>آرشیوشده</span>
-            ) : (
-              <form action={archiveAction}><Button type="submit" variant="danger">آرشیو</Button></form>
-            )}
-          </div>
-
-          <form action={updateAction} className={styles.form}>
-            <ManagedPageFields page={page} />
-            <div className={styles.formActions}>
-              <Button type="submit">ذخیره تغییرات</Button>
-            </div>
-          </form>
-        </section>
-      </div>
-    </main>
+      <AdminForm action={updateAction} submitLabel="ذخیره تغییرات">
+        <ManagedPageFields page={page} />
+      </AdminForm>
+    </AdminPage>
   );
 }

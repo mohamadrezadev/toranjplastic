@@ -115,18 +115,18 @@ test("Administrator creates staff and changes role and status", async ({
   await page.getByLabel("رمز عبور اولیه").fill("SecurePass123!");
   await page.getByRole("button", { name: "ایجاد حساب" }).click();
   await expect(page).toHaveURL(/\/admin\/staff\?success=created/);
-  await expect(page.getByRole("status")).toContainText("با موفقیت ایجاد شد");
+  await expect(page.getByRole("status").filter({ hasText: /\S/ })).toContainText("با موفقیت ایجاد شد");
 
   await page.goto("/admin/staff/staff-1");
   await page.getByLabel("سطح دسترسی").selectOption("OPERATOR");
   await page.getByRole("button", { name: "ذخیره نقش" }).click();
   await expect(page).toHaveURL(/success=role/);
-  await expect(page.getByRole("status")).toContainText("نشست‌های قبلی");
+  await expect(page.getByRole("status").filter({ hasText: /\S/ })).toContainText("نشست‌های قبلی");
 
   await page.getByLabel("وضعیت حساب").selectOption("DISABLED");
   await page.getByRole("button", { name: "ذخیره وضعیت" }).click();
   await expect(page).toHaveURL(/success=status/);
-  await expect(page.getByRole("status")).toContainText("نشست‌های قبلی");
+  await expect(page.getByRole("status").filter({ hasText: /\S/ })).toContainText("نشست‌های قبلی");
 });
 
 test("Sales and Operator see only their allowed workspaces", async ({
@@ -220,7 +220,7 @@ test("status change revokes the affected staff session", async ({
     await adminPage.goto("/admin/staff/staff-1");
     await adminPage.getByLabel("وضعیت حساب").selectOption("DISABLED");
     await adminPage.getByRole("button", { name: "ذخیره وضعیت" }).click();
-    await expect(adminPage.getByRole("status")).toContainText("نشست‌های قبلی");
+    await expect(adminPage.getByRole("status").filter({ hasText: /\S/ })).toContainText("نشست‌های قبلی");
 
     await targetPage.goto("/admin/inquiries");
     await expect(targetPage).toHaveURL(/\/auth\/login/);

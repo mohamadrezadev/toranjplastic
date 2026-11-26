@@ -1,7 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { Button, Input } from '@/components/ui';
+import { Card } from '@astryxdesign/core/Card';
+import { HStack } from '@astryxdesign/core/HStack';
+import { Text } from '@astryxdesign/core/Text';
+import { VStack } from '@astryxdesign/core/VStack';
+import { useEffect, useRef, useState } from 'react';
+import { AdminFieldset, AdminFormRow } from '@/components/admin/AdminContent';
+import { Button, Input, StatusBadge } from '@/components/ui';
 import { MediaPicker, mediaAssetIdFromPublicUrl } from './MediaPicker';
 import type { AdminMediaAsset } from './types';
 import type { PublicImage } from '@/lib/public-content';
@@ -21,10 +26,18 @@ export interface ProductGalleryEditorProps {
   mediaAssets?: AdminMediaAsset[];
 }
 
-export function ProductGalleryEditor({
-  initialImages = [],
-  mediaAssets = [],
-}: ProductGalleryEditorProps) {
+const controlId = (itemId: string, action: 'up' | 'down' | 'remove') => `gallery-${itemId}-${action}`;
+const ADD_BUTTON_ID = 'gallery-add-from-library';
+
+/*
+ * Product gallery editor (OpenSpec change rebuild-ui-with-astryx, task 8.3).
+ * Same data contract as before (hidden `imageNMediaAssetId` / `imageNUrl` and
+ * `imageNAlt` fields, slot 1 is the cover, at most six images). The list is an
+ * ordered list of Astryx cards; reordering by drag still works, and the
+ * move/remove buttons are the keyboard path: after each action focus moves to
+ * a control that still exists and the change is announced in a live region.
+ */
+export function ProductGalleryEditor({ initialImages = [], mediaAssets = [] }: ProductGalleryEditorProps) {
   const [items, setItems] = useState<GalleryItem[]>(() =>
     initialImages.slice(0, MAX_IMAGES).map((img, idx) => {
       const assetId = mediaAssetIdFromPublicUrl(img.url);
@@ -42,69 +55,55 @@ export function ProductGalleryEditor({
   const [legacyUrl, setLegacyUrl] = useState('');
   const [legacyAlt, setLegacyAlt] = useState('');
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [announcement, setAnnouncement] = useState('');
+  const pendingFocus = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!pendingFocus.current) return;
+    document.getElementById(pendingFocus.current)?.focus();
+    pendingFocus.current = null;
+  });
 
   const handleAddMedia = (asset: AdminMediaAsset) => {
     if (items.length >= MAX_IMAGES) return;
-    setItems((prev) => [
-      ...prev,
-      {
-        id: `asset-${asset.id}-${Date.now()}`,
-        mediaAssetId: asset.id,
-        alt: asset.defaultAlt ?? '',
-      },
-    ]);
+    setItems((prev) => [...prev, { id: `asset-${asset.id}-${Date.now()}`, mediaAssetId: asset.id, alt: asset.defaultAlt ?? '' }]);
+    setAnnouncement(`تصویر به جایگاه ${(items.length + 1).toLocaleString('fa-IR')} گالری افزوده شد.`);
   };
 
   const handleAddLegacy = () => {
     if (items.length >= MAX_IMAGES) return;
     const url = legacyUrl.trim();
     if (!url) return;
-    setItems((prev) => [
-      ...prev,
-      {
-        id: `legacy-${Date.now()}`,
-        url,
-        alt: legacyAlt.trim(),
-      },
-    ]);
+    setItems((prev) => [...prev, { id: `legacy-${Date.now()}`, url, alt: legacyAlt.trim() }]);
+    setAnnouncement(`تصویر به جایگاه ${(items.length + 1).toLocaleString('fa-IR')} گالری افزوده شد.`);
     setLegacyUrl('');
     setLegacyAlt('');
     setShowLegacyForm(false);
   };
 
   const handleRemove = (index: number) => {
+    const neighbour = items[index + 1] ?? items[index - 1];
+    pendingFocus.current = neighbour ? controlId(neighbour.id, 'remove') : ADD_BUTTON_ID;
     setItems((prev) => prev.filter((_, i) => i !== index));
+    setAnnouncement(`تصویر ${(index + 1).toLocaleString('fa-IR')} از گالری حذف شد.`);
   };
 
   const handleAltChange = (index: number, alt: string) => {
     setItems((prev) => prev.map((item, i) => (i === index ? { ...item, alt } : item)));
   };
 
-  const handleMoveUp = (index: number) => {
-    if (index <= 0) return;
+  const move = (index: number, target: number) => {
+    if (target < 0 || target >= items.length) return;
+    const movedId = items[index].id;
+    // Keep focus on a move button that is still enabled at the new position.
+    const stillEnabled = target === 0 ? 'down' : target === items.length - 1 ? 'up' : target < index ? 'up' : 'down';
+    pendingFocus.current = controlId(movedId, stillEnabled);
     setItems((prev) => {
       const copy = [...prev];
-      const temp = copy[index - 1];
-      copy[index - 1] = copy[index];
-      copy[index] = temp;
+      [copy[index], copy[target]] = [copy[target], copy[index]];
       return copy;
     });
-  };
-
-  const handleMoveDown = (index: number) => {
-    if (index >= items.length - 1) return;
-    setItems((prev) => {
-      const copy = [...prev];
-      const temp = copy[index + 1];
-      copy[index + 1] = copy[index];
-      copy[index] = temp;
-      return copy;
-    });
-  };
-
-  // Drag and drop handlers
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
+    setAnnouncement(`تصویر ${(index + 1).toLocaleString('fa-IR')} به جایگاه ${(target + 1).toLocaleString('fa-IR')} منتقل شد${target === 0 ? ' و اکنون کاور است' : ''}.`);
   };
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
@@ -119,23 +118,17 @@ export function ProductGalleryEditor({
     setDraggedIndex(index);
   };
 
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-  };
+  const atLimit = items.length >= MAX_IMAGES;
 
   return (
-    <div className={styles.galleryEditor}>
-      <fieldset className={styles.fieldset}>
-        <legend>
-          گالری تصاویر محصول (حداکثر {MAX_IMAGES} تصویر — موقعیت اول به عنوان کاور استفاده می‌شود)
-        </legend>
-
+    <VStack gap={0} className={styles.galleryEditor}>
+      <AdminFieldset legend={<>گالری تصاویر محصول (حداکثر {MAX_IMAGES} تصویر — موقعیت اول به عنوان کاور استفاده می‌شود)</>}>
         {items.length === 0 ? (
-          <p style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--color-text-secondary)' }}>
+          <Text as="p" color="secondary" className={styles.emptyNote}>
             هنوز تصویری به گالری اضافه نشده است. برای شروع، تصویری از کتابخانه رسانه انتخاب کنید.
-          </p>
+          </Text>
         ) : (
-          <div className={styles.galleryList}>
+          <ol className={styles.galleryList} aria-label="تصاویر گالری به ترتیب نمایش">
             {items.map((item, index) => {
               const isCover = index === 0;
               const previewSrc = item.mediaAssetId
@@ -143,155 +136,101 @@ export function ProductGalleryEditor({
                 : item.url;
 
               return (
-                <div
+                <li
                   key={item.id}
-                  className={`${styles.galleryCard} ${isCover ? styles.galleryCardCover : ''}`}
+                  className={styles.galleryItem}
                   draggable
-                  onDragStart={() => handleDragStart(index)}
+                  onDragStart={() => setDraggedIndex(index)}
                   onDragOver={(e) => handleDragOver(e, index)}
-                  onDragEnd={handleDragEnd}
+                  onDragEnd={() => setDraggedIndex(null)}
                 >
-                  {/* Slot Indicator */}
-                  <span className={`${styles.slotBadge} ${isCover ? styles.coverBadge : ''}`}>
-                    {isCover ? 'کاور / تصویر اصلی' : `تصویر ${index + 1}`}
-                  </span>
+                  <Card variant={isCover ? 'default' : 'muted'} className={isCover ? styles.coverCard : undefined}>
+                    <HStack gap={3} vAlign="center" wrap="wrap">
+                      <StatusBadge label={isCover ? 'کاور / تصویر اصلی' : `تصویر ${index + 1}`} tone={isCover ? 'info' : 'neutral'} />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={previewSrc} alt={item.alt || `پیش‌نمایش تصویر ${index + 1}`} className={styles.galleryPreview} />
 
-                  {/* Preview */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={previewSrc}
-                    alt={item.alt || `پیش‌نمایش تصویر ${index + 1}`}
-                    className={styles.galleryPreview}
-                  />
+                      <VStack gap={1} className={styles.galleryFields}>
+                        <Input
+                          label={`متن جایگزین (Alt) تصویر ${index + 1}`}
+                          name={`image${index + 1}Alt`}
+                          value={item.alt}
+                          onChange={(e) => handleAltChange(index, e.target.value)}
+                          required
+                          maxLength={240}
+                          placeholder="متن توصیفی برای موتورهای جست‌وجو و صفحه‌خوان…"
+                        />
+                        <Text as="span" type="supporting" color="secondary">
+                          {item.mediaAssetId ? 'رسانه مدیریت‌شده ترنج' : <>آدرس قدیمی: <span dir="ltr">{item.url}</span></>}
+                        </Text>
+                        {item.mediaAssetId ? (
+                          <input type="hidden" name={`image${index + 1}MediaAssetId`} value={item.mediaAssetId} />
+                        ) : (
+                          <input type="hidden" name={`image${index + 1}Url`} value={item.url ?? ''} />
+                        )}
+                      </VStack>
 
-                  {/* Fields */}
-                  <div className={styles.galleryFields}>
-                    <Input
-                      label={`متن جایگزین (Alt) تصویر ${index + 1}`}
-                      name={`image${index + 1}Alt`}
-                      value={item.alt}
-                      onChange={(e) => handleAltChange(index, e.target.value)}
-                      required
-                      maxLength={240}
-                      placeholder="متن توصیفی برای موتورهای جست‌وجو و صفحه‌خوان…"
-                    />
-                    <small style={{ color: 'var(--color-text-secondary)', fontSize: '0.78rem' }}>
-                      {item.mediaAssetId ? 'رسانه مدیریت‌شده ترنج' : `آدرس قدیمی: ${item.url}`}
-                    </small>
-
-                    {/* Hidden Form Inputs for Backend Submission */}
-                    {item.mediaAssetId ? (
-                      <input type="hidden" name={`image${index + 1}MediaAssetId`} value={item.mediaAssetId} />
-                    ) : (
-                      <input type="hidden" name={`image${index + 1}Url`} value={item.url ?? ''} />
-                    )}
-                  </div>
-
-                  {/* Actions / Reordering */}
-                  <div className={styles.galleryControls}>
-                    <button
-                      type="button"
-                      className={styles.iconButton}
-                      disabled={index === 0}
-                      onClick={() => handleMoveUp(index)}
-                      title="انتقال به بالا (موقعیت قبل)"
-                      aria-label={`انتقال تصویر ${index + 1} به بالا`}
-                    >
-                      ▲ بالا
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.iconButton}
-                      disabled={index === items.length - 1}
-                      onClick={() => handleMoveDown(index)}
-                      title="انتقال به پایین (موقعیت بعد)"
-                      aria-label={`انتقال تصویر ${index + 1} به پایین`}
-                    >
-                      ▼ پایین
-                    </button>
-                    <button
-                      type="button"
-                      className={`${styles.iconButton} ${styles.removeButton}`}
-                      onClick={() => handleRemove(index)}
-                      title="حذف از گالری"
-                      aria-label={`حذف تصویر ${index + 1} از گالری`}
-                    >
-                      ✕ حذف
-                    </button>
-                  </div>
-                </div>
+                      <HStack gap={2} wrap="wrap" className={styles.galleryControls}>
+                        <Button id={controlId(item.id, 'up')} type="button" variant="secondary" disabled={index === 0} onClick={() => move(index, index - 1)} aria-label={`انتقال تصویر ${index + 1} به بالا`} title="انتقال به بالا (موقعیت قبل)">
+                          ▲ بالا
+                        </Button>
+                        <Button id={controlId(item.id, 'down')} type="button" variant="secondary" disabled={index === items.length - 1} onClick={() => move(index, index + 1)} aria-label={`انتقال تصویر ${index + 1} به پایین`} title="انتقال به پایین (موقعیت بعد)">
+                          ▼ پایین
+                        </Button>
+                        <Button id={controlId(item.id, 'remove')} type="button" variant="danger" onClick={() => handleRemove(index)} aria-label={`حذف تصویر ${index + 1} از گالری`} title="حذف از گالری">
+                          ✕ حذف
+                        </Button>
+                      </HStack>
+                    </HStack>
+                  </Card>
+                </li>
               );
             })}
-          </div>
+          </ol>
         )}
 
-        {/* Toolbar */}
-        <div className={styles.galleryToolbar}>
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={items.length >= MAX_IMAGES}
-            onClick={() => setIsPickerOpen(true)}
-          >
+        <HStack gap={3} vAlign="center" wrap="wrap">
+          <Button id={ADD_BUTTON_ID} type="button" variant="secondary" disabled={atLimit} onClick={() => setIsPickerOpen(true)}>
             + افزودن تصویر از کتابخانه
           </Button>
-
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={items.length >= MAX_IMAGES}
-            onClick={() => setShowLegacyForm(!showLegacyForm)}
-          >
+          <Button type="button" variant="secondary" disabled={atLimit} onClick={() => setShowLegacyForm(!showLegacyForm)} aria-expanded={showLegacyForm}>
             {showLegacyForm ? 'بستن فرم آدرس قدیمی' : '+ افزودن آدرس اینترنتی (قدیمی)'}
           </Button>
+          <Text as="span" type="supporting" color="secondary">تعداد تصاویر: {items.length} از {MAX_IMAGES}</Text>
+        </HStack>
+        {atLimit ? <Text as="p" type="supporting" color="secondary">به سقف {MAX_IMAGES} تصویر رسیده‌اید؛ برای افزودن تصویر تازه، یکی را حذف کنید.</Text> : null}
 
-          <span className={styles.limitNotice}>
-            تعداد تصاویر: {items.length} از {MAX_IMAGES}
-          </span>
-        </div>
+        {showLegacyForm ? (
+          <Card variant="muted">
+            <VStack gap={3}>
+              <AdminFormRow>
+                <Input
+                  label="آدرس کامل اینترنتی تصویر (URL)"
+                  name="legacy-url"
+                  value={legacyUrl}
+                  onChange={(e) => setLegacyUrl(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddLegacy(); } }}
+                  dir="ltr"
+                  placeholder="https://..."
+                />
+                <Input
+                  label="متن جایگزین (Alt)"
+                  name="legacy-alt"
+                  value={legacyAlt}
+                  onChange={(e) => setLegacyAlt(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddLegacy(); } }}
+                  placeholder="توضیح تصویر…"
+                />
+              </AdminFormRow>
+              <HStack gap={2} wrap="wrap">
+                <Button type="button" onClick={handleAddLegacy} disabled={!legacyUrl.trim()}>افزودن به گالری</Button>
+                <Button type="button" variant="secondary" onClick={() => setShowLegacyForm(false)}>انصراف</Button>
+              </HStack>
+            </VStack>
+          </Card>
+        ) : null}
+      </AdminFieldset>
 
-        {/* Legacy Image Entry */}
-        {showLegacyForm && (
-          <div
-            style={{
-              padding: '1rem',
-              border: '1px solid var(--color-border-default)',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--color-surface-subtle)',
-              display: 'grid',
-              gap: '0.75rem',
-            }}
-          >
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12rem, 1fr))', gap: '0.75rem' }}>
-              <Input
-                label="آدرس کامل اینترنتی تصویر (URL)"
-                name="legacy-url"
-                value={legacyUrl}
-                onChange={(e) => setLegacyUrl(e.target.value)}
-                dir="ltr"
-                placeholder="https://..."
-              />
-              <Input
-                label="متن جایگزین (Alt)"
-                name="legacy-alt"
-                value={legacyAlt}
-                onChange={(e) => setLegacyAlt(e.target.value)}
-                placeholder="توضیح تصویر…"
-              />
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <Button type="button" onClick={handleAddLegacy} disabled={!legacyUrl.trim()}>
-                افزودن به گالری
-              </Button>
-              <Button type="button" variant="secondary" onClick={() => setShowLegacyForm(false)}>
-                انصراف
-              </Button>
-            </div>
-          </div>
-        )}
-      </fieldset>
-
-      {/* Media Picker Modal */}
       <MediaPicker
         label="تصویر محصول"
         assets={mediaAssets}
@@ -302,6 +241,8 @@ export function ProductGalleryEditor({
           setIsPickerOpen(false);
         }}
       />
-    </div>
+
+      <div className={styles.srOnly} aria-live="polite" aria-atomic="true">{announcement}</div>
+    </VStack>
   );
 }

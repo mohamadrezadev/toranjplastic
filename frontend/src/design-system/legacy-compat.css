@@ -1,0 +1,73 @@
+/*
+ * Temporary compatibility layer for screens that have not been migrated to
+ * Astryx yet (OpenSpec change rebuild-ui-with-astryx, tasks 3.1 and 9.1).
+ *
+ * Astryx's reset and the Neutral theme's element typography both live in the
+ * `reset` cascade layer. They restyle bare h1-h6, p, small, media, list,
+ * fieldset and form-control elements that legacy Toranj CSS Modules never
+ * styled explicitly, which shifted layout and inherited colours on
+ * unmigrated screens. `toranj-legacy` sits between `reset` and `astryx-base`
+ * (order declared at the top of globals.css): it restores the browser
+ * defaults those screens were built on, while every Astryx component rule
+ * and every unlayered Toranj rule still wins over it.
+ *
+ * The rules are scoped from the root down to (and excluding) every Astryx
+ * component root. Astryx marks those roots with its public `astryx-<name>`
+ * styling hooks, and its own elements depend on the reset defaults, so they
+ * must keep them even when rendered inside an unmigrated screen.
+ *
+ * Remove a group once no unmigrated screen depends on it; delete the file
+ * when the migration is complete.
+ */
+@layer toranj-legacy {
+  @scope (:root) to ([class*="astryx-"]) {
+    /*
+     * The former global Toranj reset. Unlayered, it removed the padding and
+     * margin of every Astryx component; here it keeps serving legacy markup
+     * while Astryx component styles take precedence.
+     */
+    :where(*) {
+      box-sizing: border-box;
+      padding: 0;
+      margin: 0;
+    }
+
+    :where(a) {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    :where(button, input, textarea, select) {
+      font: inherit;
+    }
+
+    :where(h1, h2, h3, h4, h5, h6, p, small, code, pre) {
+      font-family: revert;
+      font-size: revert;
+      font-weight: revert;
+      line-height: revert;
+      color: revert;
+    }
+
+    :where(ol, ul, menu) {
+      list-style: revert;
+    }
+
+    :where(img, svg, video, canvas, audio, iframe, embed, object) {
+      display: revert;
+      vertical-align: revert;
+    }
+
+    :where(img, video) {
+      max-width: none;
+    }
+
+    :where(fieldset) {
+      border: revert;
+    }
+
+    :where(input, optgroup, select, textarea) {
+      color: revert;
+    }
+  }
+}

@@ -1,6 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { Card } from '@astryxdesign/core/Card';
+import { HStack } from '@astryxdesign/core/HStack';
+import { Text } from '@astryxdesign/core/Text';
+import { VStack } from '@astryxdesign/core/VStack';
+import { useEffect, useRef, useState } from 'react';
+import { AdminFieldset } from '@/components/admin/AdminContent';
 import { Button, Input } from '@/components/ui';
 import { MediaPicker, mediaAssetIdFromPublicUrl } from './MediaPicker';
 import type { AdminMediaAsset } from './types';
@@ -12,10 +17,14 @@ export interface ArticleFeaturedImageEditorProps {
   mediaAssets?: AdminMediaAsset[];
 }
 
-export function ArticleFeaturedImageEditor({
-  initialImage,
-  mediaAssets = [],
-}: ArticleFeaturedImageEditorProps) {
+/*
+ * Featured image of an article (OpenSpec change rebuild-ui-with-astryx, task 8.3).
+ * Same data contract as before (hidden `featuredImageMediaAssetId` or
+ * `featuredImageUrl`, `featuredImageAlt`, and `featuredImageClear` when an
+ * existing image is removed); presentation is an Astryx card with the shared
+ * fields and buttons, and the picker is the shared dialog.
+ */
+export function ArticleFeaturedImageEditor({ initialImage, mediaAssets = [] }: ArticleFeaturedImageEditorProps) {
   const [mediaAssetId, setMediaAssetId] = useState<string | undefined>(() =>
     initialImage ? mediaAssetIdFromPublicUrl(initialImage.url) : undefined,
   );
@@ -25,6 +34,14 @@ export function ArticleFeaturedImageEditor({
   const [alt, setAlt] = useState<string>(() => initialImage?.alt ?? '');
   const [isCleared, setIsCleared] = useState(false);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const focusPick = useRef(false);
+
+  // After the image is removed the clear button is gone: focus moves to the pick button.
+  useEffect(() => {
+    if (!focusPick.current) return;
+    document.getElementById('featured-image-pick')?.focus();
+    focusPick.current = false;
+  });
 
   const hasImage = !isCleared && (Boolean(mediaAssetId) || Boolean(legacyUrl));
   const previewSrc = mediaAssetId
@@ -39,6 +56,7 @@ export function ArticleFeaturedImageEditor({
   };
 
   const handleClear = () => {
+    focusPick.current = true;
     setIsCleared(true);
     setMediaAssetId(undefined);
     setLegacyUrl(undefined);
@@ -46,82 +64,51 @@ export function ArticleFeaturedImageEditor({
   };
 
   return (
-    <fieldset className={styles.fieldset}>
-      <legend>تصویر شاخص مقاله (اختیاری)</legend>
-
+    <AdminFieldset legend={<>تصویر شاخص مقاله (اختیاری)</>}>
       {hasImage ? (
-        <div className={styles.galleryCard}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={previewSrc}
-            alt={alt || 'تصویر شاخص'}
-            className={styles.galleryPreview}
-          />
-          <div className={styles.galleryFields}>
-            <Input
-              label="متن جایگزین (Alt) تصویر شاخص"
-              name="featuredImageAlt"
-              value={alt}
-              onChange={(e) => setAlt(e.target.value)}
-              required
-              maxLength={240}
-              placeholder="توضیح تصویر شاخص برای سئو و دسترس‌پذیری…"
-            />
-            <small style={{ color: 'var(--color-text-secondary)', fontSize: '0.78rem' }}>
-              {mediaAssetId ? 'رسانه انتخاب‌شده از کتابخانه ترنج' : `آدرس قدیمی: ${legacyUrl}`}
-            </small>
-
-            {/* Hidden form inputs */}
-            {mediaAssetId ? (
-              <input type="hidden" name="featuredImageMediaAssetId" value={mediaAssetId} />
-            ) : (
-              <input type="hidden" name="featuredImageUrl" value={legacyUrl ?? ''} />
-            )}
-          </div>
-
-          <div className={styles.galleryControls}>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setIsPickerOpen(true)}
-            >
-              تغییر تصویر
-            </Button>
-            <Button
-              type="button"
-              variant="danger"
-              onClick={handleClear}
-            >
-              حذف تصویر شاخص
-            </Button>
-          </div>
-        </div>
+        <Card variant="muted">
+          <HStack gap={3} vAlign="center" wrap="wrap">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={previewSrc} alt={alt || 'تصویر شاخص'} className={styles.galleryPreview} />
+            <VStack gap={1} className={styles.galleryFields}>
+              <Input
+                label="متن جایگزین (Alt) تصویر شاخص"
+                name="featuredImageAlt"
+                value={alt}
+                onChange={(e) => setAlt(e.target.value)}
+                required
+                maxLength={240}
+                placeholder="توضیح تصویر شاخص برای سئو و دسترس‌پذیری…"
+              />
+              <Text as="span" type="supporting" color="secondary">
+                {mediaAssetId ? 'رسانه انتخاب‌شده از کتابخانه ترنج' : <>آدرس قدیمی: <span dir="ltr">{legacyUrl}</span></>}
+              </Text>
+              {mediaAssetId ? (
+                <input type="hidden" name="featuredImageMediaAssetId" value={mediaAssetId} />
+              ) : (
+                <input type="hidden" name="featuredImageUrl" value={legacyUrl ?? ''} />
+              )}
+            </VStack>
+            <HStack gap={2} wrap="wrap" className={styles.galleryControls}>
+              <Button type="button" variant="secondary" onClick={() => setIsPickerOpen(true)}>تغییر تصویر</Button>
+              <Button type="button" variant="danger" onClick={handleClear}>حذف تصویر شاخص</Button>
+            </HStack>
+          </HStack>
+        </Card>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem', background: 'var(--color-surface-subtle)', borderRadius: 'var(--radius-md)' }}>
-          <p style={{ margin: 0, color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>
-            {initialImage && isCleared
-              ? 'تصویر شاخص حذف شد (پس از ذخیره اعمال می‌شود).'
-              : 'هنوز تصویر شاخصی برای این مقاله انتخاب نشده است.'}
-          </p>
-
-          <div>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setIsPickerOpen(true)}
-            >
-              + انتخاب تصویر از کتابخانه
-            </Button>
-          </div>
-
-          {/* If the image was originally present and staff explicitly cleared it, output featuredImageClear */}
-          {initialImage && isCleared && (
-            <input type="hidden" name="featuredImageClear" value="on" />
-          )}
-        </div>
+        <Card variant="muted">
+          <VStack gap={3} hAlign="start">
+            <Text as="p" color="secondary" role="status">
+              {initialImage && isCleared
+                ? 'تصویر شاخص حذف شد (پس از ذخیره اعمال می‌شود).'
+                : 'هنوز تصویر شاخصی برای این مقاله انتخاب نشده است.'}
+            </Text>
+            <Button id="featured-image-pick" type="button" variant="secondary" onClick={() => setIsPickerOpen(true)}>+ انتخاب تصویر از کتابخانه</Button>
+            {initialImage && isCleared ? <input type="hidden" name="featuredImageClear" value="on" /> : null}
+          </VStack>
+        </Card>
       )}
 
-      {/* Media Picker Modal */}
       <MediaPicker
         label="تصویر شاخص مقاله"
         assets={mediaAssets}
@@ -132,6 +119,6 @@ export function ArticleFeaturedImageEditor({
           setIsPickerOpen(false);
         }}
       />
-    </fieldset>
+    </AdminFieldset>
   );
 }

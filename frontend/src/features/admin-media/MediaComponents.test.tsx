@@ -1,6 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import { axe } from 'jest-axe';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MediaPicker, mediaAssetIdFromPublicUrl } from './MediaPicker';
 import { MediaUploader } from './MediaUploader';
 import { ProductGalleryEditor } from './ProductGalleryEditor';
@@ -42,6 +43,12 @@ const mockAsset2: AdminMediaAsset = {
   createdAt: '2026-10-27T00:00:00.000Z',
   updatedAt: '2026-10-27T00:00:00.000Z',
 };
+
+beforeAll(() => {
+  // jsdom has no native modal <dialog>; the Astryx Dialog needs these two methods.
+  HTMLDialogElement.prototype.showModal ??= function showModal(this: HTMLDialogElement) { this.setAttribute('open', ''); };
+  HTMLDialogElement.prototype.close ??= function close(this: HTMLDialogElement) { this.removeAttribute('open'); this.dispatchEvent(new Event('close')); };
+});
 
 describe('mediaAssetIdFromPublicUrl', () => {
   it('extracts asset ID correctly from public media URL format', () => {
@@ -160,12 +167,11 @@ describe('MediaPicker', () => {
 
     const dialog = screen.getByRole('dialog');
     expect(dialog).toBeInTheDocument();
-    expect(dialog).toHaveAttribute('aria-modal', 'true');
 
     expect(screen.getByText('پالت پلاستیکی صنعتی')).toBeInTheDocument();
     expect(screen.getByText('سبد پلاستیکی کد ۱۲')).toBeInTheDocument();
 
-    const selectOption = screen.getByRole('option', { name: /پالت پلاستیکی صنعتی/ });
+    const selectOption = screen.getByRole('button', { name: /پالت پلاستیکی صنعتی/ });
     await user.click(selectOption);
 
     expect(onSelect).toHaveBeenCalledWith(mockAsset1);
@@ -235,5 +241,105 @@ describe('ArticleFeaturedImageEditor', () => {
     expect(screen.getByText(/تصویر شاخص حذف شد/)).toBeInTheDocument();
     const hiddenClearInput = document.querySelector('input[name="featuredImageClear"]');
     expect(hiddenClearInput).toHaveValue('on');
+  });
+});
+
+describe('media authoring states (task 8.3)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('shows an error with a retry when the library cannot be read, then the assets after a retry', async () => {
+    const user = userEvent.setup();
+    vi.mocked(listMediaAction).mockResolvedValueOnce({ ok: false, error: 'failed' });
+    render(<MediaPicker />);
+    await user.click(screen.getByRole('button', { name: 'انتخاب از کتابخانه رسانه' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(await within(dialog).findByText('کتابخانه رسانه در دسترس نیست')).toBeInTheDocument();
+
+    vi.mocked(listMediaAction).mockResolvedValueOnce({ ok: true, data: { items: [mockAsset1], page: 1, pageSize: 20, total: 1, totalPages: 1 } });
+    await user.click(within(dialog).getByRole('button', { name: 'تلاش دوباره' }));
+    expect(await within(dialog).findByRole('button', { name: /پالت پلاستیکی صنعتی/ })).toBeInTheDocument();
+  });
+
+  it('offers the upload tab with its drop zone and a button, and keeps the library tab labelled', async () => {
+    const user = userEvent.setup();
+    render(<MediaPicker assets={[mockAsset1]} />);
+    await user.click(screen.getByRole('button', { name: 'انتخاب از کتابخانه رسانه' }));
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByRole('tab', { name: 'کتابخانه رسانه', selected: true })).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('tab', { name: 'بارگذاری تصویر جدید' }));
+    expect(within(dialog).getByText(/تصویر را به اینجا بکشید/)).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: /انتخاب فایل از دستگاه/ })).toBeInTheDocument();
+  });
+
+  it('renders the picker dialog outside the surrounding form so Enter cannot submit the content form', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn((event: React.FormEvent) => event.preventDefault());
+    render(<form onSubmit={onSubmit}><MediaPicker assets={[mockAsset1]} /></form>);
+    await user.click(screen.getByRole('button', { name: 'انتخاب از کتابخانه رسانه' }));
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.closest('form')).toBeNull();
+    await user.click(within(dialog).getByLabelText('جست‌وجو در رسانه‌ها'));
+    await user.paste('پالت');
+    await user.keyboard('{Enter}');
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('shows a visible notice for a rejected file and no queue item', async () => {
+    const user = userEvent.setup({ applyAccept: false });
+    render(<MediaUploader />);
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(input, new File(['x'], 'doc.pdf', { type: 'application/pdf' }));
+    expect(screen.getByText(/فایل doc.pdf رد شد/)).toBeVisible();
+    expect(screen.queryByRole('list', { name: 'فهرست فایل‌های صف بارگذاری' })).not.toBeInTheDocument();
+  });
+
+  it('keeps keyboard focus on a usable control after moving or removing a gallery image', async () => {
+    const user = userEvent.setup();
+    const images = [
+      { url: '/api/v1/media/public/asset-1/card', alt: 'اول' },
+      { url: '/catalog/products/p2.jpg', alt: 'دوم' },
+      { url: '/catalog/products/p3.jpg', alt: 'سوم' },
+    ];
+    render(<ProductGalleryEditor initialImages={images} mediaAssets={[mockAsset1]} />);
+    await user.click(screen.getByRole('button', { name: /انتقال تصویر [2۲] به بالا/ }));
+    // The moved image is now the cover: its "up" button is disabled, so focus is on its "down" button.
+    expect(screen.getByRole('button', { name: /انتقال تصویر [1۱] به پایین/ })).toHaveFocus();
+    expect(screen.getByText(/به جایگاه [1۱] منتقل شد و اکنون کاور است/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /حذف تصویر [1۱] از گالری/ }));
+    expect(screen.getByRole('button', { name: /حذف تصویر [1۱] از گالری/ })).toHaveFocus();
+    expect(screen.getAllByLabelText(/متن جایگزین/)).toHaveLength(2);
+  });
+
+  it('adds a legacy URL image with Enter without submitting the surrounding form', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn((event: React.FormEvent) => event.preventDefault());
+    render(<form onSubmit={onSubmit}><ProductGalleryEditor initialImages={[]} mediaAssets={[]} /></form>);
+    await user.click(screen.getByRole('button', { name: '+ افزودن آدرس اینترنتی (قدیمی)' }));
+    await user.click(screen.getByLabelText('آدرس کامل اینترنتی تصویر (URL)'));
+    await user.paste('https://example.com/a.jpg');
+    await user.keyboard('{Enter}');
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText('کاور / تصویر اصلی')).toBeInTheDocument();
+    expect(document.querySelector('input[name="image1Url"]')).toHaveValue('https://example.com/a.jpg');
+  });
+
+  it('shows the limit notice and disables adding at six images', () => {
+    const six = Array.from({ length: 6 }, (_, i) => ({ url: `/catalog/products/p${i}.jpg`, alt: `تصویر ${i}` }));
+    render(<ProductGalleryEditor initialImages={six} mediaAssets={[]} />);
+    expect(screen.getByRole('button', { name: '+ افزودن تصویر از کتابخانه' })).toBeDisabled();
+    expect(screen.getByText(/به سقف 6 تصویر رسیده‌اید/)).toBeInTheDocument();
+  });
+
+  it('has no accessibility violations for the gallery and the featured image editors', async () => {
+    const { container } = render(
+      <>
+        <ProductGalleryEditor initialImages={[{ url: '/catalog/products/p2.jpg', alt: 'دوم' }]} mediaAssets={[mockAsset1]} />
+        <ArticleFeaturedImageEditor initialImage={{ url: '/api/v1/media/public/asset-1/card', alt: 'شاخص' }} mediaAssets={[mockAsset1]} />
+      </>,
+    );
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

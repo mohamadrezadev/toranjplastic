@@ -1,34 +1,16 @@
-.button {
-  min-height: var(--control-min-height);
-  min-width: var(--control-min-height);
-  padding-inline: var(--control-padding-inline);
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  border: var(--border-width) solid transparent;
-  border-radius: var(--radius-sm);
-  font-weight: var(--font-weight-bold);
-  cursor: pointer;
-  transition: background-color var(--motion-fast) var(--motion-easing), border-color var(--motion-fast) var(--motion-easing), color var(--motion-fast) var(--motion-easing);
-}
-
-.primary { color: var(--color-on-action); background: var(--color-brand-action); }
-.primary:hover { background: var(--color-brand-action-hover); }
-.secondary { color: var(--color-brand-primary); background: var(--color-surface-card); border-color: var(--color-border-default); }
-.secondary:hover { border-color: var(--color-border-strong); background: var(--color-surface-raised); }
-.ghost { color: var(--color-brand-action); background: transparent; }
-.ghost:hover { background: var(--color-brand-action-soft); }
-.danger { color: var(--color-on-danger); background: var(--color-status-danger); }
-.danger:hover { background: color-mix(in srgb, var(--color-status-danger) 88%, black); }
-.button:disabled { cursor: not-allowed; opacity: 0.52; }
-.contentHidden { visibility: hidden; }
-.loadingLabel { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: var(--space-2); padding-inline: var(--control-padding-inline); }
-.loadingLabel::before { content: ""; width: .9rem; height: .9rem; flex: 0 0 auto; border: .125rem solid currentColor; border-inline-start-color: transparent; border-radius: 50%; animation: buttonSpin var(--motion-normal) linear infinite; }
-
-@keyframes buttonSpin { to { transform: rotate(1turn); } }
-
-@media (prefers-reduced-motion: reduce) {
-  .loadingLabel::before { animation-duration: 1.5s; }
+/*
+ * Toranj extension of the public Astryx Button (OpenSpec change
+ * rebuild-ui-with-astryx). Astryx keeps a label on one line and ends a label
+ * that does not fit with an ellipsis. `wrapLabel` lets a long approved Persian
+ * label wrap onto more lines instead, while the Button height stays the
+ * minimum (44px or more) target. The rule targets only this className on the
+ * Button root (a documented Astryx extension point), never its internals; the
+ * label inherits white-space from the root. Unlayered, so it outranks the
+ * Astryx base layer.
+ */
+.wrapLabel {
+  height: auto;
+  min-height: var(--size-element-md, var(--control-min-height));
+  white-space: normal;
+  text-align: center;
 }

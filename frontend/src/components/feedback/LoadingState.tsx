@@ -1,7 +1,8 @@
-import styles from "./Feedback.module.css";
+import { Spinner } from "@astryxdesign/core/Spinner";
+import { VStack } from "@astryxdesign/core/VStack";
 
 export function LoadingState({ label = "در حال بارگذاری…" }: { label?: string }) {
-  return <div className={styles.loading} role="status" aria-live="polite" aria-busy="true">
-    <div><span className={styles.spinner} aria-hidden="true" /><p>{label}</p></div>
-  </div>;
+  return <VStack gap={3} padding={6} hAlign="center" role="status" aria-live="polite" aria-busy="true">
+    <Spinner size="lg" label={label} />
+  </VStack>;
 }

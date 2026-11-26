@@ -7,6 +7,7 @@ export const frontendRoot = resolve(scriptDir, '..');
 export const sourceRoot = join(frontendRoot, 'src');
 export const featureRoot = join(sourceRoot, 'features', 'admin-content');
 export const adminMediaRoot = join(sourceRoot, 'features', 'admin-media');
+export const uiRoot = join(sourceRoot, 'components', 'ui');
 
 const sourceExtensions = ['.ts', '.tsx', '.js', '.jsx', '.mjs'];
 const importPattern = /(?:import|export)\s+(?:[\s\S]*?\s+from\s*)?["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g;
@@ -16,6 +17,14 @@ function codeFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const path = join(directory, entry.name);
     return entry.isDirectory() ? codeFiles(path) : sourceExtensions.includes(extname(entry.name)) ? [path] : [];
+  });
+}
+
+function cssFiles(directory) {
+  if (!statSync(directory).isDirectory()) return [];
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(directory, entry.name);
+    return entry.isDirectory() ? cssFiles(path) : extname(entry.name) === '.css' ? [path] : [];
   });
 }
 
@@ -47,6 +56,29 @@ function featureFor(path) {
   return feature === 'shared' ? null : feature;
 }
 
+export function inspectStyles(styles) {
+  const violations = [];
+  const generatedClassPattern = /\.x[0-9a-z]{5,}\b/g;
+  for (const [file, source] of Object.entries(styles)) {
+    if (generatedClassPattern.test(source)) {
+      violations.push(`generated Astryx/StyleX class selector: ${relative(frontendRoot, resolve(file))}`);
+    }
+    generatedClassPattern.lastIndex = 0;
+  }
+  return violations;
+}
+
+export function inspectBuildConfiguration(sources) {
+  const violations = [];
+  const unauthorizedPlugin = /@stylexjs\/(?:nextjs-plugin|babel-plugin)/;
+  for (const [file, source] of Object.entries(sources)) {
+    if (unauthorizedPlugin.test(source)) {
+      violations.push(`unauthorized StyleX build plugin: ${relative(frontendRoot, resolve(file))}`);
+    }
+  }
+  return violations;
+}
+
 export function inspectSources(sources) {
   const violations = [];
   const graph = new Map();
@@ -55,6 +87,23 @@ export function inspectSources(sources) {
     const fromFeature = featureFor(importer);
     if (fromFeature) graph.set(fromFeature, graph.get(fromFeature) ?? new Set());
     for (const specifier of importSpecifiers(source)) {
+        if (/^@astryxdesign\/[^/]+\/(?:src|dist|internal)(?:\/|$)/.test(specifier)) {
+          violations.push(`Astryx source/deep import: ${relative(frontendRoot, importer)} -> ${specifier}`);
+          continue;
+        }
+        if (specifier === '@astryxdesign/theme-neutral') {
+          violations.push(`Astryx runtime theme source import: ${relative(frontendRoot, importer)} -> ${specifier}`);
+          continue;
+        }
+        if (specifier.startsWith('@stylexjs/')) {
+          violations.push(`unauthorized direct StyleX import: ${relative(frontendRoot, importer)} -> ${specifier}`);
+          continue;
+        }
+        if (importer.startsWith(`${uiRoot}${sep}`) &&
+            (/^@\/(?:app|features|lib)\//.test(specifier) || /^@\/components\/(?!ui(?:\/|$))/.test(specifier))) {
+          violations.push(`UI primitive adapter imports product logic: ${relative(frontendRoot, importer)} -> ${specifier}`);
+          continue;
+        }
       if (specifier === 'backend' || specifier.startsWith('backend/') || specifier.includes('/backend/')) {
         violations.push(`frontend imports backend source: ${relative(frontendRoot, importer)} -> ${specifier}`);
         continue;
@@ -105,7 +154,16 @@ export function inspectSources(sources) {
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const files = codeFiles(sourceRoot);
   const sources = Object.fromEntries(files.map((file) => [file, readFileSync(file, 'utf8')]));
-  const violations = inspectSources(sources);
+    const styleFiles = cssFiles(sourceRoot);
+    const styles = Object.fromEntries(styleFiles.map((file) => [file, readFileSync(file, 'utf8')]));
+    const buildConfigPaths = [join(frontendRoot, 'package.json'), join(frontendRoot, 'next.config.ts')]
+      .filter((file) => statSync(file, { throwIfNoEntry: false })?.isFile());
+    const buildConfigs = Object.fromEntries(buildConfigPaths.map((file) => [file, readFileSync(file, 'utf8')]));
+    const violations = [
+      ...inspectSources(sources),
+      ...inspectStyles(styles),
+      ...inspectBuildConfiguration(buildConfigs),
+    ];
   if (violations.length) {
     console.error(violations.join('\n'));
     process.exitCode = 1;

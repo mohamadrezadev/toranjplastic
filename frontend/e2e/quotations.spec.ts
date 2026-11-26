@@ -72,9 +72,9 @@ test("admin quotation editor is RTL, manual, versioned and responsive", async ({
       .getByRole("button", { name: "تأیید و ارسال برای مشتری" })
       .click();
     await expect(page).toHaveURL(/success=quotation-sent/);
-    await expect(page.getByRole("status")).toContainText(
-      "پیشنهاد قیمت برای مشتری ارسال و قفل شد",
-    );
+    await expect(
+      page.getByRole("status").filter({ hasText: "پیشنهاد قیمت برای مشتری ارسال و قفل شد" }).first(),
+    ).toBeVisible();
   }
 
   await page.context().addCookies([
@@ -95,7 +95,7 @@ test("admin quotation editor is RTL, manual, versioned and responsive", async ({
   );
   await page.getByRole("button", { name: "ایجاد نسخه اصلاحی" }).click();
   await expect(page).toHaveURL(/success=quotation-revision/);
-  await expect(page.getByRole("status")).toContainText("نسخه اصلاحی ساخته شد");
+  await expect(page.getByRole("status").filter({ hasText: "نسخه اصلاحی ساخته شد" }).first()).toBeVisible();
 });
 
 test("customer sees only the private sent snapshot and PDF", async ({
@@ -159,5 +159,5 @@ test("customer can accept quotation and sees confirmation and status update", as
   await expect(acceptButton).toBeVisible();
   await acceptButton.click();
   await expect(page).toHaveURL(/success=accepted/);
-  await expect(page.getByRole("status")).toContainText("پیشنهاد قیمت با موفقیت پذیرفته شد");
+  await expect(page.getByRole("status").filter({ hasText: /\S/ })).toContainText("پیشنهاد قیمت با موفقیت پذیرفته شد");
 });

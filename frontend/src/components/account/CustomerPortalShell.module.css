@@ -52,10 +52,10 @@
   border-radius: var(--radius-md);
   background: var(--color-surface-raised);
 }
-.avatar { width: 2.4rem; height: 2.4rem; flex: 0 0 auto; display: grid; place-items: center; border-radius: 50%; color: var(--color-on-action); background: var(--color-brand-action); font-weight: var(--font-weight-bold); }
+.avatar { flex: 0 0 auto; display: inline-flex; }
 .accountCopy { min-width: 0; display: grid; line-height: 1.55; }
-.accountCopy strong { overflow: hidden; color: var(--color-brand-primary); font-size: .88rem; text-overflow: ellipsis; white-space: nowrap; }
-.accountCopy span { color: var(--color-text-secondary); font-size: .72rem; text-align: end; }
+.accountName { overflow: hidden; color: var(--color-brand-primary); font-size: .88rem; text-overflow: ellipsis; white-space: nowrap; }
+.accountMobile { color: var(--color-text-secondary); font-size: .72rem; text-align: end; }
 
 .navigation { display: grid; gap: .45rem; }
 .navigation a {
@@ -109,26 +109,29 @@
 @media (max-width: 64rem) {
   .sidebar { width: auto; height: auto; min-height: auto; padding: 1rem clamp(1rem, 3vw, 2rem); position: static; gap: 1rem; overflow: visible; border-inline-start: 0; border-block-end: 1px solid var(--color-border-default); box-shadow: 0 .5rem 2rem rgb(18 40 60 / 5%); backdrop-filter: none; }
   .sidebar::before { inset-inline: clamp(1rem, 3vw, 2rem); }
-  .sidebarTop { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  /* The sign-out action stays reachable on phones and tablets: it sits at the inline end of the top row. */
+  .sidebar { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 1rem; row-gap: 1rem; }
+  .sidebarTop { grid-column: 1; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
   .accountCard { max-width: 18rem; }
-  .navigation { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .navigation { grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .navigation a { justify-content: center; }
-  .sidebarFooter { display: none; }
+  .sidebarFooter { grid-column: 2; grid-row: 1; margin: 0; }
+  .sidebarFooter p { display: none; }
+  .sidebarFooter form, .sidebarFooter button { width: auto; }
   .workspace { min-height: 0; margin-inline-start: 0; }
   .workspace::before { inset-inline: 0; }
   .mobileHeader { min-width: 0; padding: .8rem clamp(1rem, 3vw, 2rem); display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-block-end: 1px solid var(--color-border-default); color: var(--color-text-secondary); background: var(--color-surface-card); font-size: var(--font-size-sm); }
-  .mobileHeader strong { min-width: 0; overflow: hidden; color: var(--color-brand-primary); text-overflow: ellipsis; white-space: nowrap; }
+  .mobileName { min-width: 0; overflow: hidden; color: var(--color-brand-primary); text-overflow: ellipsis; white-space: nowrap; }
 }
 
 @media (max-width: 35rem) {
   .sidebar { padding: .7rem 1rem; position: sticky; inset-block-start: 0; z-index: 20; }
   .sidebar::before { inset-inline: 1rem; }
   .sidebarTop { min-height: 3rem; }
-  .brandCaption, .accountCopy span { display: none; }
+  .brandCaption, .accountMobile { display: none; }
   .wordmark { font-size: 1.35rem; }
   .accountCard { width: auto; padding: .35rem; border: 0; background: transparent; }
-  .avatar { width: 2.15rem; height: 2.15rem; }
-  .accountCopy strong { max-width: 7.5rem; font-size: .76rem; }
+  .accountName { max-width: 7.5rem; font-size: .76rem; }
   .navigation {
     padding: .42rem .55rem calc(.42rem + env(safe-area-inset-bottom));
     position: fixed;

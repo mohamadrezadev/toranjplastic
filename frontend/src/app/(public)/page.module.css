@@ -1,103 +1,226 @@
-.page { overflow: clip; }
-.campaignHero { padding-block: clamp(1rem, 2.5vw, 2.25rem); background: var(--color-surface-subtle); border-block-end: 1px solid var(--color-border-default); }
-.campaignFrame { min-height: clamp(25rem, 43vw, 34rem); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); overflow: hidden; border: 1px solid var(--color-border-default); border-radius: clamp(.65rem, 1.2vw, 1.15rem); background: var(--color-surface-card); box-shadow: var(--shadow-md); }
-.campaignCopy { padding: clamp(2rem, 5vw, 4.75rem); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; position: relative; z-index: 1; }
-.campaignCopy h1 { max-width: 11ch; margin-block: .8rem 1rem; color: var(--color-brand-primary); font-size: clamp(2.35rem, 5vw, 4.9rem); line-height: 1.2; letter-spacing: -.05em; }
-.campaignCopy p { max-width: 34rem; color: var(--color-text-secondary); font-size: clamp(.95rem, 1.3vw, 1.08rem); line-height: 1.85; }
-.campaignMedia { min-width: 0; min-height: 22rem; position: relative; overflow: hidden; background: var(--color-surface-raised); border-inline-start: 1px solid var(--color-border-default); }
-.campaignImage { width: auto; max-width: none; height: 100%; position: absolute; inset-block: 0; left: 0; display: block; object-fit: cover; object-position: left center; }
-.campaignActions { width: 100%; margin-block-start: clamp(1.5rem, 3vw, 2.5rem); display: flex; flex-wrap: wrap; gap: .75rem; }
-.campaignAction { min-height: 3.25rem; padding-inline: 1.4rem; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--color-brand-action); border-radius: .45rem; font-weight: 700; text-decoration: none; transition: transform .2s, color .2s, background-color .2s; }
-.campaignAction:hover { transform: translateY(-2px); }
-.campaignAction:focus-visible { outline: .28rem solid var(--color-brand-action); outline-offset: .22rem; }
-.campaignFrame .productAction { color: var(--color-on-action); background: var(--color-brand-action); }
-.campaignFrame .productAction:hover { background: var(--color-brand-action-hover); }
-.campaignFrame .inquiryAction { color: var(--color-brand-primary); background: var(--color-surface-card); }
-.campaignFrame .inquiryAction:hover { background: var(--color-brand-action-soft); }
-.eyebrow { display: inline-flex; align-items: center; gap: .75rem; color: var(--color-brand-action); font-size: .78rem; font-weight: 700; letter-spacing: .04em; }
-.closingAction { min-height: 3.4rem; padding-inline: 1.5rem; display: inline-flex; align-items: center; justify-content: center; gap: 2.5rem; color: var(--color-on-action); background: var(--color-brand-action); border-radius: .35rem; font-weight: 700; transition: transform .2s, background-color .2s; text-decoration: none; }
-.closingAction:hover { transform: translateY(-2px); background: var(--color-brand-action-hover); }
-.closingAction:focus-visible { outline: .28rem solid var(--color-brand-action); outline-offset: .22rem; }
-.intro { padding-block: clamp(4rem, 8vw, 7rem) 2.5rem; display: grid; grid-template-columns: 1.25fr .75fr; align-items: end; gap: 2rem; }
-.sectionNumber { color: var(--color-brand-action); font: 700 .78rem/1.5 var(--font-family-fa); display: block; margin-block-end: .5rem; }
-.intro h2 { max-width: 17ch; margin-block-start: .25rem; color: var(--color-brand-primary); font-size: clamp(2rem, 3.8vw, 3.7rem); line-height: 1.35; letter-spacing: -.045em; }
-.intro p { max-width: 31rem; color: var(--color-text-secondary); }
-.areas { padding-block-end: clamp(4rem, 8vw, 7rem); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
-.area { min-width: 0; min-height: 28rem; padding: clamp(1.25rem, 2.5vw, 2rem); display: flex; flex-direction: column; border: 1px solid var(--color-border-default); border-radius: .35rem; background: var(--color-surface-card); text-decoration: none; transition: transform .22s, box-shadow .22s, border-color .22s; }
-.area:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--color-border-strong); }
-.area:focus-visible { outline: .28rem solid var(--color-brand-action); outline-offset: .22rem; }
-.areaTop { display: flex; justify-content: space-between; align-items: center; gap: 1rem; color: var(--color-text-secondary); font-size: .8rem; }
-.areaArrow { width: 2rem; height: 2rem; display: grid; place-items: center; border: 1px solid var(--color-border-default); border-radius: 50%; color: var(--color-brand-primary); font-size: 1.2rem; }
-.areaGlyph { flex: 1; min-height: 11rem; position: relative; display: grid; place-items: center; overflow: hidden; border-radius: var(--radius-sm); background: var(--color-surface-subtle); }
-.areaPhoto { width: 100%; height: 100%; display: block; object-fit: cover; transition: transform .35s ease; }
-.area:hover .areaPhoto { transform: scale(1.05); }
-.areaGlyph span { width: 7.4rem; height: 7.4rem; display: block; border: 1.1rem solid #ad6a4c; border-radius: 1.2rem; transform: rotate(-28deg); box-shadow: 1rem 1rem 0 #e1c4ab; }
-.injection .areaGlyph span { width: 9rem; height: 4.5rem; border: 0; border-radius: 0; background: repeating-linear-gradient(90deg, #587561 0 1rem, #9db39b 1rem 1.45rem); transform: skewY(-22deg); box-shadow: 1.4rem 1.4rem 0 #c4d0b7; }
-.materials .areaGlyph span { width: 7rem; height: 7rem; border: 0; border-radius: 50%; background: #b5a07b; box-shadow: -2.5rem 1rem 0 -1rem #d8bfa1, 2rem 1.2rem 0 -.7rem #8e7657, 0 -2.2rem 0 -.9rem #d2b38b; transform: none; }
-.areaBody { display: grid; gap: .65rem; }
-.areaBody strong { color: var(--color-brand-primary); font-size: clamp(1.5rem, 2.4vw, 2.1rem); line-height: 1.35; }
-.areaBody > span:nth-child(2) { min-height: 3.5rem; color: var(--color-text-secondary); font-size: .9rem; }
-.areaMore { margin-block-start: 1rem; padding-block-start: 1rem; display: flex; justify-content: space-between; border-block-start: 1px solid var(--color-border-default); color: var(--color-brand-action); font-size: .9rem; font-weight: 700; }
+/*
+ * Public home composition (OpenSpec change rebuild-ui-with-astryx, task 5.2).
+ * Astryx Section, Card, AspectRatio, VStack/HStack, Heading, Text and Link
+ * and the shared Button adapter own the surfaces, type and spacing; these
+ * rules only place them in the Toranj home layout. Values come from Toranj
+ * tokens (tokens.css) or the Astryx roles mapped onto them (astryx-theme.css):
+ * no raw colours and no generated Astryx class selectors. Unlayered rules
+ * deliberately win over the Astryx base layer where a className extends a
+ * component (documented extension point).
+ *
+ * Responsive contract (every region sits in .content-container, max 75rem):
+ * - Campaign: above 40rem the copy and the artwork share one row and the
+ *   artwork fills the row height (6:5 at least); at or below 40rem the
+ *   artwork (7:5) sits above the copy and the two actions grow to share the
+ *   row, each taking a full row once they no longer fit side by side. Every
+ *   crop stays at most 1.4:1 and anchored to the artwork's left edge, so its
+ *   rasterized headline and buttons never repeat the semantic heading and
+ *   actions next to it.
+ * - Intro: HStack wrap; the lead drops below the heading once the two flex
+ *   bases (24rem and 26rem) no longer fit one row.
+ * - Capabilities: three columns above 64rem; two columns from 40rem, where
+ *   the odd last card spans the row as a horizontal card instead of leaving an
+ *   empty track; one column at or below 40rem. Media is a 2:1 product crop at
+ *   every width, so the banners' rasterized headline and call-to-action pill
+ *   never appear inside a card that links elsewhere.
+ * - Inquiry steps: three columns above 48rem, one column at or below it; the
+ *   action becomes a full-width row at or below 40rem.
+ * - Articles: the shared ContentGrid. One or two cards share Astryx Grid
+ *   tracks (at most two columns); three cards take the shared BalancedGrid
+ *   steps of the capability cards (three columns above 64rem, two from 40rem
+ *   with the odd last card spanning the row, one at or below 40rem). The
+ *   all-articles link drops below the heading through wrap.
+ * - Closing: HStack wrap; the action drops below the copy when needed.
+ *
+ * Region headings use the shared SectionTitle step, between the page title
+ * and the card titles.
+ */
 
-/* Inquiry Fast-Track Section */
-.inquirySection { padding-block: clamp(3.5rem, 6vw, 5rem); background: var(--color-surface-subtle); border-block: 1px solid var(--color-border-default); }
-.inquiryInner { display: flex; flex-direction: column; gap: 2.5rem; }
+.page {
+  --home-section-space: clamp(var(--space-12), 7vw, calc(var(--space-16) + var(--space-4)));
+  overflow: clip;
+}
+
+/* ---------- Shared type roles ---------- */
+.title { color: var(--color-brand-primary); }
+/* Vertical rhythm inside the muted Astryx Section bands. */
+.band { padding-block: var(--home-section-space); }
+.headerCopy { flex: 1 1 20rem; min-width: 0; }
+
+/* ---------- Campaign (an Astryx Card inside a muted Section) ---------- */
+.campaignFrame {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+}
+.campaignCopy {
+  min-width: 0;
+  padding: clamp(var(--space-6), 5vw, var(--space-16));
+}
+.campaignLead { max-width: 34rem; }
+.campaignActions { width: 100%; margin-block-start: var(--space-2); }
+/* The Astryx AspectRatio stretches with the copy; its 6:5 ratio is the floor. */
+.campaignMedia {
+  align-self: stretch;
+  background-color: var(--color-surface-raised);
+  border-inline-start: var(--border-width) solid var(--color-border-default);
+}
+/* Keep the artwork's product half: its rasterized copy sits on the right. */
+.campaignImage { object-position: left center; }
+
+/* ---------- Intro ---------- */
+.intro { padding-block: var(--home-section-space) var(--space-8); }
+.introHeading { flex: 1 1 24rem; min-width: 0; }
+.introTitle { max-width: 17ch; }
+.introLead { flex: 0 1 26rem; min-width: 0; }
+
+/* ---------- Capabilities: one link per Astryx Card ---------- */
+.areas {
+  padding-block-end: var(--home-section-space);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.area {
+  min-width: 0;
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-container, var(--radius-lg));
+}
+.areaCard {
+  --astryx-card-padding: clamp(var(--space-4), 2.5vw, var(--space-6));
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: var(--space-4);
+  transition:
+    transform var(--motion-normal) var(--motion-easing),
+    box-shadow var(--motion-normal) var(--motion-easing),
+    border-color var(--motion-normal) var(--motion-easing);
+}
+.area:hover .areaCard {
+  transform: translateY(calc(-1 * var(--space-1)));
+  border-color: color-mix(in srgb, var(--color-brand-action) 50%, var(--color-border-default));
+  box-shadow: var(--shadow-md);
+}
+.areaArrow {
+  inline-size: var(--space-8);
+  block-size: var(--space-8);
+  display: inline-grid;
+  place-items: center;
+  color: var(--color-brand-primary);
+  border: var(--border-width) solid var(--color-border-default);
+  border-radius: 50%;
+}
+/* A bounded, theme-aware media surface; the verified image keeps its colours. */
+.areaMedia {
+  background-color: var(--color-surface-subtle);
+  border: var(--border-width) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+.areaPhoto { transition: transform var(--motion-normal) var(--motion-easing); }
+.area:hover .areaPhoto { transform: scale(1.025); }
+.areaBody { min-width: 0; }
+.areaTitle {
+  font-size: var(--font-size-heading-sm);
+  line-height: var(--line-height-heading);
+}
+.areaMore {
+  margin-block-start: auto;
+  padding-block-start: var(--space-3);
+  border-block-start: var(--border-width) solid var(--color-border-default);
+}
+
+/* ---------- Inquiry workflow ---------- */
 .inquiryHeader { max-width: 42rem; }
-.inquiryHeader h2 { color: var(--color-brand-primary); font-size: clamp(1.8rem, 3.2vw, 2.8rem); line-height: 1.35; margin-block: .25rem .5rem; }
-.inquiryHeader p { color: var(--color-text-secondary); font-size: 1rem; line-height: 1.6; }
-.inquirySteps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
-.stepCard { background: var(--color-surface-card); border: 1px solid var(--color-border-default); border-radius: .45rem; padding: clamp(1.25rem, 2vw, 1.75rem); display: flex; flex-direction: column; gap: .75rem; }
-.stepBadge { width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--color-brand-action); color: var(--color-on-action); display: grid; place-items: center; font-weight: 700; font-size: 1rem; }
-.stepTitle { color: var(--color-brand-primary); font-size: 1.15rem; }
-.stepDescription { color: var(--color-text-secondary); font-size: .92rem; line-height: 1.6; margin: 0; }
-.inquiryFooter { display: flex; justify-content: flex-start; }
-.inquiryMainAction { min-height: 3.25rem; padding-inline: 1.75rem; display: inline-flex; align-items: center; justify-content: center; gap: .75rem; color: var(--color-on-action); background: var(--color-brand-action); border-radius: .35rem; font-weight: 700; font-size: 1rem; text-decoration: none; transition: transform .2s, background-color .2s; }
-.inquiryMainAction:hover { transform: translateY(-2px); background: var(--color-brand-action-hover); }
-.inquiryMainAction:focus-visible { outline: .28rem solid var(--color-brand-action); outline-offset: .22rem; }
+.steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-8) var(--space-6);
+}
+/* Each step opens on a shared track line instead of a nested card. */
+.step {
+  min-width: 0;
+  padding-block-start: var(--space-4);
+  border-block-start: calc(var(--border-width) * 2) solid var(--color-border-strong);
+}
+.stepBadge {
+  inline-size: var(--space-8);
+  block-size: var(--space-8);
+  display: inline-grid;
+  place-items: center;
+  color: var(--color-on-action);
+  background-color: var(--color-brand-action);
+  border-radius: 50%;
+}
+/*
+ * The long Persian label wraps through the Button adapter's wrapLabel prop;
+ * .inquiryAction only makes it a full-width row on mobile (below).
+ */
 
-/* Articles Section */
-.articlesSection { padding-block: clamp(3.5rem, 6vw, 5rem); }
-.articlesHeader { display: flex; justify-content: space-between; align-items: flex-end; margin-block-end: 2rem; gap: 1rem; }
-.articlesHeader h2 { color: var(--color-brand-primary); font-size: clamp(1.8rem, 3.2vw, 2.8rem); line-height: 1.35; margin-block-start: .25rem; }
-.allArticlesLink { display: inline-flex; align-items: center; gap: .5rem; color: var(--color-brand-action); font-weight: 700; font-size: .95rem; text-decoration: none; white-space: nowrap; transition: gap .2s; }
-.allArticlesLink:hover { gap: .75rem; }
-.allArticlesLink:focus-visible { outline: .2rem solid var(--color-brand-action); outline-offset: .15rem; }
+/* ---------- Latest articles ---------- */
+.articles { padding-block: var(--home-section-space); }
+.allArticlesLink {
+  min-height: var(--control-min-height);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
 
-/* Closing Section */
-.closing { background: var(--color-surface-subtle); border-block-start: 1px solid var(--color-border-default); }
-.closingInner { padding-block: clamp(4rem, 7vw, 6rem); display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: clamp(2rem, 5vw, 5rem); }
-.closingCopy { display: grid; justify-items: start; }
-.closing h2 { max-width: 24ch; color: var(--color-brand-primary); font-size: clamp(1.8rem, 3vw, 3rem); line-height: 1.4; }
-.closing p { max-width: 34rem; margin-block-start: .75rem; color: var(--color-text-secondary); }
-.closingAction { white-space: nowrap; }
+/* ---------- Closing ---------- */
+.closingCopy { flex: 1 1 24rem; min-width: 0; }
+.closingTitle { max-width: 24ch; }
+.closingLead { max-width: 34rem; }
 
+/* ---------- Tablet: two capability columns (at or below 64rem) ---------- */
 @media (max-width: 64rem) {
-  .campaignFrame { grid-template-columns: minmax(0, 1.05fr) minmax(18rem, .95fr); }
   .areas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .areas > :last-child:nth-child(odd) { grid-column: 1 / -1; }
-  .closingInner { grid-template-columns: minmax(0, 1fr) auto; }
+  .areas > :last-child:nth-child(odd) .areaCard {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas: "top media" "body media";
+    column-gap: var(--space-6);
+  }
+  .areas > :last-child:nth-child(odd) .areaTop { grid-area: top; }
+  .areas > :last-child:nth-child(odd) .areaMedia { grid-area: media; align-self: center; }
+  .areas > :last-child:nth-child(odd) .areaBody { grid-area: body; }
 }
 
+/* ---------- One inquiry-step column (at or below 48rem) ---------- */
 @media (max-width: 48rem) {
-  .campaignFrame { min-height: 0; grid-template-columns: 1fr; }
-  .campaignCopy { padding: clamp(1.4rem, 6vw, 2.25rem); }
-  .campaignCopy h1 { max-width: 12ch; font-size: clamp(2.1rem, 10vw, 3rem); }
-  .campaignMedia { min-height: clamp(13rem, 56vw, 20rem); grid-row: 1; border-inline-start: 0; border-block-end: 1px solid var(--color-border-default); }
-  .campaignActions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .campaignAction { min-width: 0; padding-inline: .75rem; }
-  .intro { grid-template-columns: 1fr; gap: 1rem; }
-  .area { min-height: 16rem; }
-  .areaGlyph { min-height: 7rem; }
-  .inquirySteps { grid-template-columns: 1fr; }
-  .inquiryMainAction { width: 100%; }
-  .articlesHeader { flex-direction: column; align-items: flex-start; gap: 1rem; }
-  .closingInner { grid-template-columns: 1fr; }
-  .closingAction { justify-self: start; }
+  .steps { grid-template-columns: minmax(0, 1fr); }
 }
 
+/* ---------- Mobile (at or below 40rem) ---------- */
 @media (max-width: 40rem) {
-  .areas { grid-template-columns: 1fr; }
+  .campaignFrame { grid-template-columns: minmax(0, 1fr); }
+  /* The documented AspectRatio override: unlayered CSS wins over astryx-base. */
+  .campaignMedia {
+    order: -1;
+    aspect-ratio: 7 / 5;
+    border-inline-start: 0;
+    border-block-end: var(--border-width) solid var(--color-border-default);
+  }
+  .campaignActions > * { flex: 1 1 auto; }
+  .areas { grid-template-columns: minmax(0, 1fr); }
   .areas > :last-child:nth-child(odd) { grid-column: auto; }
-  .campaignActions { grid-template-columns: 1fr; }
-  .campaignAction { width: 100%; }
+  .areas > :last-child:nth-child(odd) .areaCard {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas: none;
+  }
+  .areas > :last-child:nth-child(odd) .areaTop,
+  .areas > :last-child:nth-child(odd) .areaMedia,
+  .areas > :last-child:nth-child(odd) .areaBody { grid-area: auto; }
+  .inquiryAction { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .area:hover .areaCard,
+  .area:hover .areaPhoto { transform: none; }
 }

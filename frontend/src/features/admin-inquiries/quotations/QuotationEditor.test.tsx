@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { axe } from "jest-axe";
 import { describe, expect, it, vi } from "vitest";
 import { QuotationEditor } from "./QuotationEditor";
 import type { Quotation } from "./types";
@@ -33,14 +34,14 @@ describe("QuotationEditor", () => {
     const user = userEvent.setup();
     render(<QuotationEditor action={vi.fn()} />);
     expect(screen.getAllByRole("group")).toHaveLength(1);
-    const price = screen.getByLabelText("قیمت واحد (ریال)");
+    const price = screen.getByLabelText(/^قیمت واحد \(ریال\)/);
     await user.clear(price);
     await user.type(price, "2500");
     expect(screen.getAllByText(/۲٬۵۰۰ ریال/)).toHaveLength(3);
     await user.click(screen.getByRole("button", { name: "افزودن ردیف" }));
     expect(screen.getAllByRole("group")).toHaveLength(2);
     await user.click(
-      screen.getAllByRole("button", { name: "حذف ردیف" }).at(-1)!,
+      screen.getAllByRole("button", { name: /حذف ردیف/ }).at(-1)!,
     );
     expect(screen.getAllByRole("group")).toHaveLength(1);
     expect(
@@ -52,5 +53,27 @@ describe("QuotationEditor", () => {
     render(<QuotationEditor draft={draft} action={vi.fn()} />);
     expect(screen.getByLabelText(/اعتبار تا/)).toHaveValue("2026-10-19T14:30");
     expect(screen.getByText("تاریخ و ساعت براساس منطقه زمانی ایران ثبت می‌شود.")).toBeVisible();
+  });
+
+  it("moves focus to the new row's first field after adding and to the add button after removing", async () => {
+    const user = userEvent.setup();
+    render(<QuotationEditor action={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: "افزودن ردیف" }));
+    const descriptions = screen.getAllByLabelText(/^شرح/);
+    expect(descriptions).toHaveLength(2);
+    expect(descriptions[1]).toHaveFocus();
+    await user.click(screen.getAllByRole("button", { name: /حذف ردیف/ })[0]);
+    expect(screen.getByRole("button", { name: "افزودن ردیف" })).toHaveFocus();
+  });
+
+  it("keeps the form field names the server action reads", () => {
+    const { container } = render(<QuotationEditor draft={draft} action={vi.fn()} />);
+    const names = Array.from(container.querySelectorAll("input, textarea")).map((node) => node.getAttribute("name"));
+    expect(names).toEqual(expect.arrayContaining(["itemCount", "expectedVersion", "description-0", "quantity-0", "unit-0", "unitPriceRials-0", "discountRials", "taxRials", "additionalCostRials", "validUntil", "deliveryTerms", "paymentTerms", "notes"]));
+  });
+
+  it("has no accessibility violations", async () => {
+    const { container } = render(<QuotationEditor draft={draft} action={vi.fn()} />);
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

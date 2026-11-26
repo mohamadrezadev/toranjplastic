@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { Button } from "@/components/ui";
 import { createArticleAction } from "@/features/admin-content/article";
 import { listMedia } from "@/features/admin-media";
 import { ArticleFields } from "../ArticleFields";
-import styles from "../../Admin.module.css";
+import { AdminForm, AdminFormAlert, AdminPage } from "@/components/admin/AdminContent";
 
 export const metadata: Metadata = { title: "مقاله جدید", robots: { index: false, follow: false } };
 export const instant = false;
@@ -19,21 +18,11 @@ export default async function NewArticlePage({ searchParams }: { searchParams: P
   const mediaPage = await listMedia({ pageSize: 50, status: 'READY' });
 
   return (
-    <main className={styles.main}>
-      <div className={styles.shell}>
-        <section className={styles.card}>
-          <div className={styles.header}>
-            <h1>مقاله جدید</h1>
-          </div>
-          {error ? <p className={styles.feedback} role="alert">{errorMessages[error] ?? errorMessages.failed}</p> : null}
-          <form action={createArticleAction} className={styles.form}>
-            <ArticleFields mediaAssets={mediaPage.items} />
-            <div className={styles.formActions}>
-              <Button type="submit">ایجاد مقاله</Button>
-            </div>
-          </form>
-        </section>
-      </div>
-    </main>
+    <AdminPage title="مقاله جدید">
+      {error ? <AdminFormAlert message={errorMessages[error] ?? errorMessages.failed} /> : null}
+      <AdminForm action={createArticleAction} submitLabel="ایجاد مقاله">
+        <ArticleFields mediaAssets={mediaPage.items} />
+      </AdminForm>
+    </AdminPage>
   );
 }

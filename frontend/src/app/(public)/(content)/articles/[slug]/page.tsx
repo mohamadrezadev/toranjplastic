@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Divider } from "@astryxdesign/core/Divider";
+import { Heading } from "@astryxdesign/core/Heading";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/navigation";
-import { ContentCard, ContentGrid, ContentTag, DetailHero, PreservedText, contentStyles } from "@/components/content";
+import { ArticleMeta, ContentCard, ContentGrid, ContentTag, DetailHero, PreservedText, contentStyles } from "@/components/content";
 import { getStrapiArticle, getRelatedStrapiArticles, isStrapiNotFoundError, StrapiArticle } from "@/lib/strapi";
 import { publicContentMetadata } from "@/lib/content-metadata";
+import { serializeJsonLd } from "@/lib/jsonld";
 import { absoluteUrl, siteName } from "@/lib/site";
-import { serializeJsonLd } from "@/lib/product-jsonld";
+import styles from "../articles.module.css";
 
 type Props = { params: Promise<{ slug: string }> };
-
-const formatDate = (value: string) =>
-  new Intl.DateTimeFormat("fa-IR", { dateStyle: "long", timeZone: "UTC" }).format(new Date(value));
 
 function articleJsonLd(article: StrapiArticle) {
   return {
@@ -62,6 +64,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
+/*
+ * Article detail (OpenSpec change rebuild-ui-with-astryx, task 5.3). The
+ * record is an Astryx VStack rendered as <article> (the shared frame
+ * convention). The tags keep an explicit list role, and related cards take
+ * level-three titles under their region's level-two heading.
+ *
+ * Each tag is the shared wrapping ContentTag (an Astryx Badge), not an Astryx
+ * Token: a Token takes a string label and cuts a long one with an ellipsis, so
+ * a tag wider than the screen lost its end (and, being a min-width:auto flex
+ * item, widened the page). The tag text sits in a <bdi>, so the "#" stays on
+ * the same side as the first letter of a Latin tag instead of landing after it.
+ */
 export default async function ArticleDetailPage({ params }: Props) {
   const { slug } = await params;
 
@@ -96,65 +110,37 @@ export default async function ArticleDetailPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(articleJsonLd(item)) }}
       />
       <Breadcrumb items={breadcrumbItems} />
-      <article className={`${contentStyles.section} content-container ${contentStyles.managed}`}>
+      <VStack as="article" gap={0} className={`${contentStyles.section} content-container ${contentStyles.managed}`}>
         <DetailHero
           eyebrow={item.category?.name || "مقاله دانشنامه"}
           title={item.title}
           summary={item.summary}
           image={item.featuredImage}
-          meta={
-            <>
-              {item.category ? (
-                <Link href={`/articles/category/${item.category.slug}`} style={{ textDecoration: "none" }}>
-                  <ContentTag>{item.category.name}</ContentTag>
-                </Link>
-              ) : null}
-              <ContentTag>{formatDate(item.publishedAt)}</ContentTag>
-            </>
-          }
+          meta={<ArticleMeta category={item.category} publishedAt={item.publishedAt} categoryLink />}
         />
 
         <PreservedText title="متن مقاله" body={item.body} />
 
         {item.tags.length > 0 ? (
-          <div style={{ marginBlockStart: "2.5rem", display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
-            <span style={{ fontSize: "0.875rem", color: "var(--color-text-secondary)", fontWeight: 600 }}>برچسب‌ها:</span>
-            {item.tags.map((tag) => (
-              <span
-                key={tag.id}
-                style={{
-                  padding: "0.25rem 0.6rem",
-                  background: "var(--color-surface-raised)",
-                  border: "1px solid var(--color-border-default)",
-                  borderRadius: "var(--radius-sm)",
-                  fontSize: "0.8rem",
-                  color: "var(--color-text-secondary)",
-                }}
-              >
-                #{tag.name}
-              </span>
-            ))}
-          </div>
+          <HStack gap={2} wrap="wrap" vAlign="center" className={styles.tags}>
+            <Text id="article-tags-label" size="sm" weight="bold" color="secondary">برچسب‌ها:</Text>
+            {/* An explicit list role: Safari/VoiceOver drops implicit list semantics from a list without markers. */}
+            <HStack as="ul" role="list" gap={2} wrap="wrap" aria-labelledby="article-tags-label" className={styles.tagList}>
+              {item.tags.map((tag) => (
+                <li key={tag.id}>
+                  <ContentTag><bdi>#{tag.name}</bdi></ContentTag>
+                </li>
+              ))}
+            </HStack>
+          </HStack>
         ) : null}
 
         {relatedArticles.length > 0 ? (
-          <section
-            style={{
-              marginBlockStart: "clamp(3rem, 6vw, 5rem)",
-              borderBlockStart: "1px solid var(--color-border-default)",
-              paddingBlockStart: "2.5rem",
-            }}
-          >
-            <h2
-              style={{
-                fontSize: "clamp(1.3rem, 2.5vw, 1.8rem)",
-                fontWeight: 700,
-                color: "var(--color-brand-primary)",
-                marginBlockEnd: "1.5rem",
-              }}
-            >
+          <section className={styles.related} aria-labelledby="related-articles-title">
+            <Divider />
+            <Heading level={2} id="related-articles-title" color="inherit" className={styles.relatedTitle}>
               مقاله‌های مرتبط
-            </h2>
+            </Heading>
             <ContentGrid>
               {relatedArticles.map((rel) => (
                 <ContentCard
@@ -163,18 +149,14 @@ export default async function ArticleDetailPage({ params }: Props) {
                   summary={rel.summary}
                   href={`/articles/${rel.slug}`}
                   image={rel.featuredImage}
-                  meta={
-                    <>
-                      {rel.category ? <ContentTag>{rel.category.name}</ContentTag> : null}
-                      <ContentTag>{formatDate(rel.publishedAt)}</ContentTag>
-                    </>
-                  }
+                  titleLevel={3}
+                  meta={<ArticleMeta category={rel.category} publishedAt={rel.publishedAt} />}
                 />
               ))}
             </ContentGrid>
           </section>
         ) : null}
-      </article>
+      </VStack>
     </main>
   );
 }

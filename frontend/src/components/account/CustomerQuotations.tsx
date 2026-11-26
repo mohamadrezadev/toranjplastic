@@ -1,9 +1,17 @@
-import { CustomerSubmitButton } from "./CustomerSubmitButton";
+import { Card } from "@astryxdesign/core/Card";
+import { Heading } from "@astryxdesign/core/Heading";
+import { HStack } from "@astryxdesign/core/HStack";
+import { MetadataList, MetadataListItem } from "@astryxdesign/core/MetadataList";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
+import { Alert } from "@/components/feedback";
+import { Button, StatusBadge, Textarea, type StatusBadgeTone } from "@/components/ui";
 import {
   customerQuotationPdfUrl,
   type CustomerQuotation,
 } from "@/lib/customer-quotations";
 import { formatQuotationDate } from "@/lib/quotation-date";
+import { CustomerSubmitButton } from "./CustomerSubmitButton";
 import styles from "./CustomerQuotations.module.css";
 
 const money = (value: string) =>
@@ -23,6 +31,19 @@ const statusText = (status: CustomerQuotation["status"]) => {
   }
 };
 
+const statusTone = (status: CustomerQuotation["status"]): StatusBadgeTone =>
+  status === "ACCEPTED" ? "success" : status === "REJECTED" ? "error" : status === "SENT" ? "info" : "neutral";
+
+/*
+ * Customer quotation block (OpenSpec change rebuild-ui-with-astryx, task 7.3).
+ * Each version is a native <details> disclosure (it works without script and
+ * keeps the open-by-default rule) inside an Astryx Card. The immutable
+ * commercial summary comes first (number, version, status, validity, items,
+ * totals, terms, private PDF), then the answer states as the shared Alert and
+ * the explicit actions: a deliberate accept button and a separate disclosure
+ * for rejecting with an optional reason. Nothing here prices, promises
+ * delivery or implies a purchase; answers are never retried automatically.
+ */
 export function CustomerQuotations({
   inquiryId,
   inquiryVersion = 0,
@@ -41,183 +62,110 @@ export function CustomerQuotations({
   rejectAction?: (inquiryId: string, quotationId: string, form: FormData) => Promise<void> | void;
 }) {
   return (
-    <section
-      className={styles.panel}
-      aria-labelledby="customer-quotations-title"
-    >
-      <div className={styles.heading}>
-        <div>
-          <p>اسناد تجاری خصوصی</p>
-          <h2 id="customer-quotations-title">پیشنهادهای قیمت</h2>
-        </div>
-      </div>
-      {quotations.length ? (
-        <div className={styles.list}>
-          {quotations.map((quotation) => {
-            const isExpired = Boolean(
-              quotation.isExpired ??
-                (now && new Date(quotation.validUntil).getTime() <= now),
-            );
-            const canRespond = quotation.status === "SENT" && inquiryStatus === "QUOTED" && !isExpired;
-            const accept = acceptAction?.bind(null, inquiryId, quotation.id);
-            const reject = rejectAction?.bind(null, inquiryId, quotation.id);
+    <Card className={styles.panel}>
+      <VStack as="section" gap={4} aria-labelledby="customer-quotations-title">
+        <VStack gap={1} hAlign="start">
+          <Text as="p" type="supporting" weight="bold" className={styles.eyebrow}>اسناد تجاری خصوصی</Text>
+          <Heading level={2} id="customer-quotations-title" color="inherit" className={styles.title}>پیشنهادهای قیمت</Heading>
+        </VStack>
+        {quotations.length ? (
+          <VStack gap={3}>
+            {quotations.map((quotation) => {
+              const isExpired = Boolean(
+                quotation.isExpired ??
+                  (now && new Date(quotation.validUntil).getTime() <= now),
+              );
+              const canRespond = quotation.status === "SENT" && inquiryStatus === "QUOTED" && !isExpired;
+              const accept = acceptAction?.bind(null, inquiryId, quotation.id);
+              const reject = rejectAction?.bind(null, inquiryId, quotation.id);
 
-            return (
-              <details
-                className={styles.card}
-                key={quotation.id}
-                open={quotation.status === "SENT" || quotation.status === "ACCEPTED"}
-              >
-                <summary>
-                  <span>
-                    <strong>{quotation.quotationNumber}</strong> · نسخه{" "}
-                    {quotation.version.toLocaleString("fa-IR")}
-                  </span>
-                  <b dir="ltr">{money(quotation.totalRials)}</b>
-                </summary>
-                <div className={styles.body}>
-                  <p className={styles.status}>
-                    {statusText(quotation.status)} · اعتبار تا{" "}
-                    {formatQuotationDate(quotation.validUntil)}
-                  </p>
-                  <div className={styles.items}>
-                    {quotation.items.map((item) => (
-                      <div key={item.id}>
-                        <span>
-                          {item.description} — {item.quantity} {item.unit}
-                        </span>
-                        <b dir="ltr">{money(item.lineTotalRials)}</b>
+              return (
+                <Card key={quotation.id} padding={0} variant="muted" className={styles.card}>
+                  <details open={quotation.status === "SENT" || quotation.status === "ACCEPTED"}>
+                    <summary className={styles.summary}>
+                      <HStack as="span" gap={2} vAlign="center" wrap="wrap">
+                        <Text as="span" color="inherit">
+                          <Text as="span" weight="bold" color="inherit">{quotation.quotationNumber}</Text> · نسخه{" "}
+                          {quotation.version.toLocaleString("fa-IR")}
+                        </Text>
+                        <StatusBadge label={statusText(quotation.status)} tone={statusTone(quotation.status)} />
+                      </HStack>
+                      <Text as="span" weight="bold" color="inherit" dir="ltr">{money(quotation.totalRials)}</Text>
+                    </summary>
+                    <VStack gap={3} className={styles.body}>
+                      <Text as="p" type="supporting" color="secondary">
+                        اعتبار تا {formatQuotationDate(quotation.validUntil)}
+                      </Text>
+                      <VStack gap={1}>
+                        {quotation.items.map((item) => (
+                          <HStack key={item.id} gap={3} hAlign="between" wrap="wrap" className={styles.row}>
+                            <Text as="span">{item.description} — {item.quantity} {item.unit}</Text>
+                            <Text as="span" weight="bold" dir="ltr">{money(item.lineTotalRials)}</Text>
+                          </HStack>
+                        ))}
+                      </VStack>
+                      <MetadataList className={styles.totals}>
+                        <MetadataListItem label="جمع اقلام"><span dir="ltr">{money(quotation.subtotalRials)}</span></MetadataListItem>
+                        <MetadataListItem label="تخفیف"><span dir="ltr">{money(quotation.discountRials)}</span></MetadataListItem>
+                        <MetadataListItem label="مالیات"><span dir="ltr">{money(quotation.taxRials)}</span></MetadataListItem>
+                        <MetadataListItem label="هزینه جانبی"><span dir="ltr">{money(quotation.additionalCostRials)}</span></MetadataListItem>
+                        <MetadataListItem label="مبلغ نهایی"><strong dir="ltr">{money(quotation.totalRials)}</strong></MetadataListItem>
+                      </MetadataList>
+                      <Text as="p"><Text as="span" weight="bold" color="inherit">شرایط تحویل:</Text> {quotation.deliveryTerms}</Text>
+                      <Text as="p"><Text as="span" weight="bold" color="inherit">شرایط پرداخت:</Text> {quotation.paymentTerms}</Text>
+                      {quotation.notes ? <Text as="p"><Text as="span" weight="bold" color="inherit">توضیحات:</Text> {quotation.notes}</Text> : null}
+                      <div>
+                        <Button href={customerQuotationPdfUrl(inquiryId, quotation.id)} target="_blank" rel="noreferrer" variant="secondary">
+                          دریافت PDF خصوصی این نسخه
+                        </Button>
                       </div>
-                    ))}
-                  </div>
-                  <dl>
-                    <div>
-                      <dt>جمع اقلام</dt>
-                      <dd dir="ltr">{money(quotation.subtotalRials)}</dd>
-                    </div>
-                    <div>
-                      <dt>تخفیف</dt>
-                      <dd dir="ltr">{money(quotation.discountRials)}</dd>
-                    </div>
-                    <div>
-                      <dt>مالیات</dt>
-                      <dd dir="ltr">{money(quotation.taxRials)}</dd>
-                    </div>
-                    <div>
-                      <dt>هزینه جانبی</dt>
-                      <dd dir="ltr">{money(quotation.additionalCostRials)}</dd>
-                    </div>
-                    <div className={styles.final}>
-                      <dt>مبلغ نهایی</dt>
-                      <dd dir="ltr">{money(quotation.totalRials)}</dd>
-                    </div>
-                  </dl>
-                  <p>
-                    <strong>شرایط تحویل:</strong> {quotation.deliveryTerms}
-                  </p>
-                  <p>
-                    <strong>شرایط پرداخت:</strong> {quotation.paymentTerms}
-                  </p>
-                  {quotation.notes ? (
-                    <p>
-                      <strong>توضیحات:</strong> {quotation.notes}
-                    </p>
-                  ) : null}
-                  <a
-                    className={styles.download}
-                    href={customerQuotationPdfUrl(inquiryId, quotation.id)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    دریافت PDF خصوصی این نسخه
-                  </a>
 
-                  {quotation.status === "ACCEPTED" ? (
-                    <div className={styles.acceptedNotice}>
-                      ✓ این پیشنهاد قیمت در تاریخ {formatQuotationDate(quotation.respondedAt ?? quotation.updatedAt)} توسط شما پذیرفته شد.
-                    </div>
-                  ) : quotation.status === "REJECTED" ? (
-                    <div className={styles.rejectedNotice}>
-                      ✕ این پیشنهاد قیمت در تاریخ {formatQuotationDate(quotation.respondedAt ?? quotation.updatedAt)} توسط شما رد شد.
-                      {quotation.rejectionReason ? (
-                        <p>علت: {quotation.rejectionReason}</p>
+                      {quotation.status === "ACCEPTED" ? (
+                        <Alert variant="success" title={`این پیشنهاد قیمت در تاریخ ${formatQuotationDate(quotation.respondedAt ?? quotation.updatedAt)} توسط شما پذیرفته شد.`} />
+                      ) : quotation.status === "REJECTED" ? (
+                        <Alert variant="danger" title={`این پیشنهاد قیمت در تاریخ ${formatQuotationDate(quotation.respondedAt ?? quotation.updatedAt)} توسط شما رد شد.`}>
+                          {quotation.rejectionReason ? <Text as="p" color="inherit">علت: {quotation.rejectionReason}</Text> : null}
+                        </Alert>
+                      ) : isExpired && quotation.status === "SENT" ? (
+                        <Alert variant="warning" title="مهلت اعتبار این پیشنهاد قیمت به پایان رسیده است." />
                       ) : null}
-                    </div>
-                  ) : isExpired && quotation.status === "SENT" ? (
-                    <p className={styles.expiredNotice}>
-                      مهلت اعتبار این پیشنهاد قیمت به پایان رسیده است.
-                    </p>
-                  ) : null}
 
-                  {canRespond && accept ? (
-                    <div className={styles.responseSection}>
-                      <form action={accept} className={styles.acceptBox}>
-                        <input
-                          type="hidden"
-                          name="quotationVersion"
-                          value={quotation.version}
-                        />
-                        <input
-                          type="hidden"
-                          name="inquiryExpectedVersion"
-                          value={inquiryVersion}
-                        />
-                        <p className={styles.acceptNotice}>
-                          با تأیید و پذیرش این پیشنهاد قیمت، سفارش وارد فرآیند اجرا می‌شود.
-                        </p>
-                        <CustomerSubmitButton pendingText="در حال ثبت پذیرش…">
-                          تأیید و پذیرش پیشنهاد قیمت
-                        </CustomerSubmitButton>
-                      </form>
-
-                      {reject ? (
-                        <details className={styles.rejectDetails}>
-                          <summary className={styles.rejectSummary}>
-                            رد این پیشنهاد و درخواست اصلاح
-                          </summary>
-                          <form action={reject} className={styles.rejectForm}>
-                            <input
-                              type="hidden"
-                              name="quotationVersion"
-                              value={quotation.version}
-                            />
-                            <input
-                              type="hidden"
-                              name="inquiryExpectedVersion"
-                              value={inquiryVersion}
-                            />
-                            <label
-                              htmlFor={`reject-reason-${quotation.id}`}
-                              className={styles.label}
-                            >
-                              علت رد پیشنهاد (اختیاری)
-                            </label>
-                            <textarea
-                              id={`reject-reason-${quotation.id}`}
-                              name="reason"
-                              maxLength={2000}
-                              placeholder="در صورت تمایل، علت عدم پذیرش یا شرایط مورد نظر خود را بنویسید..."
-                              className={styles.textarea}
-                            />
-                            <CustomerSubmitButton pendingText="در حال ثبت…">
-                              ثبت رد پیشنهاد
-                            </CustomerSubmitButton>
+                      {canRespond && accept ? (
+                        <VStack gap={3} className={styles.responseSection}>
+                          <form action={accept} aria-label="پذیرش پیشنهاد قیمت">
+                            <input type="hidden" name="quotationVersion" value={quotation.version} />
+                            <input type="hidden" name="inquiryExpectedVersion" value={inquiryVersion} />
+                            <VStack gap={3} hAlign="start">
+                              <Text as="p" color="secondary">با تأیید و پذیرش این پیشنهاد قیمت، سفارش وارد فرآیند اجرا می‌شود.</Text>
+                              <CustomerSubmitButton pendingText="در حال ثبت پذیرش…">تأیید و پذیرش پیشنهاد قیمت</CustomerSubmitButton>
+                            </VStack>
                           </form>
-                        </details>
+
+                          {reject ? (
+                            <details className={styles.rejectDetails}>
+                              <summary className={styles.rejectSummary}>رد این پیشنهاد و درخواست اصلاح</summary>
+                              <form action={reject} aria-label="رد پیشنهاد قیمت" className={styles.rejectForm}>
+                                <input type="hidden" name="quotationVersion" value={quotation.version} />
+                                <input type="hidden" name="inquiryExpectedVersion" value={inquiryVersion} />
+                                <VStack gap={3} hAlign="start">
+                                  <Textarea label="علت رد پیشنهاد (اختیاری)" name="reason" maxLength={2000} placeholder="در صورت تمایل، علت عدم پذیرش یا شرایط مورد نظر خود را بنویسید..." />
+                                  <CustomerSubmitButton pendingText="در حال ثبت…">ثبت رد پیشنهاد</CustomerSubmitButton>
+                                </VStack>
+                              </form>
+                            </details>
+                          ) : null}
+                        </VStack>
                       ) : null}
-                    </div>
-                  ) : null}
-                </div>
-              </details>
-            );
-          })}
-        </div>
-      ) : (
-        <p className={styles.empty}>
-          هنوز پیشنهاد قیمتی برای این درخواست ارسال نشده است. این پیام به معنی
-          قیمت، موجودی یا زمان تحویل قطعی نیست.
-        </p>
-      )}
-    </section>
+                    </VStack>
+                  </details>
+                </Card>
+              );
+            })}
+          </VStack>
+        ) : (
+          <Alert variant="info" title="هنوز پیشنهاد قیمتی برای این درخواست ارسال نشده است. این پیام به معنی قیمت، موجودی یا زمان تحویل قطعی نیست." />
+        )}
+      </VStack>
+    </Card>
   );
 }

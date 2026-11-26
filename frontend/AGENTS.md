@@ -8,6 +8,12 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
+<!-- ASTRYX:START -->
+Astryx v0.7.13 is locked through `pnpm astryx`. The canonical Astryx workflow,
+constraints, and Toranj-specific overrides are maintained in the repository-root
+`AGENTS.md`; they are mandatory for every frontend change and are not duplicated here.
+<!-- ASTRYX:END -->
+
 ## Toranj frontend rules
 
 - Root `AGENTS.md` and the active spec are mandatory.

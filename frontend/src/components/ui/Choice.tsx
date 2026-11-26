@@ -1,4 +1,8 @@
-import type { InputHTMLAttributes } from "react";
+"use client";
+
+import { CheckboxInput } from "@astryxdesign/core/CheckboxInput";
+import { Switch as AstryxSwitch } from "@astryxdesign/core/Switch";
+import { useState, type ChangeEvent, type InputHTMLAttributes } from "react";
 import { FieldSupport } from "./FieldSupport";
 import { useFieldMetadata } from "./field-utils";
 import styles from "./Field.module.css";
@@ -16,6 +20,86 @@ function Choice({ type, role, label, helpText, error, id, className, ...props }:
   </div>;
 }
 
-export function Checkbox(props: ChoiceProps) { return <Choice {...props} type="checkbox" />; }
 export function Radio(props: ChoiceProps) { return <Choice {...props} type="radio" />; }
-export function Switch(props: ChoiceProps) { return <Choice {...props} type="checkbox" role="switch" />; }
+
+export function Checkbox({
+  label,
+  helpText,
+  error,
+  checked,
+  defaultChecked,
+  onChange,
+  disabled,
+  readOnly,
+  required,
+  name,
+  id,
+  className,
+  value: submitValue,
+}: ChoiceProps) {
+  const [internalValue, setInternalValue] = useState(Boolean(defaultChecked));
+  const resolvedValue = checked === undefined ? internalValue : checked;
+  // Astryx's checkbox always submits the browser default ("on"). A caller that
+  // needs a specific submitted value (`value="yes"`, `value="true"`) gets it
+  // from a hidden input that exists only while the box is checked and enabled.
+  const ownsSubmit = typeof submitValue === "string" && name !== undefined;
+
+  function handleChange(nextValue: boolean, event: ChangeEvent<HTMLInputElement>) {
+    if (checked === undefined) setInternalValue(nextValue);
+    onChange?.(event);
+  }
+
+  return <>
+    <CheckboxInput
+      {...{ required }}
+      id={id}
+      label={label}
+      description={helpText}
+      status={error ? { type: "error", message: error } : undefined}
+      value={resolvedValue}
+      onChange={handleChange}
+      isDisabled={disabled}
+      isReadOnly={readOnly}
+      isRequired={required}
+      htmlName={ownsSubmit ? undefined : name}
+      className={className}
+    />
+    {ownsSubmit && resolvedValue && !disabled ? <input type="hidden" name={name} value={submitValue} /> : null}
+  </>;
+}
+
+export function Switch({
+  label,
+  helpText,
+  error,
+  checked,
+  defaultChecked,
+  onChange,
+  disabled,
+  required,
+  name,
+  id,
+  className,
+}: ChoiceProps) {
+  const [internalValue, setInternalValue] = useState(Boolean(defaultChecked));
+  const resolvedValue = checked === undefined ? internalValue : checked;
+
+  function handleChange(nextValue: boolean, event: ChangeEvent<HTMLInputElement>) {
+    if (checked === undefined) setInternalValue(nextValue);
+    onChange?.(event);
+  }
+
+  return <AstryxSwitch
+    {...{ required }}
+    id={id}
+    label={label}
+    description={helpText}
+    status={error ? { type: "error", message: error } : undefined}
+    value={resolvedValue}
+    onChange={handleChange}
+    isDisabled={disabled}
+    isRequired={required}
+    htmlName={name}
+    className={className}
+  />;
+}

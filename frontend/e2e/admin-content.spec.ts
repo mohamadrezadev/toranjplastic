@@ -17,7 +17,7 @@ for (const path of adminRoutes) {
       { name: 'toranj_csrf', value: 'fixture-csrf', domain: '127.0.0.1', path: '/', sameSite: 'Lax' },
     ]);
     await page.goto(path);
-    await expect(page.getByRole('status')).toBeHidden({ timeout: 15_000 });
+    await expect(page.getByRole('status').filter({ hasText: /\S/ })).toBeHidden({ timeout: 15_000 });
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
     await expect(page.locator('a[href="/admin/inquiries"]')).toHaveCount(2);

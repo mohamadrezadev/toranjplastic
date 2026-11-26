@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
+import { LoadingState } from "@/components/feedback";
 import { Button } from "@/components/ui";
 import { AdminPortalShell } from "@/components/admin/AdminPortalShell";
 import { getAdminAccess } from "@/lib/auth";
 import { logoutAction } from "../auth/actions";
-import authStyles from "../auth/Auth.module.css";
+import { AuthStatus } from "../auth/AuthFrame";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
@@ -14,33 +15,23 @@ async function AdminGate({ children }: { children: ReactNode }) {
   if (access.status === 401) redirect("/auth/login");
   if (access.status === 403) {
     return (
-      <main className={authStyles.main}>
-        <section className={authStyles.card}>
-          <h1>دسترسی مجاز نیست</h1>
-          <p>این حساب مجوز ورود به پنل مدیریت را ندارد.</p>
-          <form action={logoutAction}>
-            <Button type="submit" variant="secondary">خروج</Button>
-          </form>
-        </section>
-      </main>
+      <AuthStatus
+        title="دسترسی مجاز نیست"
+        actions={<form action={logoutAction}><Button type="submit" variant="secondary">خروج</Button></form>}
+      >
+        این حساب مجوز ورود به پنل مدیریت را ندارد.
+      </AuthStatus>
     );
   }
   if (!access.account) {
-    return (
-      <main className={authStyles.main}>
-        <section className={authStyles.card}>
-          <h1>پنل موقتاً در دسترس نیست</h1>
-          <p>لطفاً کمی بعد دوباره تلاش کنید.</p>
-        </section>
-      </main>
-    );
+    return <AuthStatus title="پنل موقتاً در دسترس نیست">لطفاً کمی بعد دوباره تلاش کنید.</AuthStatus>;
   }
   return <AdminPortalShell account={access.account} logoutAction={logoutAction}>{children}</AdminPortalShell>;
 }
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <Suspense fallback={<p role="status">در حال بررسی دسترسی…</p>}>
+    <Suspense fallback={<LoadingState label="در حال بررسی دسترسی…" />}>
       <AdminGate>{children}</AdminGate>
     </Suspense>
   );

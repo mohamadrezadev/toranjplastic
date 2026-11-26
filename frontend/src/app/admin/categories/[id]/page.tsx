@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Button, Input, Textarea } from "@/components/ui";
+import { Input, Textarea } from "@/components/ui";
 import { AdminContentError, archiveCategoryAction, getCategory, publishCategoryAction, updateCategoryAction } from "@/features/admin-content/category";
-import { StatusBadge } from "../../content/StatusBadge";
-import styles from "../../Admin.module.css";
+import { AdminFieldset, AdminForm, AdminFormAlert, AdminFormRow, AdminPage, AdminStatusActions, ContentStatusBadge } from "@/components/admin/AdminContent";
 
 export const metadata: Metadata = { title: "ویرایش دسته‌بندی", robots: { index: false, follow: false } };
 export const instant = false;
@@ -31,51 +30,27 @@ export default async function EditCategoryPage({ params, searchParams }: { param
   const archiveAction = archiveCategoryAction.bind(null, id);
 
   return (
-    <main className={styles.main}>
-      <div className={styles.shell}>
-        <section className={styles.card}>
-          <div className={styles.header}>
-            <h1>ویرایش دسته‌بندی</h1>
-            <StatusBadge status={category.status} />
-          </div>
-          {error ? <p className={styles.feedback} role="alert">{errorMessages[error] ?? errorMessages.failed}</p> : null}
+    <AdminPage title="ویرایش دسته‌بندی" badge={<ContentStatusBadge status={category.status} />}>
+      {error ? <AdminFormAlert message={errorMessages[error] ?? errorMessages.failed} /> : null}
+      <AdminStatusActions status={category.status} publishAction={publishAction} archiveAction={archiveAction} />
 
-          <div className={styles.statusActions}>
-            {category.status === "PUBLISHED" ? (
-              <span className={styles.statusLabel}>منتشرشده</span>
-            ) : (
-              <form action={publishAction}><Button type="submit">انتشار</Button></form>
-            )}
-            {category.status === "ARCHIVED" ? (
-              <span className={styles.statusLabel}>آرشیوشده</span>
-            ) : (
-              <form action={archiveAction}><Button type="submit" variant="danger">آرشیو</Button></form>
-            )}
-          </div>
-
-          <form action={updateAction} className={styles.form}>
-            <div className={styles.row}>
-              <Input label="نام" name="name" defaultValue={category.name} required maxLength={160} />
-              <Input label="اسلاگ" name="slug" dir="ltr" defaultValue={category.slug} required maxLength={160} />
-            </div>
-            <Textarea label="توضیحات (اختیاری)" name="description" defaultValue={category.description ?? ""} maxLength={2000} rows={4} />
-            <fieldset className={styles.fieldset}>
-              <legend>تصویر (اختیاری)</legend>
-              <div className={styles.row}>
-                <Input label="آدرس تصویر" name="imageUrl" dir="ltr" defaultValue={category.image?.url ?? ""} maxLength={2048} />
-                <Input label="متن جایگزین" name="imageAlt" defaultValue={category.image?.alt ?? ""} maxLength={240} />
-              </div>
-            </fieldset>
-            <div className={styles.row}>
-              <Input label="عنوان متا (اختیاری)" name="metaTitle" defaultValue={category.metaTitle ?? ""} maxLength={160} />
-              <Input label="توضیح متا (اختیاری)" name="metaDescription" defaultValue={category.metaDescription ?? ""} maxLength={320} />
-            </div>
-            <div className={styles.formActions}>
-              <Button type="submit">ذخیره تغییرات</Button>
-            </div>
-          </form>
-        </section>
-      </div>
-    </main>
+      <AdminForm action={updateAction} submitLabel="ذخیره تغییرات">
+        <AdminFormRow>
+          <Input label="نام" name="name" defaultValue={category.name} required maxLength={160} />
+          <Input label="اسلاگ" name="slug" dir="ltr" defaultValue={category.slug} required maxLength={160} />
+        </AdminFormRow>
+        <Textarea label="توضیحات (اختیاری)" name="description" defaultValue={category.description ?? ""} maxLength={2000} rows={4} />
+        <AdminFieldset legend={<>تصویر (اختیاری)</>}>
+          <AdminFormRow>
+            <Input label="آدرس تصویر" name="imageUrl" dir="ltr" defaultValue={category.image?.url ?? ""} maxLength={2048} />
+            <Input label="متن جایگزین" name="imageAlt" defaultValue={category.image?.alt ?? ""} maxLength={240} />
+          </AdminFormRow>
+        </AdminFieldset>
+        <AdminFormRow>
+          <Input label="عنوان متا (اختیاری)" name="metaTitle" defaultValue={category.metaTitle ?? ""} maxLength={160} />
+          <Input label="توضیح متا (اختیاری)" name="metaDescription" defaultValue={category.metaDescription ?? ""} maxLength={320} />
+        </AdminFormRow>
+      </AdminForm>
+    </AdminPage>
   );
 }

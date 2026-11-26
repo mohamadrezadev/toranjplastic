@@ -1,0 +1,14 @@
+/*
+ * Alert title as a heading (OpenSpec change rebuild-ui-with-astryx, OD-7
+ * additive part). The Astryx Banner draws its title in a block of its own type
+ * (label size, semibold weight, label line height, the status foreground). A
+ * title that is a real heading must look the same, so the heading takes all of
+ * that from the Banner title around it instead of the heading-level type scale
+ * and margins. Unlayered, so it outranks the Astryx base layer (documented
+ * className extension point of Heading).
+ */
+.heading {
+  margin: 0;
+  font: inherit;
+  letter-spacing: inherit;
+}
