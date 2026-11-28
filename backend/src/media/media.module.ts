@@ -10,8 +10,9 @@ import { MediaService } from './media.service.js';
 import { MediaMaintenanceService } from './media-maintenance.service.js';
 import { MEDIA_CONFIG } from './media.tokens.js';
 import { MediaImageProcessor } from './processing/media-image.processor.js';
-import { MEDIA_STORAGE } from './storage/media-storage.js';
+import { MEDIA_STORAGE, type MediaStorage } from './storage/media-storage.js';
 import { MountedDiskStorage } from './storage/mounted-disk.storage.js';
+import { S3MediaStorage } from './storage/s3.storage.js';
 
 @Module({
   imports: [DatabaseModule, IdentityModule],
@@ -24,7 +25,15 @@ import { MountedDiskStorage } from './storage/mounted-disk.storage.js';
     {
       provide: MEDIA_STORAGE,
       inject: [MEDIA_CONFIG],
-      useFactory: (config: AppEnvironment['media']) => new MountedDiskStorage(config.root),
+      useFactory: (config: AppEnvironment['media']): MediaStorage => {
+        if (config.storageProvider === 's3') {
+          if (!config.s3) {
+            throw new Error('S3 media storage configuration is missing.');
+          }
+          return new S3MediaStorage(config.s3);
+        }
+        return new MountedDiskStorage(config.root);
+      },
     },
     PrismaMediaRepository,
     {
@@ -34,7 +43,7 @@ import { MountedDiskStorage } from './storage/mounted-disk.storage.js';
     {
       provide: MediaImageProcessor,
       inject: [MEDIA_STORAGE, MEDIA_CONFIG],
-      useFactory: (storage: MountedDiskStorage, config: AppEnvironment['media']) => new MediaImageProcessor(storage, config),
+      useFactory: (storage: MediaStorage, config: AppEnvironment['media']) => new MediaImageProcessor(storage, config),
     },
     MediaService,
     MediaMaintenanceService,

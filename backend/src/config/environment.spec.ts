@@ -23,6 +23,31 @@ describe('loadEnvironment', () => {
     });
   });
 
+  it('loads valid S3 configuration without requiring MEDIA_ROOT in production', () => {
+    const loaded = loadEnvironment({
+      NODE_ENV: 'production',
+      MEDIA_PUBLIC_ORIGIN: 'https://api.example.com',
+      MEDIA_STORAGE_PROVIDER: 's3',
+      MEDIA_S3_ENDPOINT: 'http://127.0.0.1:9000',
+      MEDIA_S3_REGION: 'us-east-1',
+      MEDIA_S3_BUCKET: 'toranj-media',
+      MEDIA_S3_ACCESS_KEY_ID: 'minioadmin',
+      MEDIA_S3_SECRET_ACCESS_KEY: 'minioadmin',
+      MEDIA_S3_KEY_PREFIX: '/backend/',
+    });
+
+    expect(loaded.media.storageProvider).toBe('s3');
+    expect(loaded.media.s3).toEqual({
+      endpoint: 'http://127.0.0.1:9000',
+      region: 'us-east-1',
+      bucket: 'toranj-media',
+      accessKeyId: 'minioadmin',
+      secretAccessKey: 'minioadmin',
+      forcePathStyle: true,
+      keyPrefix: 'backend',
+    });
+  });
+
   it.each(['0', '65536', 'abc'])('rejects invalid port %s', (port) => {
     expect(() => loadEnvironment({ BACKEND_PORT: port })).toThrow(
       'BACKEND_PORT',
@@ -45,7 +70,7 @@ describe('loadEnvironment', () => {
   });
 
   it.each([
-    ['MEDIA_STORAGE_PROVIDER', 's3'],
+    ['MEDIA_STORAGE_PROVIDER', 'unknown'],
     ['MEDIA_ROOT', 'relative/media'],
     ['MEDIA_MAX_UPLOAD_BYTES', '0'],
     ['MEDIA_MAX_PIXELS', '40000001'],
@@ -55,5 +80,22 @@ describe('loadEnvironment', () => {
     ['MEDIA_UNATTACHED_RETENTION_DAYS', '0'],
   ])('rejects unsafe media setting %s=%s', (name, value) => {
     expect(() => loadEnvironment({ [name]: value })).toThrow(name);
+  });
+
+  it('requires S3 bucket and credentials when MEDIA_STORAGE_PROVIDER=s3', () => {
+    expect(() => loadEnvironment({ MEDIA_STORAGE_PROVIDER: 's3' })).toThrow('MEDIA_S3_BUCKET');
+    expect(() =>
+      loadEnvironment({
+        MEDIA_STORAGE_PROVIDER: 's3',
+        MEDIA_S3_BUCKET: 'toranj-media',
+      }),
+    ).toThrow('MEDIA_S3_ACCESS_KEY_ID');
+    expect(() =>
+      loadEnvironment({
+        MEDIA_STORAGE_PROVIDER: 's3',
+        MEDIA_S3_BUCKET: 'toranj-media',
+        MEDIA_S3_ACCESS_KEY_ID: 'key',
+      }),
+    ).toThrow('MEDIA_S3_SECRET_ACCESS_KEY');
   });
 });
