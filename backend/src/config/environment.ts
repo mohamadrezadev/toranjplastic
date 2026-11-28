@@ -1,6 +1,16 @@
 import { isAbsolute, parse, resolve } from 'node:path';
 
-export type MediaStorageProvider = 'mounted-disk';
+export type MediaStorageProvider = 'mounted-disk' | 's3';
+
+export interface S3MediaConfig {
+  endpoint?: string;
+  region: string;
+  bucket: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  forcePathStyle: boolean;
+  keyPrefix?: string;
+}
 
 export interface AppEnvironment {
   port: number;
@@ -14,6 +24,7 @@ export interface AppEnvironment {
   media: {
     storageProvider: MediaStorageProvider;
     root: string;
+    s3?: S3MediaConfig;
     publicOrigin: string;
     maxUploadBytes: number;
     maxPixels: number;
@@ -42,9 +53,9 @@ function origin(value: string, name: string, requireHttps: boolean) {
   return value;
 }
 
-function mediaRoot(environment: NodeJS.ProcessEnv) {
+function mediaRoot(environment: NodeJS.ProcessEnv, requiredInProduction: boolean) {
   const configured = environment.MEDIA_ROOT;
-  if (!configured && environment.NODE_ENV === 'production') {
+  if (!configured && requiredInProduction && environment.NODE_ENV === 'production') {
     throw new Error('MEDIA_ROOT is required in production.');
   }
 
@@ -53,6 +64,52 @@ function mediaRoot(environment: NodeJS.ProcessEnv) {
     throw new Error('MEDIA_ROOT must be an absolute non-root path.');
   }
   return resolve(root);
+}
+
+function requiredText(value: string | undefined, name: string) {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    throw new Error(`${name} is required when MEDIA_STORAGE_PROVIDER=s3.`);
+  }
+  return trimmed;
+}
+
+function s3Config(environment: NodeJS.ProcessEnv): S3MediaConfig {
+  const bucket = requiredText(environment.MEDIA_S3_BUCKET, 'MEDIA_S3_BUCKET');
+  const accessKeyId = requiredText(environment.MEDIA_S3_ACCESS_KEY_ID, 'MEDIA_S3_ACCESS_KEY_ID');
+  const secretAccessKey = requiredText(environment.MEDIA_S3_SECRET_ACCESS_KEY, 'MEDIA_S3_SECRET_ACCESS_KEY');
+  const region = environment.MEDIA_S3_REGION?.trim() || 'us-east-1';
+
+  const rawEndpoint = environment.MEDIA_S3_ENDPOINT?.trim();
+  let endpoint: string | undefined;
+  if (rawEndpoint) {
+    const parsed = new URL(rawEndpoint);
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      throw new Error('MEDIA_S3_ENDPOINT must be an http or https URL.');
+    }
+    endpoint = parsed.origin;
+  }
+
+  const rawForcePathStyle = environment.MEDIA_S3_FORCE_PATH_STYLE;
+  if (rawForcePathStyle && !['true', 'false'].includes(rawForcePathStyle)) {
+    throw new Error('MEDIA_S3_FORCE_PATH_STYLE must be true or false.');
+  }
+  const forcePathStyle = rawForcePathStyle ? rawForcePathStyle === 'true' : Boolean(endpoint);
+
+  const rawPrefix = environment.MEDIA_S3_KEY_PREFIX?.trim().replace(/^\/+|\/+$/g, '');
+  if (rawPrefix && (rawPrefix.includes('..') || rawPrefix.includes('\\'))) {
+    throw new Error('MEDIA_S3_KEY_PREFIX must be a safe relative prefix.');
+  }
+
+  return {
+    ...(endpoint ? { endpoint } : {}),
+    region,
+    bucket,
+    accessKeyId,
+    secretAccessKey,
+    forcePathStyle,
+    ...(rawPrefix ? { keyPrefix: rawPrefix } : {}),
+  };
 }
 
 export function loadEnvironment(
@@ -75,11 +132,12 @@ export function loadEnvironment(
   if (!['true', 'false'].includes(secureValue)) throw new Error('AUTH_COOKIE_SECURE must be true or false.');
 
   const storageProvider = environment.MEDIA_STORAGE_PROVIDER ?? 'mounted-disk';
-  if (storageProvider !== 'mounted-disk') {
-    throw new Error('MEDIA_STORAGE_PROVIDER must be mounted-disk.');
+  if (storageProvider !== 'mounted-disk' && storageProvider !== 's3') {
+    throw new Error('MEDIA_STORAGE_PROVIDER must be mounted-disk or s3.');
   }
 
-  const root = mediaRoot(environment);
+  const root = mediaRoot(environment, storageProvider === 'mounted-disk');
+  const s3 = storageProvider === 's3' ? s3Config(environment) : undefined;
   const publicOrigin = origin(
     environment.MEDIA_PUBLIC_ORIGIN ?? 'http://localhost:3001',
     'MEDIA_PUBLIC_ORIGIN',
@@ -98,6 +156,7 @@ export function loadEnvironment(
     media: {
       storageProvider,
       root,
+      ...(s3 ? { s3 } : {}),
       publicOrigin,
       maxUploadBytes: boundedInteger(environment.MEDIA_MAX_UPLOAD_BYTES, 10_485_760, 'MEDIA_MAX_UPLOAD_BYTES', 1_048_576, 26_214_400),
       maxPixels: boundedInteger(environment.MEDIA_MAX_PIXELS, 20_000_000, 'MEDIA_MAX_PIXELS', 1_000_000, 40_000_000),

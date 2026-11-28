@@ -215,3 +215,34 @@ curl -i https://api.yourdomain.com/api/v1/ready
 3. **رول‌بک ایمن و غیرمخرب (Non-destructive Rollback):**
    - فایل‌های مقصد اولیه در طول فرآیند به صورت Read-Only حفظ می‌شوند تا در صورت انصراف، بدون قطعی سرویس به دیسک اصلی بازگردد.
 
+---
+
+## ۷. استفاده از فضای ذخیره‌سازی S3-Compatible (به‌جای Persistent Disk)
+
+برای حذف وابستگی به دیسک مانت‌شده در ران‌فلر، می‌توانید هر دو سرویس `backend` و `cms` را به Object Storage سازگار با S3 (مانند باکت ران‌فلر، آروان یا MinIO) متصل کنید:
+
+### متغیرهای `backend` برای S3:
+```env
+MEDIA_STORAGE_PROVIDER=s3
+MEDIA_S3_ENDPOINT=https://your-s3-endpoint
+MEDIA_S3_REGION=us-east-1
+MEDIA_S3_BUCKET=toranj-media
+MEDIA_S3_ACCESS_KEY_ID=your-access-key
+MEDIA_S3_SECRET_ACCESS_KEY=your-secret-key
+MEDIA_S3_FORCE_PATH_STYLE=true
+MEDIA_S3_KEY_PREFIX=backend
+```
+
+### متغیرهای `cms` (Strapi) برای S3:
+```env
+STRAPI_UPLOAD_PROVIDER=aws-s3
+STRAPI_S3_ENDPOINT=https://your-s3-endpoint
+STRAPI_S3_REGION=us-east-1
+STRAPI_S3_BUCKET=toranj-cms
+STRAPI_S3_ACCESS_KEY_ID=your-access-key
+STRAPI_S3_SECRET_ACCESS_KEY=your-secret-key
+STRAPI_S3_FORCE_PATH_STYLE=true
+```
+در حالت استفاده از S3 برای `cms`، مقدار `STRAPI_MEDIA_ORIGIN` در سرویس `frontend` را برابر دامنه عمومی باکت یا CDN آن قرار دهید.
+
+
